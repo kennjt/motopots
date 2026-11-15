@@ -1,9 +1,20 @@
 
 import { useState } from 'react';
-import inasalImage from '../assets/inasal.jpg';
-import inasalPlatterImage from '../assets/inasalplatter.jpg';
-import takoyakiImage from '../assets/takoyaki.jpg';
-import haloHaloImage from '../assets/halohalo.jpg';
+
+import inasal from '../assets/inasal.png';
+import inasalplatter from '../assets/inasalplatter.png';
+
+import halohalo from '../assets/Special Halo Halo.png';
+import sagingConYelo from '../assets/sagingconyelo.png';
+import cheesyHaloHalo from '../assets/cheesyhalohalo.png';
+import maisConYelo from '../assets/maisconyelo.png';
+
+import octobits from '../assets/octobits.png';
+import cheesebomb from '../assets/cheesebomb.png';
+import takocanton from '../assets/takocanton.png';
+import takofries from '../assets/takofries.png';
+
+
 
 const categories = [
   'All',
@@ -18,18 +29,18 @@ const menuItems = [
     name: 'Bacolod Chicken Inasal',
     category: 'Bacolod Chicken Inasal',
     description:
-      'Grilled chicken marinated in calamansi, lemongrass and annatto, served on a banana leaf with rice and sawsawan.',
+      'A Filipino classic featuring succulent grilled chicken, vibrant Java Rice, salted egg, tomatoes, and a bold soy-vinegar dip.',
     price: 120,
-    image: inasalImage,
+    image: inasal,
   },
   {
     id: 2,
     name: 'Bacolod Chicken Inasal Platter',
     category: 'Bacolod Chicken Inasal',
     description:
-      'One piece of chicken inasal with rice, soup and our signature dipping sauce.',
-    price: 150,
-    image: inasalPlatterImage,
+      'Our signature whole grilled chicken is marinated in a special blend of herbs and spices, then flamed-grilled to juicy perfection. Served fresh with classic Filipino sides for a feast thats perfect for sharing',
+    price: 499,
+    image: inasalplatter,
   },
   {
     id: 3,
@@ -38,7 +49,7 @@ const menuItems = [
     description:
       'Crisp outside, soft inside. Topped with sauce, mayo and bonito flakes.',
     price: 60,
-    image: takoyakiImage,
+    image: octobits,
   },
   {
     id: 4,
@@ -47,7 +58,7 @@ const menuItems = [
     description:
       'Crisp outside, soft inside. Topped with sauce, mayo and bonito flakes.',
     price: 70,
-    image: takoyakiImage,
+    image: cheesebomb,
   },
   {
     id: 5,
@@ -56,7 +67,7 @@ const menuItems = [
     description:
       'Crisp outside, soft inside. Topped with sauce, mayo and bonito flakes.',
     price: 130,
-    image: takoyakiImage,
+    image: takocanton,
   },
   {
     id: 6,
@@ -65,7 +76,7 @@ const menuItems = [
     description:
       'Crisp outside, soft inside. Topped with sauce, mayo and bonito flakes.',
     price: 140,
-    image: takoyakiImage,
+    image: takofries,
   },
   {
     id: 7,
@@ -74,7 +85,7 @@ const menuItems = [
     description:
       'A refreshing Filipino dessert with crushed ice, sweetened fruits, milk and creamy toppings.',
     price: 60,
-    image: haloHaloImage,
+    image: halohalo,
   },
   {
     id: 8,
@@ -83,7 +94,7 @@ const menuItems = [
     description:
       'A refreshing Filipino dessert with crushed ice, sweetened fruits, milk and creamy toppings.',
     price: 50,
-    image: haloHaloImage,
+    image: sagingConYelo,
   },
   {
     id: 9,
@@ -92,7 +103,7 @@ const menuItems = [
     description:
       'A refreshing Filipino dessert with crushed ice, sweetened fruits, milk and creamy toppings.',
     price: 100,
-    image: haloHaloImage,
+    image: cheesyHaloHalo,
   },
   {
     id: 10,
@@ -101,7 +112,7 @@ const menuItems = [
     description:
       'A refreshing Filipino dessert with crushed ice, sweetened fruits, milk and creamy toppings.',
     price: 50,
-    image: haloHaloImage,
+    image: maisConYelo,
   },
 ];
 
@@ -114,105 +125,116 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
       activeCategory === 'All' ||
       item.category === activeCategory;
 
-    const matchesSearch = item.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
+    const matchesSearch =
+      item.name.toLowerCase().includes(search.toLowerCase());
 
     return matchesCategory && matchesSearch;
   });
 
   return (
     <section className="min-h-screen bg-transparent px-0 py-5 sm:px-2">
-
       <div className="mx-auto max-w-7xl">
 
-        {/* Category Navigation and Search */}
-        <div className="mb-6 grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-[2fr_1fr]">
+        {/* Categories and Search */}
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-          {/* Categories */}
-          <div className="flex min-w-0 items-center gap-1 overflow-x-auto border-b-2 border-[#1F2A44] pb-px">
-
+          {/* Category Filters */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
             {categories.map((category) => (
               <button
                 key={category}
+                type="button"
                 onClick={() => setActiveCategory(category)}
-                className={`min-h-11 shrink-0 whitespace-nowrap px-3 py-2.5 text-sm font-bold transition-colors sm:px-4 sm:text-base ${
+                className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
                   activeCategory === category
-                    ? 'rounded-t-xl bg-[#1F2A44] text-white'
-                    : 'text-[#1F2A44] hover:bg-[#F7ECD4]'
+                    ? 'bg-[#E9A82C] text-[#2B2118] shadow-sm'
+                    : 'bg-[#EAE5D9] text-[#2B2118] hover:bg-[#F2D9A5]'
                 }`}
               >
                 {category}
               </button>
             ))}
-
           </div>
 
           {/* Search */}
-          <div>
+          <div className="w-full lg:max-w-[360px]">
             <input
               type="text"
               placeholder="Search the menu..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-full border-2 border-[#1F2A44] bg-transparent px-4 py-2 text-sm text-[#2B2118] outline-none placeholder:text-[#746B63] focus:ring-2 focus:ring-[#E9A82C]"
+              aria-label="Search menu items"
+              className="w-full rounded-full border border-[#1F2A44] bg-transparent px-5 py-3 text-sm text-[#2B2118] outline-none transition-all placeholder:text-[#746B63] focus:border-[#B3231B] focus:ring-2 focus:ring-[#E9A82C]/40"
             />
           </div>
-
         </div>
 
-        {/* Menu Cards */}
+        {/* Menu Grid */}
         {filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
             {filteredItems.map((item) => (
-              <div
+              <article
                 key={item.id}
-                className="flex flex-col overflow-hidden rounded-[24px] bg-white shadow-[0_8px_25px_rgba(43,33,24,0.10)] transition-transform duration-300 hover:-translate-y-1"
+                className="group relative flex min-h-[360px] flex-col overflow-hidden rounded-2xl bg-[#EAE5D9] p-4 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-[#2B2118]/10"
               >
 
                 {/* Food Image */}
-                <div className="aspect-[4/2] w-full overflow-hidden">
+                <div className="relative flex h-[230px] shrink-0 items-center justify-center overflow-visible">
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-contain p-2 transition-all duration-500 ease-out group-hover:-translate-y-5 group-hover:scale-110"
                   />
                 </div>
 
-                {/* Card Content */}
-                <div className="flex flex-1 flex-col p-3 text-left">
+                {/* Default Card Content */}
+                <div className="mt-auto flex flex-col gap-3 transition-all duration-300 lg:group-hover:opacity-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-lg  text-left font-extrabold leading-tight text-[#1F2A44]">
+                      {item.name}
+                    </h3>
 
-                    <h3 className="mb-2 break-words text-xl leading-tight font-bold text-[#2B2118] sm:text-[22px]">
-                    {item.name}
-                  </h3>
+                    <span className="shrink-0 text-base font-semibold text-[#2B2118]">
+                      ₱{item.price.toFixed(2)}
+                    </span>
+                  </div>
 
-                  <p className="mb-3 text-[14px] leading-tight text-[#493729]">
+                  <span className="w-fit rounded-full border border-[#2B2118]/40 px-3 py-1 text-xs font-medium text-[#2B2118]">
+                    {item.category}
+                  </span>
+                </div>
+
+                {/* Hover Content */}
+                <div className="mt-4 flex flex-1 flex-col justify-end gap-3 opacity-100 transition-all duration-300 lg:absolute lg:inset-x-4 lg:bottom-4 lg:mt-0 lg:translate-y-3 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100">
+
+                  <p className="text-center text-sm leading-relaxed text-[#2B2118]">
                     {item.description}
                   </p>
 
-                  </div>
+                  {showAddToCart && (
+                    <div className="flex flex-col gap-2">
 
-                  <div className="mt-auto border-t border-[#E5DCCB] p-3 text-left">
-                    <div className="flex items-center justify-between gap-2">
-                    <span className="text-xl font-extrabold text-[#B3231B]">
-                      ₱{item.price.toFixed(2)}
-                    </span>
-                    {showAddToCart && (
+                      <div className="flex items-center justify-between text-sm font-bold text-[#1F2A44]">
+                        <span>Price</span>
+                        <span>₱{item.price.toFixed(2)}</span>
+                      </div>
+
                       <button
                         type="button"
                         onClick={() => onAddToCart(item)}
-                        className="rounded-lg bg-[#B3231B] px-3 py-2 text-sm font-extrabold text-white transition-colors hover:bg-[#8C1913]"
+                        className="w-full rounded-full bg-[#B3231B] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-[#8C1913] hover:shadow-lg active:scale-95"
                       >
-                        {cart[item.id] ? `Add more (${cart[item.id].quantity})` : 'Add to Cart'}
+                        {cart[item.id]
+                          ? `Add to Cart (${cart[item.id].quantity})`
+                          : 'Add to Cart'}
                       </button>
-                    )}
-                    </div>
-                  </div>
 
-                  
+                    </div>
+                  )}
 
                 </div>
+              </article>
             ))}
 
           </div>
@@ -221,14 +243,25 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
             <h3 className="text-2xl font-bold text-[#1F2A44]">
               No menu items found
             </h3>
+
             <p className="mt-2 text-[#493729]">
               Try another search or select a different category.
             </p>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setActiveCategory('All');
+              }}
+              className="mt-5 rounded-full bg-[#B3231B] px-5 py-2.5 font-bold text-white transition-colors hover:bg-[#8C1913]"
+            >
+              Clear Filters
+            </button>
           </div>
         )}
 
       </div>
-
     </section>
   );
 }

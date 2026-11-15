@@ -19,7 +19,7 @@ function HomePage() {
       <main>
         <section
           id="home"
-          className="mp-hero flex min-h-[calc(100svh-76px)] items-center py-8 sm:py-5">
+          className="mp-hero relative isolate -mt-[76px] flex min-h-[calc(100vh+30px)] items-center overflow-hidden pt-[76px] pb-8">
 
           <div className="absolute inset-y-0 right-0 -z-10 hidden w-[45%] bg-gradient-to-l from-[#700F16] via-[#D94A40] to-[#FFFAF0] lg:block" />
 
@@ -86,7 +86,7 @@ function HomePage() {
           </div>
         </section>
 
-        <section id="menu" className="min-h-screen relative z-10 bg-[#fffaf0] pt-16 pb-16 w-full">
+        <section id="menu" className="relative z-10 min-h-screen w-full bg-[#fffaf0] py-16">
           <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-4 text-center">
             <h2 className="mb-1 font-['Alfa_Slab_One',serif] text-3xl text-[#1F2A44] sm:text-4xl">
               Our Menu
@@ -137,6 +137,8 @@ function HomePage() {
     </>
   );
 }
+
+
 
 function App() {
   return (

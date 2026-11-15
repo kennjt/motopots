@@ -30,7 +30,7 @@ function LoginForm({ role }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-white/60 bg-white/40 p-5 shadow-xl shadow-[#1F2A44]/10 backdrop-blur-2xl">
       <div>
         <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
           {isCustomer ? "Email" : "Username / Email"}
@@ -43,7 +43,7 @@ function LoginForm({ role }) {
           onChange={handleChange}
           placeholder={isCustomer ? "example@gmail.com" : "example@gmail.com"}
           required
-          className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+          className="w-full rounded-xl border border-white/70 bg-white/50 px-4 py-3 text-[#252321] outline-none backdrop-blur-md transition placeholder:text-gray-500 focus:border-[#B3231B]/60 focus:bg-white/75 focus:ring-2 focus:ring-[#B3231B]/20"
         />
       </div>
 
@@ -60,7 +60,7 @@ function LoginForm({ role }) {
             onChange={handleChange}
             placeholder="●●●●●●●"
             required
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-16 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+            className="w-full rounded-xl border border-white/70 bg-white/50 px-4 py-3 pr-16 text-[#252321] outline-none backdrop-blur-md transition placeholder:text-gray-500 focus:border-[#B3231B]/60 focus:bg-white/75 focus:ring-2 focus:ring-[#B3231B]/20"
           />
 
           <button
@@ -84,7 +84,7 @@ function LoginForm({ role }) {
 
       <button
         type="submit"
-        className="w-full rounded-lg bg-[#B3231B] py-3 font-extrabold text-white transition hover:bg-[#8C1913]"
+        className="w-full rounded-xl border border-white/20 bg-[#B3231B]/90 py-3 font-extrabold text-white shadow-lg shadow-[#B3231B]/20 backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:bg-[#8C1913] hover:shadow-xl"
       >
         {isCustomer ? "Login" : "Login"}
       </button>
