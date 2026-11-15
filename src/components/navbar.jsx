@@ -36,7 +36,7 @@ function AppNavbar() {
 
           <button
             type="button"
-            className="min-h-11 min-w-11 rounded-md border border-[#1F2A44] px-3 py-2 text-[#1F2A44] focus:outline-none focus:ring-4 focus:ring-[#1F2A44]/15 lg:hidden"
+            className="min-h-11 min-w-11 rounded-md border border-white/10 px-3 py-2 text-[#F5F5F5] focus:outline-none focus:ring-4 focus:ring-[#E63946]/20 lg:hidden"
             aria-label="Toggle navigation"
             aria-controls="mainNav"
             aria-expanded={expanded}
@@ -51,7 +51,7 @@ function AppNavbar() {
             id="mainNav"
             className={`${expanded ? "flex" : "hidden"} w-full min-w-0 flex-col pt-3 lg:flex lg:w-auto lg:flex-1 lg:flex-row lg:items-center lg:pt-0`}
           >
-            <div className="flex flex-col rounded-3xl border border-white/40 bg-white/20 p-2 shadow-lg backdrop-blur-xl lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:flex-row">
+            <div className="flex flex-col rounded-3xl border border-white/10 bg-[#15151C]/80 p-2 shadow-lg shadow-black/20 backdrop-blur-xl lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:flex-row">
               {["Home", "Menu", "About"].map((label) => (
                 <a
                   key={label}
@@ -60,10 +60,10 @@ function AppNavbar() {
                     setActiveNav(label);
                     closeMobileNav();
                   }}
-                  className={`min-h-11 rounded-3xl py-1 no-underline transition-colors hover:text-[#B3231B] lg:min-h-0 lg:px-[13px] lg:py-0 ${
+                  className={`min-h-11 rounded-3xl py-1 no-underline transition-colors hover:text-[#E63946] lg:min-h-0 lg:px-[13px] lg:py-0 ${
                     activeNav === label
-                      ? "font-bold text-[#B3231B]"
-                      : "font-medium text-[#252321]"
+                      ? "font-bold text-[#E63946]"
+                      : "font-medium text-[#A1A1AA]"
                   }`}
                 >
                   {label}
@@ -78,7 +78,7 @@ function AppNavbar() {
                   id="loginDropdown"
                   aria-expanded={loginMenuOpen}
                   onClick={() => setLoginMenuOpen((value) => !value)}
-                  className="min-h-11 w-full rounded-full border border-white/50 bg-white/20 px-4 py-2 text-left text-sm font-medium text-[#252321] shadow-lg backdrop-blur-xl transition-all duration-300 hover:border-white/70 hover:bg-white/35 hover:shadow-xl lg:min-h-0 lg:w-auto"
+                  className="min-h-11 w-full rounded-full border border-white/10 bg-[#15151C]/80 px-4 py-2 text-left text-sm font-medium text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:shadow-xl lg:min-h-0 lg:w-auto"
                 >
                   Log in{" "}
                   <span aria-hidden="true" className="ml-1 text-xs">
@@ -87,11 +87,11 @@ function AppNavbar() {
                 </button>
 
                 {loginMenuOpen && (
-                  <div className="absolute right-0 z-50 mt-2 w-[min(13rem,calc(100vw-2rem))] rounded-xl border border-white/50 bg-white/80 p-1.5 shadow-xl backdrop-blur-xl">
+                  <div className="absolute right-0 z-50 mt-2 w-[min(13rem,calc(100vw-2rem))] rounded-xl border border-white/10 bg-[#22222B] p-1.5 shadow-xl shadow-black/30 backdrop-blur-xl">
                     <button
                       type="button"
                       onClick={() => openLogin("customer")}
-                      className="block w-full rounded-md px-3.5 py-2 text-left font-semibold text-[#2B2118] hover:bg-[#F7ECD4] hover:text-[#B3231B]"
+                      className="block w-full rounded-md px-3.5 py-2 text-left font-semibold text-[#F5F5F5] hover:bg-[#15151C] hover:text-[#E63946]"
                     >
                       Customer Login
                     </button>
@@ -99,7 +99,7 @@ function AppNavbar() {
                     <button
                       type="button"
                       onClick={() => openLogin("staff")}
-                      className="block w-full rounded-md px-3.5 py-2 text-left font-semibold text-[#2B2118] hover:bg-[#F7ECD4] hover:text-[#B3231B]"
+                      className="block w-full rounded-md px-3.5 py-2 text-left font-semibold text-[#F5F5F5] hover:bg-[#15151C] hover:text-[#E63946]"
                     >
                       Owner / Staff Login
                     </button>
@@ -113,7 +113,7 @@ function AppNavbar() {
 
       {showLogin && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#1F2A44]/40 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setShowLogin(false);
           }}
@@ -123,13 +123,13 @@ function AppNavbar() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="loginTitle"
-            className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/60 bg-white/30 shadow-2xl shadow-black/20 backdrop-blur-2xl"
+            className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[#15151C] shadow-2xl shadow-black/40"
           >
             {/* Modal Header */}
-            <header className="flex items-center justify-between border-b border-white/50 bg-white/20 px-5 py-4 backdrop-blur-xl">
+            <header className="flex items-center justify-between border-b border-white/10 bg-[#22222B] px-5 py-4">
               <h2
                 id="loginTitle"
-                className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#1F2A44]"
+                className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#F5F5F5]"
               >
                 Login
               </h2>
@@ -138,20 +138,20 @@ function AppNavbar() {
                 type="button"
                 aria-label="Close"
                 onClick={() => setShowLogin(false)}
-                className="rounded px-2 text-2xl leading-none text-[#2B2118] transition hover:text-[#B3231B]"
+                className="rounded px-2 text-2xl leading-none text-[#A1A1AA] transition hover:text-[#E63946]"
               >
                 &times;
               </button>
             </header>
 
             {/* Modal Content */}
-            <div className="bg-white/10 p-5 backdrop-blur-xl">
+            <div className="bg-[#15151C] p-5">
               <div className="mb-5 text-center">
-                <p className="mb-1 text-sm text-[#1F2A44]/70">
+                <p className="mb-1 text-sm text-[#A1A1AA]">
                   Welcome to Motopot's Food House!
                 </p>
 
-                <h3 className="text-xl font-extrabold text-[#1F2A44]">
+                <h3 className="text-xl font-extrabold text-[#F5F5F5]">
                   Sign in to your account
                 </h3>
               </div>

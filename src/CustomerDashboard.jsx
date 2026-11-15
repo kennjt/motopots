@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Menu from "./components/menu";
 import CustomerNavbar from "./components/customernavbar";
 import MyOrder from "./components/MyOrder";
@@ -10,7 +9,6 @@ const money = (value) => `₱${value.toFixed(2)}`;
 
 function CustomerDashboard() {
   const [activeSection, setActiveSection] = useState("menu");
-  const navigate = useNavigate();
   const [showOrders, setShowOrders] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [cart, setCart] = useState(() =>
@@ -69,7 +67,7 @@ function CustomerDashboard() {
     setActiveSection("orders");
   };
   return (
-    <div className="min-h-screen bg-[#FFF]">
+    <div className="min-h-screen text-[#F5F5F5]">
       <CustomerNavbar
         onOrdersClick={() => setShowOrders(true)}
         onProfileClick={() => setShowProfile(true)}
@@ -77,13 +75,13 @@ function CustomerDashboard() {
       <main className="mx-auto max-w-7xl px-5 py-3">
         <CustomerBanner />
         <div className=" flex items-center">
-          <h1 className="text-3xl font-['Alfa_Slab_One',serif] text-[#B3231B]">
+          <h1 className="text-3xl font-['Alfa_Slab_One',serif] text-[#F5F5F5]">
             Order Menu
           </h1>
         </div>
 
         <div className=" flex items-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#A1A1AA]">
             Browse our menu and add items to your cart. When you're ready, place your order!
           </p>
         </div>
@@ -94,17 +92,17 @@ function CustomerDashboard() {
             <div>
               <Menu onAddToCart={addToCart} cart={cart} showAddToCart />
             </div>
-            <aside className="h-fit rounded-xl bg-white p-5 shadow lg:sticky lg:top-6">
-              <h3 className="text-xl font-bold text-[#B3231B]">
+            <aside className="h-fit rounded-xl border border-white/10 bg-[#15151C] p-5 shadow-lg shadow-black/20 lg:sticky lg:top-6">
+              <h3 className="text-xl font-bold text-[#E63946]">
                 Your Cart ({cartItems.length})
               </h3>
               {!cartItems.length && (
-                <p className="mt-3 text-gray-600">Your cart is empty.</p>
+                <p className="mt-3 text-[#A1A1AA]">Your cart is empty.</p>
               )}
               <div className="mt-4 space-y-4">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="border-b border-gray-100 pb-3">
-                    <div className="flex justify-between gap-2 font-bold text-[#2B2118]">
+                  <div key={item.id} className="border-b border-white/10 pb-3">
+                    <div className="flex justify-between gap-2 font-bold text-[#F5F5F5]">
                       <span>{item.name}</span>
                       <span>{money(item.price * item.quantity)}</span>
                     </div>
@@ -114,7 +112,7 @@ function CustomerDashboard() {
                           type="button"
                           aria-label={`Decrease ${item.name}`}
                           onClick={() => changeQuantity(item.id, -1)}
-                          className="h-7 w-7 rounded bg-[#F7ECD4] font-bold"
+                          className="h-7 w-7 rounded bg-[#22222B] font-bold text-[#F5F5F5] hover:bg-[#E63946]"
                         >
                           −
                         </button>
@@ -123,7 +121,7 @@ function CustomerDashboard() {
                           type="button"
                           aria-label={`Increase ${item.name}`}
                           onClick={() => changeQuantity(item.id, 1)}
-                          className="h-7 w-7 rounded bg-[#F7ECD4] font-bold"
+                          className="h-7 w-7 rounded bg-[#22222B] font-bold text-[#F5F5F5] hover:bg-[#E63946]"
                         >
                           +
                         </button>
@@ -131,7 +129,7 @@ function CustomerDashboard() {
                       <button
                         type="button"
                         onClick={() => removeFromCart(item.id)}
-                        className="font-bold text-[#B3231B] hover:underline"
+                        className="font-bold text-[#E63946] hover:underline"
                       >
                         Remove
                       </button>
@@ -139,7 +137,7 @@ function CustomerDashboard() {
                   </div>
                 ))}
               </div>
-              <div className="mt-5 space-y-1 border-t pt-4 font-extrabold text-[#1F2A44]">
+              <div className="mt-5 space-y-1 border-t border-white/10 pt-4 font-extrabold text-[#F5F5F5]">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span>{money(subtotal)}</span>
@@ -153,7 +151,7 @@ function CustomerDashboard() {
                 type="button"
                 disabled={!cartItems.length}
                 onClick={placeOrder}
-                className="mt-4 w-full rounded-lg bg-[#B3231B] py-3 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#8C1913]"
+                className="mt-4 w-full rounded-lg bg-[#E63946] py-3 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-50 hover:bg-[#C92D3A]"
               >
                 Place Order
               </button>
@@ -161,27 +159,27 @@ function CustomerDashboard() {
           </div>
         )}
         {activeSection === "orders" && (
-          <section className="rounded-xl bg-white p-6 shadow">
-            <h3 className="text-xl font-bold text-[#B3231B]">My Orders</h3>
+          <section className="rounded-xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20">
+            <h3 className="text-xl font-bold text-[#E63946]">My Orders</h3>
             {!orders.length ? (
-              <p className="mt-3 text-gray-600">You have no orders yet.</p>
+              <p className="mt-3 text-[#A1A1AA]">You have no orders yet.</p>
             ) : (
               <div className="mt-4 space-y-4">
                 {orders.map((order) => (
                   <article
                     key={order.id}
-                    className="rounded-lg border border-gray-200 p-4"
+                    className="rounded-lg border border-white/10 bg-[#22222B]/50 p-4"
                   >
-                    <div className="flex flex-wrap justify-between gap-2 font-bold text-[#1F2A44]">
+                    <div className="flex flex-wrap justify-between gap-2 font-bold text-[#F5F5F5]">
                       <span>Order #{String(order.id).slice(-6)}</span>
                       <span>{order.status}</span>
                     </div>
-                    <p className="mt-2 text-gray-600">
+                    <p className="mt-2 text-[#A1A1AA]">
                       {order.items
                         .map((item) => `${item.name} × ${item.quantity}`)
                         .join(", ")}
                     </p>
-                    <p className="mt-2 font-extrabold text-[#B3231B]">
+                    <p className="mt-2 font-extrabold text-[#E63946]">
                       Total: {money(order.total)}
                     </p>
                   </article>

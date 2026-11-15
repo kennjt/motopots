@@ -28,11 +28,11 @@ function FAQ() {
       {faqs.map((faq, index) => (
         <div
           key={index}
-          className="overflow-hidden rounded-xl border border-gray-200 bg-white"
+          className="overflow-hidden rounded-xl border border-white/10 bg-[#15151C] shadow-lg shadow-black/20"
         >
           <button
             onClick={() => toggleFAQ(index)}
-            className="flex min-h-14 w-full items-center justify-between gap-4 p-4 text-left font-semibold text-gray-800 hover:bg-gray-50 sm:p-5"
+            className="flex min-h-14 w-full items-center justify-between gap-4 p-4 text-left font-semibold text-[#F5F5F5] hover:bg-[#22222B] sm:p-5"
           >
             <span>{faq.question}</span>
 
@@ -46,7 +46,7 @@ function FAQ() {
           </button>
 
           {activeIndex === index && (
-            <div className="border-t border-gray-100 px-4 py-4 text-gray-600 sm:px-5">
+            <div className="border-t border-white/10 px-4 py-4 text-[#A1A1AA] sm:px-5">
               {faq.answer}
             </div>
           )}

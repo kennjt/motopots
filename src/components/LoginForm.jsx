@@ -30,9 +30,9 @@ function LoginForm({ role }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-white/60 bg-white/40 p-5 shadow-xl shadow-[#1F2A44]/10 backdrop-blur-2xl">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-white/10 bg-[#22222B] p-5 shadow-xl shadow-black/30">
       <div>
-        <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
+        <label className="mb-1.5 block text-sm font-bold text-[#F5F5F5]">
           {isCustomer ? "Email" : "Username / Email"}
         </label>
 
@@ -43,12 +43,12 @@ function LoginForm({ role }) {
           onChange={handleChange}
           placeholder={isCustomer ? "example@gmail.com" : "example@gmail.com"}
           required
-          className="w-full rounded-xl border border-white/70 bg-white/50 px-4 py-3 text-[#252321] outline-none backdrop-blur-md transition placeholder:text-gray-500 focus:border-[#B3231B]/60 focus:bg-white/75 focus:ring-2 focus:ring-[#B3231B]/20"
+          className="w-full rounded-xl border border-white/10 bg-[#15151C] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
         />
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
+        <label className="mb-1.5 block text-sm font-bold text-[#F5F5F5]">
           Password
         </label>
 
@@ -60,13 +60,13 @@ function LoginForm({ role }) {
             onChange={handleChange}
             placeholder="●●●●●●●"
             required
-            className="w-full rounded-xl border border-white/70 bg-white/50 px-4 py-3 pr-16 text-[#252321] outline-none backdrop-blur-md transition placeholder:text-gray-500 focus:border-[#B3231B]/60 focus:bg-white/75 focus:ring-2 focus:ring-[#B3231B]/20"
+            className="w-full rounded-xl border border-white/10 bg-[#15151C] px-4 py-3 pr-16 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
           />
 
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#B3231B]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#E63946]"
           >
             {showPassword ? "Hide" : "Show"}
           </button>
@@ -76,7 +76,7 @@ function LoginForm({ role }) {
       <div className="flex justify-end">
         <a
           href="#forgot-password"
-          className="text-sm font-semibold text-[#B3231B] no-underline hover:underline"
+          className="text-sm font-semibold text-[#E63946] no-underline hover:underline"
         >
           Forgot Password?
         </a>
@@ -84,17 +84,17 @@ function LoginForm({ role }) {
 
       <button
         type="submit"
-        className="w-full rounded-xl border border-white/20 bg-[#B3231B]/90 py-3 font-extrabold text-white shadow-lg shadow-[#B3231B]/20 backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:bg-[#8C1913] hover:shadow-xl"
+        className="w-full rounded-xl border border-[#E63946] bg-[#E63946] py-3 font-extrabold text-white shadow-lg shadow-[#E63946]/20 transition duration-300 hover:-translate-y-0.5 hover:bg-[#C92D3A] hover:shadow-xl"
       >
         {isCustomer ? "Login" : "Login"}
       </button>
 
       {isCustomer && (
-        <p className="pt-2 text-center text-sm text-gray-600">
+        <p className="pt-2 text-center text-sm text-[#A1A1AA]">
           Don't have an account?{" "}
           <a
             href="#register"
-            className="font-bold text-[#B3231B] no-underline hover:underline"
+            className="font-bold text-[#E63946] no-underline hover:underline"
           >
             Create Account
           </a>

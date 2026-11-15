@@ -5,11 +5,11 @@ import CustomerNavbar from "./customernavbar";
 const money = (value) => `₱${Number(value || 0).toFixed(2)}`;
 
 const statusStyles = {
-  Pending: "bg-yellow-100 text-yellow-800",
-  Preparing: "bg-orange-100 text-orange-800",
-  "Ready for Pickup": "bg-blue-100 text-blue-800",
-  Completed: "bg-green-100 text-green-800",
-  Cancelled: "bg-red-100 text-red-800",
+  Pending: "bg-[#22222B] text-[#F5F5F5]",
+  Preparing: "bg-[#E63946]/20 text-[#F5F5F5]",
+  "Ready for Pickup": "bg-[#22222B] text-[#F5F5F5]",
+  Completed: "bg-green-500/20 text-green-300",
+  Cancelled: "bg-red-500/20 text-red-300",
 };
 
 const readOrders = () => {
@@ -37,17 +37,17 @@ function MyOrder({ modal = false, onClose }) {
   const orderContent = (
     <main className="mx-auto w-full max-w-4xl px-5 py-10">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-extrabold text-[#1F2A44]">My Orders</h1>
-          <p className="mt-2 text-gray-600">Track and manage your food orders.</p>
+          <h1 className="text-3xl font-extrabold text-[#F5F5F5]">My Orders</h1>
+          <p className="mt-2 text-[#A1A1AA]">Track and manage your food orders.</p>
         </div>
 
         {!orders.length ? (
-          <section className="rounded-xl bg-white p-8 text-center shadow-sm sm:p-12">
-            <h2 className="text-xl font-bold text-[#1F2A44]">No orders yet</h2>
-            <p className="mt-2 text-gray-600">Your delicious order history will appear here.</p>
+          <section className="rounded-xl border border-white/10 bg-[#15151C] p-8 text-center shadow-lg shadow-black/20 sm:p-12">
+            <h2 className="text-xl font-bold text-[#F5F5F5]">No orders yet</h2>
+            <p className="mt-2 text-[#A1A1AA]">Your delicious order history will appear here.</p>
             <Link
               to="/customer"
-              className="mt-6 inline-block rounded-lg bg-[#B3231B] px-6 py-3 font-extrabold text-white transition hover:bg-[#8C1913]"
+              className="mt-6 inline-block rounded-lg bg-[#E63946] px-6 py-3 font-extrabold text-white transition hover:bg-[#C92D3A]"
             >
               Browse Menu
             </Link>
@@ -58,11 +58,11 @@ function MyOrder({ modal = false, onClose }) {
               const orderDate = order.createdAt || order.date || order.id;
               const status = order.status || "Pending";
               return (
-                <article key={order.id} className="rounded-xl bg-white p-5 shadow-sm sm:p-6">
-                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-200 pb-4">
+                <article key={order.id} className="rounded-xl border border-white/10 bg-[#15151C] p-5 shadow-lg shadow-black/20 sm:p-6">
+                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
                     <div>
-                      <h2 className="text-lg font-extrabold text-[#1F2A44]">Order #{String(order.id).slice(-6)}</h2>
-                      <p className="mt-1 text-sm text-gray-500">{new Date(orderDate).toLocaleString()}</p>
+                      <h2 className="text-lg font-extrabold text-[#F5F5F5]">Order #{String(order.id).slice(-6)}</h2>
+                      <p className="mt-1 text-sm text-[#A1A1AA]">{new Date(orderDate).toLocaleString()}</p>
                     </div>
                     <span className={`rounded-full px-3 py-1 text-sm font-bold ${statusStyles[status] || statusStyles.Pending}`}>
                       {status}
@@ -72,16 +72,16 @@ function MyOrder({ modal = false, onClose }) {
                     {(order.items || []).map((item) => (
                       <div key={item.id || item.name} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                         <div>
-                          <p className="font-bold text-[#1F2A44]">{item.name}</p>
-                          <p className="text-gray-500">Quantity: {item.quantity} × {money(item.price)}</p>
+                          <p className="font-bold text-[#F5F5F5]">{item.name}</p>
+                          <p className="text-[#A1A1AA]">Quantity: {item.quantity} × {money(item.price)}</p>
                         </div>
-                        <span className="font-bold text-[#B3231B]">{money(item.price * item.quantity)}</span>
+                        <span className="font-bold text-[#E63946]">{money(item.price * item.quantity)}</span>
                       </div>
                     ))}
                   </div>
-                  <div className="mt-5 flex justify-between border-t border-gray-200 pt-4 text-lg font-extrabold text-[#1F2A44]">
+                  <div className="mt-5 flex justify-between border-t border-white/10 pt-4 text-lg font-extrabold text-[#F5F5F5]">
                     <span>Total</span>
-                    <span className="text-[#B3231B]">{money(order.total)}</span>
+                    <span className="text-[#E63946]">{money(order.total)}</span>
                   </div>
                 </article>
               );
@@ -103,12 +103,12 @@ function MyOrder({ modal = false, onClose }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="ordersTitle"
-          className="max-h-[calc(100vh-2rem)] w-full max-w-4xl overflow-y-auto rounded-xl border-2 border-[#E9A82C] bg-[#F7ECD4] shadow-xl"
+          className="max-h-[calc(100vh-2rem)] w-full max-w-4xl overflow-y-auto rounded-xl border border-white/10 bg-[#15151C] shadow-xl shadow-black/40"
         >
-          <header className="flex items-center justify-between border-b-2 border-[#E9A82C] bg-[#F7ECD4] px-5 py-4">
+          <header className="flex items-center justify-between border-b border-white/10 bg-[#22222B] px-5 py-4">
             <h2
               id="ordersTitle"
-              className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#1F2A44]"
+              className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#F5F5F5]"
             >
               My Orders
             </h2>
@@ -116,7 +116,7 @@ function MyOrder({ modal = false, onClose }) {
               type="button"
               aria-label="Close orders"
               onClick={onClose}
-              className="rounded px-2 text-2xl leading-none text-[#2B2118] hover:text-[#B3231B]"
+              className="rounded px-2 text-2xl leading-none text-[#A1A1AA] hover:text-[#E63946]"
             >
               &times;
             </button>
@@ -128,7 +128,7 @@ function MyOrder({ modal = false, onClose }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7ECD4]">
+    <div className="min-h-screen text-[#F5F5F5]">
       <CustomerNavbar />
       {orderContent}
     </div>

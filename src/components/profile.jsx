@@ -75,17 +75,17 @@ function ProfileSettings({ modal = false, onClose }) {
   };
 
   const profileCard = (
-        <div className={modal ? "w-full p-5" : "w-full max-w-lg rounded-xl bg-white p-6 shadow-sm sm:p-8"}>
+        <div className={modal ? "w-full p-5" : "w-full max-w-lg rounded-xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20 sm:p-8"}>
           <div className="mb-7">
-            <h1 className="text-2xl font-extrabold text-[#1F2A44]">Profile Settings</h1>
-            <p className="mt-2 text-sm text-gray-600">Manage your personal information and account settings.</p>
+            <h1 className="text-2xl font-extrabold text-[#F5F5F5]">Profile Settings</h1>
+            <p className="mt-2 text-sm text-[#A1A1AA]">Manage your personal information and account settings.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
             {/* Full Name */}
             <div>
-              <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
+              <label className="mb-1.5 block text-sm font-bold text-[#F5F5F5]">
                 Full Name
               </label>
               <input
@@ -95,13 +95,13 @@ function ProfileSettings({ modal = false, onClose }) {
                 onChange={handleProfileChange}
                 placeholder="Enter your full name"
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+                className="w-full rounded-lg border border-white/10 bg-[#22222B] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
               />
             </div>
 
             {/* Email */}
             <div>
-              <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
+              <label className="mb-1.5 block text-sm font-bold text-[#F5F5F5]">
                 Email Address
               </label>
               <input
@@ -111,13 +111,13 @@ function ProfileSettings({ modal = false, onClose }) {
                 onChange={handleProfileChange}
                 placeholder="example@gmail.com"
                 required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+                className="w-full rounded-lg border border-white/10 bg-[#22222B] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
               />
             </div>
 
             {/* Phone Number */}
             <div>
-              <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
+              <label className="mb-1.5 block text-sm font-bold text-[#F5F5F5]">
                 Phone Number
               </label>
               <input
@@ -126,19 +126,19 @@ function ProfileSettings({ modal = false, onClose }) {
                 value={profile.phone}
                 onChange={handleProfileChange}
                 placeholder="09XXXXXXXXX"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+                className="w-full rounded-lg border border-white/10 bg-[#22222B] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
               />
             </div>
 
-            <div className="space-y-4 border-t border-gray-200 pt-6">
-              <h2 className="text-lg font-bold text-[#1F2A44]">Change Password</h2>
+            <div className="space-y-4 border-t border-white/10 pt-6">
+              <h2 className="text-lg font-bold text-[#F5F5F5]">Change Password</h2>
               {[
                 ["current", "Current Password", "Enter current password"],
                 ["next", "New Password", "Enter new password"],
                 ["confirm", "Confirm New Password", "Confirm new password"],
               ].map(([name, label, placeholder]) => (
                 <div key={name}>
-                  <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">{label}</label>
+                  <label className="mb-1.5 block text-sm font-bold text-[#F5F5F5]">{label}</label>
                   <div className="relative">
                     <input
                       type={showPasswords[name] ? "text" : "password"}
@@ -146,24 +146,24 @@ function ProfileSettings({ modal = false, onClose }) {
                       value={passwords[name]}
                       onChange={handlePasswordChange}
                       placeholder={placeholder}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-16 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+                      className="w-full rounded-lg border border-white/10 bg-[#22222B] px-4 py-3 pr-16 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPasswords({ ...showPasswords, [name]: !showPasswords[name] })}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#B3231B]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#E63946]"
                     >
                       {showPasswords[name] ? "Hide" : "Show"}
                     </button>
                   </div>
                 </div>
               ))}
-              <p className="text-xs text-gray-500">Leave all password fields blank to keep your existing password.</p>
+              <p className="text-xs text-[#A1A1AA]">Leave all password fields blank to keep your existing password.</p>
             </div>
 
-            {errorMessage && <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-semibold text-[#8C1913]">{errorMessage}</p>}
+            {errorMessage && <p className="rounded-lg bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-300">{errorMessage}</p>}
             {savedMessage && (
-              <p className="rounded-lg bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+              <p className="rounded-lg bg-green-500/10 px-4 py-3 text-sm font-semibold text-green-300">
                 {savedMessage}
               </p>
             )}
@@ -173,14 +173,14 @@ function ProfileSettings({ modal = false, onClose }) {
               <button
                 type="button"
                 onClick={() => (modal ? onClose() : navigate("/customer"))}
-                className="rounded-lg border border-gray-300 px-6 py-3 font-bold text-gray-600 transition hover:bg-gray-100"
+                className="rounded-lg border border-white/10 px-6 py-3 font-bold text-[#A1A1AA] transition hover:bg-[#22222B]"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="rounded-lg bg-[#B3231B] px-6 py-3 font-extrabold text-white transition hover:bg-[#8C1913]"
+                className="rounded-lg bg-[#E63946] px-6 py-3 font-extrabold text-white transition hover:bg-[#C92D3A]"
               >
                 Save Changes
               </button>
@@ -202,12 +202,12 @@ function ProfileSettings({ modal = false, onClose }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="profileTitle"
-          className="max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border-2 border-[#E9A82C] bg-white shadow-xl"
+          className="max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-white/10 bg-[#15151C] shadow-xl shadow-black/40"
         >
-          <header className="flex items-center justify-between border-b-2 border-[#E9A82C] bg-[#F7ECD4] px-5 py-4">
+          <header className="flex items-center justify-between border-b border-white/10 bg-[#22222B] px-5 py-4">
             <h2
               id="profileTitle"
-              className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#1F2A44]"
+              className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#F5F5F5]"
             >
               Profile Settings
             </h2>
@@ -215,7 +215,7 @@ function ProfileSettings({ modal = false, onClose }) {
               type="button"
               aria-label="Close profile settings"
               onClick={onClose}
-              className="rounded px-2 text-2xl leading-none text-[#2B2118] hover:text-[#B3231B]"
+              className="rounded px-2 text-2xl leading-none text-[#A1A1AA] hover:text-[#E63946]"
             >
               &times;
             </button>
@@ -227,7 +227,7 @@ function ProfileSettings({ modal = false, onClose }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7ECD4]">
+    <div className="min-h-screen text-[#F5F5F5]">
       <CustomerNavbar />
       <main className="flex min-h-[calc(100vh-4.75rem)] items-center justify-center px-5 py-10">
         {profileCard}

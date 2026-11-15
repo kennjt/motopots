@@ -147,8 +147,8 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
                 onClick={() => setActiveCategory(category)}
                 className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300 ${
                   activeCategory === category
-                    ? 'bg-[#E9A82C] text-[#2B2118] shadow-sm'
-                    : 'bg-[#EAE5D9] text-[#2B2118] hover:bg-[#F2D9A5]'
+                    ? 'bg-[#E63946] text-white shadow-lg shadow-[#E63946]/20'
+                    : 'border border-white/10 bg-[#22222B] text-[#F5F5F5] hover:bg-[#15151C]'
                 }`}
               >
                 {category}
@@ -164,7 +164,7 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search menu items"
-              className="w-full rounded-full border border-[#1F2A44] bg-transparent px-5 py-3 text-sm text-[#2B2118] outline-none transition-all placeholder:text-[#746B63] focus:border-[#B3231B] focus:ring-2 focus:ring-[#E9A82C]/40"
+              className="w-full rounded-xl border border-white/10 bg-[#15151C] px-5 py-3 text-sm text-[#F5F5F5] outline-none transition-all placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
             />
           </div>
         </div>
@@ -176,7 +176,7 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
             {filteredItems.map((item) => (
               <article
                 key={item.id}
-                className="group relative flex min-h-[360px] flex-col overflow-hidden rounded-2xl bg-[#EAE5D9] p-4 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-[#2B2118]/10"
+                className="group relative flex min-h-[360px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#15151C] p-4 shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:border-[#E63946]/40 hover:shadow-xl hover:shadow-black/30"
               >
 
                 {/* Food Image */}
@@ -191,16 +191,16 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
                 {/* Default Card Content */}
                 <div className="mt-auto flex flex-col gap-3 transition-all duration-300 lg:group-hover:opacity-0">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-lg  text-left font-extrabold leading-tight text-[#1F2A44]">
+                    <h3 className="text-left text-lg font-extrabold leading-tight text-[#F5F5F5]">
                       {item.name}
                     </h3>
 
-                    <span className="shrink-0 text-base font-semibold text-[#2B2118]">
+                    <span className="shrink-0 text-base font-semibold text-[#F5F5F5]">
                       ₱{item.price.toFixed(2)}
                     </span>
                   </div>
 
-                  <span className="w-fit rounded-full border border-[#2B2118]/40 px-3 py-1 text-xs font-medium text-[#2B2118]">
+                  <span className="w-fit rounded-full border border-white/10 px-3 py-1 text-xs font-medium text-[#A1A1AA]">
                     {item.category}
                   </span>
                 </div>
@@ -208,14 +208,14 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
                 {/* Hover Content */}
                 <div className="mt-4 flex flex-1 flex-col justify-end gap-3 opacity-100 transition-all duration-300 lg:absolute lg:inset-x-4 lg:bottom-4 lg:mt-0 lg:translate-y-3 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100">
 
-                  <p className="text-center text-sm leading-relaxed text-[#2B2118]">
+                  <p className="text-center text-sm leading-relaxed text-[#A1A1AA]">
                     {item.description}
                   </p>
 
                   {showAddToCart && (
                     <div className="flex flex-col gap-2">
 
-                      <div className="flex items-center justify-between text-sm font-bold text-[#1F2A44]">
+                      <div className="flex items-center justify-between text-sm font-bold text-[#F5F5F5]">
                         <span>Price</span>
                         <span>₱{item.price.toFixed(2)}</span>
                       </div>
@@ -223,7 +223,7 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
                       <button
                         type="button"
                         onClick={() => onAddToCart(item)}
-                        className="w-full rounded-full bg-[#B3231B] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-[#8C1913] hover:shadow-lg active:scale-95"
+                        className="w-full rounded-xl bg-[#E63946] px-4 py-3 text-sm font-bold text-white transition-all duration-300 hover:bg-[#C92D3A] hover:shadow-lg active:scale-95"
                       >
                         {cart[item.id]
                           ? `Add to Cart (${cart[item.id].quantity})`
@@ -240,11 +240,11 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
           </div>
         ) : (
           <div className="py-20 text-center">
-            <h3 className="text-2xl font-bold text-[#1F2A44]">
+            <h3 className="text-2xl font-bold text-[#F5F5F5]">
               No menu items found
             </h3>
 
-            <p className="mt-2 text-[#493729]">
+            <p className="mt-2 text-[#A1A1AA]">
               Try another search or select a different category.
             </p>
 
@@ -254,7 +254,7 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
                 setSearch('');
                 setActiveCategory('All');
               }}
-              className="mt-5 rounded-full bg-[#B3231B] px-5 py-2.5 font-bold text-white transition-colors hover:bg-[#8C1913]"
+              className="mt-5 rounded-xl bg-[#E63946] px-5 py-2.5 font-bold text-white transition-colors hover:bg-[#C92D3A]"
             >
               Clear Filters
             </button>
