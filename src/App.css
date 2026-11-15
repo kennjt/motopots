@@ -1,0 +1,4 @@
+/* The poster uses a bounded width to preserve its original framed presentation. */
+.mp-hero-img {
+  max-width: min(100%, 420px);
+}

@@ -1,0 +1,239 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import CustomerNavbar from "./customernavbar";
+
+const emptyProfile = { name: "", email: "", phone: "" };
+
+const readProfile = () => {
+  try {
+    const storedProfile = JSON.parse(
+      localStorage.getItem("motopots-profile") || "{}",
+    );
+
+    return {
+      name: storedProfile.name || "",
+      email: storedProfile.email || "",
+      phone: storedProfile.phone || "",
+    };
+  } catch {
+    return emptyProfile;
+  }
+};
+
+function ProfileSettings({ modal = false, onClose }) {
+  const navigate = useNavigate();
+
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    next: false,
+    confirm: false,
+  });
+  const [profile, setProfile] = useState(readProfile);
+  const [passwords, setPasswords] = useState({
+    current: "",
+    next: "",
+    confirm: "",
+  });
+  const [savedMessage, setSavedMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleProfileChange = (e) => {
+    setProfile({ ...profile, [e.target.name]: e.target.value });
+    setSavedMessage("");
+    setErrorMessage("");
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswords({ ...passwords, [e.target.name]: e.target.value });
+    setSavedMessage("");
+    setErrorMessage("");
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const changingPassword = Object.values(passwords).some(Boolean);
+    if (changingPassword && (!passwords.current || !passwords.next)) {
+      setErrorMessage("Enter your current password and a new password to continue.");
+      return;
+    }
+    if (passwords.next !== passwords.confirm) {
+      setErrorMessage("New password and confirmation do not match.");
+      return;
+    }
+
+    // Keep credentials out of localStorage; only profile information is persisted.
+    localStorage.setItem("motopots-profile", JSON.stringify(profile));
+
+    setSavedMessage("Profile updated successfully.");
+    setErrorMessage("");
+    setPasswords({ current: "", next: "", confirm: "" });
+
+    setTimeout(() => {
+      setSavedMessage("");
+    }, 3000);
+  };
+
+  const profileCard = (
+        <div className={modal ? "w-full p-5" : "w-full max-w-lg rounded-xl bg-white p-6 shadow-sm sm:p-8"}>
+          <div className="mb-7">
+            <h1 className="text-2xl font-extrabold text-[#1F2A44]">Profile Settings</h1>
+            <p className="mt-2 text-sm text-gray-600">Manage your personal information and account settings.</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+
+            {/* Full Name */}
+            <div>
+              <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={profile.name}
+                onChange={handleProfileChange}
+                placeholder="Enter your full name"
+                required
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
+                Email Address
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={profile.email}
+                onChange={handleProfileChange}
+                placeholder="example@gmail.com"
+                required
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+              />
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={profile.phone}
+                onChange={handleProfileChange}
+                placeholder="09XXXXXXXXX"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+              />
+            </div>
+
+            <div className="space-y-4 border-t border-gray-200 pt-6">
+              <h2 className="text-lg font-bold text-[#1F2A44]">Change Password</h2>
+              {[
+                ["current", "Current Password", "Enter current password"],
+                ["next", "New Password", "Enter new password"],
+                ["confirm", "Confirm New Password", "Confirm new password"],
+              ].map(([name, label, placeholder]) => (
+                <div key={name}>
+                  <label className="mb-1.5 block text-sm font-bold text-[#1F2A44]">{label}</label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords[name] ? "text" : "password"}
+                      name={name}
+                      value={passwords[name]}
+                      onChange={handlePasswordChange}
+                      placeholder={placeholder}
+                      className="w-full rounded-lg border border-gray-300 px-4 py-3 pr-16 outline-none transition focus:border-[#B3231B] focus:ring-2 focus:ring-[#B3231B]/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords({ ...showPasswords, [name]: !showPasswords[name] })}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#B3231B]"
+                    >
+                      {showPasswords[name] ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <p className="text-xs text-gray-500">Leave all password fields blank to keep your existing password.</p>
+            </div>
+
+            {errorMessage && <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-semibold text-[#8C1913]">{errorMessage}</p>}
+            {savedMessage && (
+              <p className="rounded-lg bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
+                {savedMessage}
+              </p>
+            )}
+
+            {/* Buttons */}
+            <div className="flex flex-col-reverse justify-end gap-3 pt-4 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => (modal ? onClose() : navigate("/customer"))}
+                className="rounded-lg border border-gray-300 px-6 py-3 font-bold text-gray-600 transition hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                className="rounded-lg bg-[#B3231B] px-6 py-3 font-extrabold text-white transition hover:bg-[#8C1913]"
+              >
+                Save Changes
+              </button>
+            </div>
+
+          </form>
+        </div>
+  );
+
+  if (modal) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) onClose();
+        }}
+      >
+        <section
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profileTitle"
+          className="max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border-2 border-[#E9A82C] bg-white shadow-xl"
+        >
+          <header className="flex items-center justify-between border-b-2 border-[#E9A82C] bg-[#F7ECD4] px-5 py-4">
+            <h2
+              id="profileTitle"
+              className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#1F2A44]"
+            >
+              Profile Settings
+            </h2>
+            <button
+              type="button"
+              aria-label="Close profile settings"
+              onClick={onClose}
+              className="rounded px-2 text-2xl leading-none text-[#2B2118] hover:text-[#B3231B]"
+            >
+              &times;
+            </button>
+          </header>
+          {profileCard}
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F7ECD4]">
+      <CustomerNavbar />
+      <main className="flex min-h-[calc(100vh-4.75rem)] items-center justify-center px-5 py-10">
+        {profileCard}
+      </main>
+    </div>
+  );
+}
+
+export default ProfileSettings;

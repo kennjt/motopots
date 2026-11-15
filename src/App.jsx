@@ -1,0 +1,152 @@
+import { Routes, Route } from 'react-router-dom';
+
+import AppNavbar from "./components/navbar";
+import Menu from "./components/menu";
+import FAQ from "./components/faq";
+import Footer from "./components/footer";
+import CustomerDashboard from "./CustomerDashboard";
+import ProfileSettings from "./components/profile";
+import MyOrder from "./components/MyOrder";
+
+import poster from "./assets/poster.jpg";
+import inasal from "./assets/inasal_withoutbg.png";
+import "./App.css";
+
+function HomePage() {
+  return (
+    <>
+      <AppNavbar />
+      <main>
+        <section
+          id="home"
+          className="mp-hero flex min-h-[calc(100svh-76px)] items-center py-8 sm:py-5">
+
+          <div className="absolute inset-y-0 right-0 -z-10 hidden w-[45%] bg-gradient-to-l from-[#700F16] via-[#D94A40] to-[#FFFAF0] lg:block" />
+
+          <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-4">
+            <div className="grid grid-cols-1 items-center gap-10 sm:gap-8 lg:grid-cols-12">
+              <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
+                <p className="mb-2 font-['Nunito',sans-serif] text-sm font-extrabold uppercase tracking-[3px] text-[#B3231B]">
+                  Welcome to
+                </p>
+
+                <h1 className="mb-1 leading-[0.95]">
+                  <span className="block font-['Alfa_Slab_One',serif] text-[clamp(25px,7vw,60px)] text-[#B3231B] [text-shadow:3px_3px_0_#1F2A44]">
+                    Motopot's
+                  </span>
+
+                  <span className="mt-3 block font-['Alfa_Slab_One',serif] text-[clamp(25px,5vw,40px)] italic text-[#2B2118]">
+                    Food House
+                  </span>
+                </h1>
+
+                <p className="mt-3 mb-3 max-w-[780px] font-['Nunito',sans-serif] text-lg leading-[1.55] text-[#493729] sm:text-xl">
+                  Grilled, sizzling and sweet, all in one place. Order your
+                  favorites online or let our team manage the kitchen, stocks
+                  and sales in one simple system.
+                </p>
+
+                <ul className="mb-6 flex list-none flex-wrap gap-2 p-0 font-['Nunito',sans-serif]">
+                  {["Bacolod Chicken Inasal", "Takoyaki", "Halo-Halo"].map(
+                    (item) => (
+                      <li
+                        key={item}
+                        className="rounded-full bg-[#E9A82C] px-3 py-1 text-sm font-extrabold text-[#2B2118]"
+                      >
+                        {item}
+                      </li>
+                    ),
+                  )}
+                </ul>
+                <div className="mt-4 flex flex-wrap gap-3 font-['Nunito',sans-serif]">
+                  <a
+                    href="#menu"
+                    className="min-h-11 rounded-3xl border-[3px] border-[#B3231B] bg-[#B3231B] px-4 py-2 text-lg font-extrabold text-white no-underline transition-colors hover:bg-[#8C1913]"
+                  >
+                    Order Now
+                  </a>
+                  <a
+                    href="#menu"
+                    className="min-h-11 rounded-3xl border-[3px] border-[#1F2A44] bg-transparent px-4 py-2 text-lg font-extrabold text-[#1F2A44] no-underline transition-colors hover:bg-[#1F2A44] hover:text-white"
+                  >
+                    View Menu
+                  </a>
+                </div>
+              </div>
+              <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
+                <div className="w-full max-w-[580px] overflow-hidden">
+                  <img
+                    src={inasal}
+                    alt="Motopot's Food House: Bacolod Chicken Inasal, Takoyaki and Halo-Halo"
+                    className="block h-auto w-full object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="menu" className="min-h-screen relative z-10 bg-[#fffaf0] pt-16 pb-16 w-full">
+          <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-4 text-center">
+            <h2 className="mb-1 font-['Alfa_Slab_One',serif] text-3xl text-[#1F2A44] sm:text-4xl">
+              Our Menu
+            </h2>
+            <p className="mb-3 font-['Nunito',sans-serif] text-base leading-[1.55] text-[#493729]">
+              Pick a category or search for your favorite dish.
+            </p>
+            <Menu />
+          </div>
+        </section>
+
+        <section
+          id="about"
+          className="mb-10 bg-[#FFFAF0] px-4 py-10 sm:px-6 lg:px-4"
+        >
+          <h2 className="mb-8 font-['Alfa_Slab_One',serif] text-center text-3xl text-[#1F2A44] sm:mb-12 sm:text-4xl">
+            About Us
+          </h2>
+
+          <div className="mx-auto w-full max-w-6xl">
+            <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
+              <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
+                <h1 className="mb-1 leading-[0.95]">
+                  <span className="block font-['Alfa_Slab_One',serif] text-[clamp(25px,7vw,50px)] text-[#B3231B] [text-shadow:3px_3px_0_#1F2A44]">
+                    Motopot's
+                  </span>
+
+                  <span className="mt-3 block font-['Alfa_Slab_One',serif] text-[clamp(25px,5vw,30px)] italic text-[#2B2118]">
+                    Food House
+                  </span>
+                </h1>
+
+                <p className="mt-3 mb-3 max-w-[780px] font-['Nunito',sans-serif] text-lg leading-[1.55] text-[#493729] sm:text-md">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                  laboris nisi ut aliquip ex ea commodo consequat.
+                </p>
+              </div>
+              <div className="order-1 min-w-0 lg:order-2 lg:col-span-5">
+                <FAQ />
+              </div>
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </main>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/customer" element={<CustomerDashboard />} />
+      <Route path="/customer/profile" element={<ProfileSettings />} />
+      <Route path="/customer/orders" element={<MyOrder />} />
+    </Routes>
+  );
+}
+
+export default App;
