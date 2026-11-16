@@ -87,6 +87,7 @@ function MyOrder({ modal = false, onClose }) {
                         <div>
                           <p className="font-bold text-[#F5F5F5]">{item.name}</p>
                           {!!item.details?.length && <p className="text-[#A1A1AA]">{item.details.join(" • ")}</p>}
+                          {item.notes && <p className="mt-1 italic text-[#D8A6AA]">Note: {item.notes}</p>}
                           <p className="text-[#A1A1AA]">Quantity: {item.quantity} × {money(item.finalUnitPrice ?? item.price)}</p>
                         </div>
                         <span className="font-bold text-[#E63946]">{money((item.finalUnitPrice ?? item.price) * item.quantity)}</span>

@@ -69,10 +69,11 @@ export function makeCartItem(product, selection) {
   const finalUnitPrice = basePrice + addOnTotal;
   const variantLabel = selection.quantity || variant.label;
   const details = [variant.flavor || selection.flavor, variantLabel, ...selectedAddOns.map((addOn) => addOn.label)].filter(Boolean);
+  const notes = selection.notes?.trim() || "";
   return {
-    id: `${product.id}:${variant.id}:${selection.flavor || ""}:${(selection.addOns || []).sort().join(",")}`,
+    id: `${product.id}:${variant.id}:${selection.flavor || ""}:${(selection.addOns || []).slice().sort().join(",")}:${notes}`,
     productId: product.id, name: product.name, image: product.image, variant: variantLabel,
     flavor: variant.flavor || selection.flavor || "", addOns: selectedAddOns.map((addOn) => addOn.label),
-    details, quantity: 1, basePrice, addOnTotal, finalUnitPrice, price: finalUnitPrice, subtotal: finalUnitPrice,
+    details, notes, quantity: 1, basePrice, addOnTotal, finalUnitPrice, price: finalUnitPrice, subtotal: finalUnitPrice,
   };
 }
