@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CustomerNavbar from "./customernavbar";
+import { formatMoney } from "../data/menuData";
 
-const money = (value) => `₱${Number(value || 0).toFixed(2)}`;
+const money = formatMoney;
 
 const statusStyles = {
   Pending: "bg-[#22222B] text-[#F5F5F5]",
@@ -10,6 +11,14 @@ const statusStyles = {
   "Ready for Pickup": "bg-[#22222B] text-[#F5F5F5]",
   Completed: "bg-green-500/20 text-green-300",
   Cancelled: "bg-red-500/20 text-red-300",
+};
+
+const paymentStyles = {
+  Unpaid: "bg-yellow-500/15 text-yellow-200",
+  "Pending Verification": "bg-yellow-500/15 text-yellow-200",
+  Paid: "bg-green-500/15 text-green-300",
+  Rejected: "bg-red-500/15 text-red-300",
+  Refunded: "bg-blue-500/15 text-blue-300",
 };
 
 const readOrders = () => {
@@ -68,14 +77,19 @@ function MyOrder({ modal = false, onClose }) {
                       {status}
                     </span>
                   </div>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
+                    <span className={`rounded-full px-3 py-1 ${paymentStyles[order.paymentStatus] || paymentStyles.Unpaid}`}>Payment: {order.paymentStatus || "Unpaid"}</span>
+                    {order.paymentMethod && <span className="rounded-full bg-[#22222B] px-3 py-1 text-[#A1A1AA]">{order.paymentMethod}</span>}
+                  </div>
                   <div className="mt-4 space-y-3">
                     {(order.items || []).map((item) => (
                       <div key={item.id || item.name} className="flex flex-wrap items-center justify-between gap-2 text-sm">
                         <div>
                           <p className="font-bold text-[#F5F5F5]">{item.name}</p>
-                          <p className="text-[#A1A1AA]">Quantity: {item.quantity} × {money(item.price)}</p>
+                          {!!item.details?.length && <p className="text-[#A1A1AA]">{item.details.join(" • ")}</p>}
+                          <p className="text-[#A1A1AA]">Quantity: {item.quantity} × {money(item.finalUnitPrice ?? item.price)}</p>
                         </div>
-                        <span className="font-bold text-[#E63946]">{money(item.price * item.quantity)}</span>
+                        <span className="font-bold text-[#E63946]">{money((item.finalUnitPrice ?? item.price) * item.quantity)}</span>
                       </div>
                     ))}
                   </div>
