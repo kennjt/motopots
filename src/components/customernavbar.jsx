@@ -4,16 +4,20 @@ import { formatMoney } from "../data/menuData";
 
 function CustomerNavbar({ onOrdersClick, onProfileClick, cartItems = [], subtotal = 0, onQuantityChange, onRemove, onCheckout }) {
   const [cartOpen, setCartOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const cartRef = useRef(null);
+  const accountRef = useRef(null);
   const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     const closeOnOutsideClick = (event) => {
       if (cartRef.current && !cartRef.current.contains(event.target)) setCartOpen(false);
+      if (accountRef.current && !accountRef.current.contains(event.target)) setAccountMenuOpen(false);
     };
     const closeOnEscape = (event) => {
       if (event.key === "Escape") {
         setCartOpen(false);
+        setAccountMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", closeOnOutsideClick);
@@ -53,6 +57,21 @@ function CustomerNavbar({ onOrdersClick, onProfileClick, cartItems = [], subtota
             </div>}
           </div>
           <Link to="/customer/orders" onClick={onOrdersClick ? (event) => { event.preventDefault(); onOrdersClick(); } : undefined} className="hidden min-h-11 rounded-full border border-white/10 bg-[#15151C]/80 px-4 py-2 text-sm font-medium text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] sm:inline-flex sm:items-center">My Orders</Link>
+          <div ref={accountRef} className="relative">
+            <button type="button" onClick={() => setAccountMenuOpen((value) => !value)} aria-expanded={accountMenuOpen} aria-label="Account options" className="flex h-10 min-w-10 items-center justify-center rounded-full border border-white/10 bg-[#15151C]/80 px-3 text-sm font-bold text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition hover:border-[#E63946]/50 hover:bg-[#22222B] sm:min-h-11 sm:rounded-full sm:px-4">
+              <span className="sm:hidden" aria-hidden="true">•••</span>
+              <span className="hidden sm:inline">Account</span>
+              <span className="ml-1 hidden text-xs sm:inline" aria-hidden="true">▼</span>
+            </button>
+            {accountMenuOpen && (
+              <div className="absolute right-0 z-50 mt-2 w-48 rounded-xl border border-white/10 bg-[#22222B] p-1.5 shadow-xl shadow-black/30">
+                <Link to="/?login=user" onClick={() => setAccountMenuOpen(false)} className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]">User Login</Link>
+                <Link to="/?login=admin" onClick={() => setAccountMenuOpen(false)} className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]">Admin Login</Link>
+                <div className="my-1 border-t border-white/10" />
+                <Link to="/" onClick={() => setAccountMenuOpen(false)} className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]">Log out</Link>
+              </div>
+            )}
+          </div>
           <Link to="/customer/profile" onClick={onProfileClick ? (event) => { event.preventDefault(); onProfileClick(); } : undefined} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#22222B] transition hover:bg-[#15151C]" aria-label="Profile Settings"><img src="/src/assets/person_icon.svg" alt="Profile" className="h-6 w-6 invert" /></Link>
         </div>
       </div>

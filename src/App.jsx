@@ -7,6 +7,7 @@ import Footer from "./components/footer";
 import CustomerDashboard from "./CustomerDashboard";
 import ProfileSettings from "./components/profile";
 import MyOrder from "./components/MyOrder";
+import AdminDashboard from "./AdminDashboard";
 
 import inasal from "./assets/inasal_withoutbg.png";
 import "./App.css";
@@ -144,6 +145,7 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/customer" element={<CustomerDashboard />} />
+      <Route path="/staff" element={<AdminDashboard />} />
       <Route path="/customer/profile" element={<ProfileSettings />} />
       <Route path="/customer/orders" element={<MyOrder />} />
     </Routes>

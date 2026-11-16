@@ -1,10 +1,13 @@
 
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import LoginForm from "./LoginForm";
 
 function AppNavbar() {
-  const [showLogin, setShowLogin] = useState(false);
-  const [selectedRole, setSelectedRole] = useState("customer");
+  const location = useLocation();
+  const loginRole = new URLSearchParams(location.search).get("login");
+  const [showLogin, setShowLogin] = useState(loginRole === "user" || loginRole === "admin");
+  const [selectedRole, setSelectedRole] = useState(loginRole === "admin" ? "staff" : "customer");
   const [expanded, setExpanded] = useState(false);
   const [loginMenuOpen, setLoginMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
@@ -33,7 +36,6 @@ function AppNavbar() {
     <>
       <nav className="sticky top-0 z-40 bg-transparent py-2.5">
         <div className="relative mx-auto flex w-full max-w-7xl flex-wrap items-center justify-end gap-x-3 px-5 sm:px-6 lg:px-5">
-
           <button
             type="button"
             className="min-h-11 min-w-11 rounded-md border border-white/10 px-3 py-2 text-[#F5F5F5] focus:outline-none focus:ring-4 focus:ring-[#E63946]/20 lg:hidden"
@@ -93,7 +95,7 @@ function AppNavbar() {
                       onClick={() => openLogin("customer")}
                       className="block w-full rounded-md px-3.5 py-2 text-left font-semibold text-[#F5F5F5] hover:bg-[#15151C] hover:text-[#E63946]"
                     >
-                      Customer Login
+                      User Login
                     </button>
 
                     <button
@@ -101,7 +103,7 @@ function AppNavbar() {
                       onClick={() => openLogin("staff")}
                       className="block w-full rounded-md px-3.5 py-2 text-left font-semibold text-[#F5F5F5] hover:bg-[#15151C] hover:text-[#E63946]"
                     >
-                      Owner / Staff Login
+                      Admin Login
                     </button>
                   </div>
                 )}
@@ -148,11 +150,11 @@ function AppNavbar() {
             <div className="bg-[#15151C] p-5">
               <div className="mb-5 text-center">
                 <p className="mb-1 text-sm text-[#A1A1AA]">
-                  Welcome to Motopot's Food House!
+                  Welcome to Motopot&apos;s Food House!
                 </p>
 
                 <h3 className="text-xl font-extrabold text-[#F5F5F5]">
-                  Sign in to your account
+                  {selectedRole === "customer" ? "User sign in" : "Admin sign in"}
                 </h3>
               </div>
 

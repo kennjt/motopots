@@ -8,7 +8,7 @@ const faqs = [
   },
   {
     question: "Do you accept online orders?",
-    answer: "Yes! You can contact us through our official social media page for orders."
+    answer: "Yes! Browse our menu and place your order here. Your order will be sent to our team for processing."
   },
   {
     question: "Do you offer delivery services?",

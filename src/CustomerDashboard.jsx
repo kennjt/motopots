@@ -4,7 +4,11 @@ import CustomerNavbar from "./components/customernavbar";
 import MyOrder from "./components/MyOrder";
 import ProfileSettings from "./components/profile";
 import Checkout from "./components/Checkout";
+import FAQ from "./components/faq";
+import Footer from "./components/footer";
 import { formatMoney } from "./data/menuData";
+import { ORDERS_STORAGE_KEY, ORDERS_UPDATED_EVENT, readOrders, saveOrders } from "./data/orderStorage";
+import inasal from "./assets/inasal_withoutbg.png";
 
 const money = formatMoney;
 
@@ -17,17 +21,22 @@ function CustomerDashboard() {
   const [cart, setCart] = useState(() =>
     JSON.parse(localStorage.getItem("motopots-cart") || "{}"),
   );
-  const [orders, setOrders] = useState(() =>
-    JSON.parse(localStorage.getItem("motopots-orders") || "[]"),
-  );
+  const [orders, setOrders] = useState(readOrders);
   useEffect(
     () => localStorage.setItem("motopots-cart", JSON.stringify(cart)),
     [cart],
   );
-  useEffect(
-    () => localStorage.setItem("motopots-orders", JSON.stringify(orders)),
-    [orders],
-  );
+  useEffect(() => {
+    const syncOrders = (event) => {
+      if (!event.key || event.key === ORDERS_STORAGE_KEY) setOrders(readOrders());
+    };
+    window.addEventListener("storage", syncOrders);
+    window.addEventListener(ORDERS_UPDATED_EVENT, syncOrders);
+    return () => {
+      window.removeEventListener("storage", syncOrders);
+      window.removeEventListener(ORDERS_UPDATED_EVENT, syncOrders);
+    };
+  }, []);
   const cartItems = useMemo(() => Object.values(cart), [cart]);
   const subtotal = cartItems.reduce(
     (sum, item) => sum + (item.finalUnitPrice ?? item.price ?? 0) * item.quantity,
@@ -73,7 +82,9 @@ function CustomerDashboard() {
       orderStatus: "Pending",
       status: "Pending",
     };
-    setOrders((current) => [order, ...current]);
+    const updatedOrders = [order, ...readOrders()];
+    saveOrders(updatedOrders);
+    setOrders(updatedOrders);
     setCart({});
     setConfirmationOrder(order);
     setActiveSection("confirmation");
@@ -91,20 +102,92 @@ function CustomerDashboard() {
         onCheckout={beginCheckout}
       />
       <main className="mx-auto max-w-7xl px-5 py-3">
-        <div className=" flex items-center">
-          <h1 className="text-3xl font-['Alfa_Slab_One',serif] text-[#F5F5F5]">
-            Order Menu
-          </h1>
-        </div>
+        {activeSection === "menu" && (
+          <>
+            <section
+              id="home"
+              className="mp-hero relative isolate flex min-h-[calc(100svh-76px)] items-center overflow-hidden py-8 sm:py-5"
+            >
+              <div className="mx-auto w-full max-w-6xl px-1 sm:px-2">
+                <div className="grid grid-cols-1 items-center gap-8 sm:gap-8 lg:grid-cols-12">
+                  <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
+                    <p className="mb-2 text-sm font-extrabold uppercase tracking-[3px] text-[#E63946]">
+                      Welcome to
+                    </p>
+                    <h1 className="mb-1 leading-[0.95]">
+                      <span className="block font-['Alfa_Slab_One',serif] text-[clamp(25px,7vw,60px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                        Motopot&apos;s
+                      </span>
+                      <span className="mt-3 block font-['Alfa_Slab_One',serif] text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
+                        Food House
+                      </span>
+                    </h1>
+                    <p className="mb-3 mt-3 max-w-[780px] text-lg leading-[1.55] text-[#A1A1AA] sm:text-xl">
+                      Grilled, sizzling and sweet, all in one place. Order your
+                      favorites online and we&apos;ll get them ready for you.
+                    </p>
+                    <ul className="mb-6 flex list-none flex-wrap gap-2 p-0">
+                      {["Bacolod Chicken Inasal", "Takoyaki", "Halo-Halo"].map((item) => (
+                        <li key={item} className="rounded-full border border-white/10 bg-[#22222B] px-3 py-1 text-sm font-extrabold text-[#F5F5F5]">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <a href="#customer-menu" className="min-h-11 rounded-xl border border-[#E63946] bg-[#E63946] px-4 py-2 text-lg font-extrabold text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#C92D3A]">
+                        Order Now
+                      </a>
+                      <a href="#customer-menu" className="min-h-11 rounded-xl border border-white/10 bg-[#15151C] px-4 py-2 text-lg font-extrabold text-[#F5F5F5] no-underline transition-all hover:-translate-y-0.5 hover:border-[#E63946] hover:bg-[#22222B]">
+                        View Menu
+                      </a>
+                    </div>
+                  </div>
+                  <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
+                    <div className="w-full max-w-[500px] overflow-hidden">
+                      <img src={inasal} alt="Bacolod chicken inasal served with rice" className="block h-auto w-full object-contain" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-        <div className=" flex items-center">
-          <p className="text-sm text-[#A1A1AA]">
-            Browse our menu and add items to your cart. When you're ready, place your order!
-          </p>
-        </div>
-
-
-        {activeSection === "menu" && <Menu onAddToCart={addToCart} cart={cart} showAddToCart />}
+            <section id="customer-menu" className="relative z-10 min-h-screen w-full py-12">
+              <div className="mx-auto w-full max-w-6xl text-center">
+                <h2 className="mb-1 font-['Alfa_Slab_One',serif] text-3xl text-[#F5F5F5] sm:text-4xl">Our Menu</h2>
+                <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">Choose your favorites, customize your order, and add them to your cart.</p>
+                <Menu onAddToCart={addToCart} cart={cart} showAddToCart />
+              </div>
+            </section>
+            <section id="customer-about" className="mb-10 bg-[#15151C]/60 px-4 py-10 sm:px-6 lg:px-4">
+              <h2 className="mb-8 text-center font-['Alfa_Slab_One',serif] text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">
+                About Us
+              </h2>
+              <div className="mx-auto w-full max-w-6xl">
+                <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
+                  <div className="min-w-0 lg:col-span-7">
+                    <h2 className="mb-1 leading-[0.95]">
+                      <span className="block font-['Alfa_Slab_One',serif] text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                        Motopot&apos;s
+                      </span>
+                      <span className="mt-3 block font-['Alfa_Slab_One',serif] text-[clamp(25px,5vw,30px)] italic text-[#F5F5F5]">
+                        Food House
+                      </span>
+                    </h2>
+                    <p className="mb-3 mt-3 max-w-[780px] text-lg leading-[1.55] text-[#A1A1AA]">
+                      Enjoy Bacolod Chicken Inasal, freshly made Takoyaki, and
+                      sweet Halo-Halo. Browse our menu and place your order
+                      online for pickup.
+                    </p>
+                  </div>
+                  <div className="min-w-0 lg:col-span-5">
+                    <FAQ />
+                  </div>
+                </div>
+              </div>
+            </section>
+            <Footer />
+          </>
+        )}
         {activeSection === "checkout" && <Checkout cartItems={cartItems} subtotal={subtotal} onBack={() => setActiveSection("menu")} onSubmit={placeOrder} submitting={submittingOrder} />}
         {activeSection === "confirmation" && confirmationOrder && (
           <section className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20 sm:p-10">
@@ -112,7 +195,7 @@ function CustomerDashboard() {
             <div className="mt-8 grid gap-4 rounded-xl bg-[#22222B]/60 p-4 text-sm sm:grid-cols-2"><p><span className="text-[#A1A1AA]">Customer</span><br /><strong>{confirmationOrder.customer.name}</strong></p><p><span className="text-[#A1A1AA]">Order date</span><br /><strong>{new Date(confirmationOrder.createdAt).toLocaleString()}</strong></p><p><span className="text-[#A1A1AA]">Payment</span><br /><strong>{confirmationOrder.paymentMethod}</strong></p><p><span className="text-[#A1A1AA]">Payment status</span><br /><strong className="text-[#E63946]">{confirmationOrder.paymentStatus}</strong></p><p><span className="text-[#A1A1AA]">Order status</span><br /><strong>{confirmationOrder.orderStatus}</strong></p><p><span className="text-[#A1A1AA]">Total</span><br /><strong className="text-[#E63946]">{money(confirmationOrder.total)}</strong></p></div>
             {confirmationOrder.paymentMethod === "GCash" && <p className="mt-5 rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">Your GCash payment is pending verification. It will not be marked as paid until authorized staff confirms it.</p>}
             <div className="mt-6 space-y-3">{confirmationOrder.items.map((item) => <div key={item.id} className="flex justify-between gap-4 border-b border-white/10 pb-3 text-sm"><div><p className="font-bold text-[#F5F5F5]">{item.name} × {item.quantity}</p><p className="text-[#A1A1AA]">{item.details?.join(" · ")}</p></div><span className="font-bold text-[#E63946]">{money(item.subtotal)}</span></div>)}</div>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"><button type="button" onClick={() => setShowOrders(true)} className="rounded-xl bg-[#E63946] px-5 py-3 font-bold text-white hover:bg-[#C92D3A]">View My Orders</button><button type="button" onClick={() => setActiveSection("menu")} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]">Back to Menu</button><a href="/" className="rounded-xl border border-white/10 px-5 py-3 text-center font-bold text-[#F5F5F5] hover:bg-[#22222B]">Back to Home</a></div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"><button type="button" onClick={() => setShowOrders(true)} className="rounded-xl bg-[#E63946] px-5 py-3 font-bold text-white hover:bg-[#C92D3A]">View My Orders</button><button type="button" onClick={() => setActiveSection("menu")} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]">Back to Menu</button><button type="button" onClick={() => setActiveSection("menu")} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]">Back to Home</button></div>
           </section>
         )}
         {activeSection === "orders" && (
