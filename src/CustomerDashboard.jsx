@@ -9,6 +9,7 @@ import Footer from "./components/footer";
 import { formatMoney, makeCartItem, menuItems } from "./data/menuData";
 import { ORDERS_STORAGE_KEY, ORDERS_UPDATED_EVENT, readOrders, saveOrders } from "./data/orderStorage";
 import inasal from "./assets/inasal_withoutbg.png";
+import { ImageWithSkeleton } from "./components/Skeleton";
 
 const money = formatMoney;
 const FAVORITE_ORDERS_KEY = "motopots-favorite-orders";
@@ -224,7 +225,7 @@ function CustomerDashboard() {
                   </div>
                   <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
                     <div className="w-full max-w-[500px] overflow-hidden">
-                      <img src={inasal} alt="Bacolod chicken inasal served with rice" className="block h-auto w-full object-contain" />
+                      <ImageWithSkeleton src={inasal} alt="Bacolod chicken inasal served with rice" className="block h-auto w-full object-contain" />
                     </div>
                   </div>
                 </div>

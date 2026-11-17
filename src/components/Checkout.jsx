@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { formatMoney } from "../data/menuData";
 import gcashlogo from "../assets/GCash_logo.svg";
+import { ImageWithSkeleton } from "./Skeleton";
 
 const emptyCustomer = { name: "", phone: "", email: "" };
 const inputClass =
@@ -353,7 +354,7 @@ function Checkout({
                 key={item.id}
                 className="flex gap-3 border-b border-white/10 pb-4"
               >
-                <img
+                <ImageWithSkeleton
                   src={item.image}
                   alt=""
                   className="h-14 w-14 rounded-lg bg-[#22222B] object-contain"

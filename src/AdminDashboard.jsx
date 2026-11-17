@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { formatMoney, menuItems } from "./data/menuData";
 import { ORDERS_STORAGE_KEY, ORDERS_UPDATED_EVENT, readOrders, saveOrders } from "./data/orderStorage";
+import { ImageWithSkeleton } from "./components/Skeleton";
 
 const orderStatuses = ["Pending", "Preparing", "Ready for Pickup", "Completed", "Cancelled"];
 
@@ -338,7 +339,7 @@ function AdminDashboard() {
                   <div key={item.name} className="flex items-center gap-3">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#202027] text-xs font-extrabold text-[#8E8E98]">0{index + 1}</span>
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#202027]">
-                      {item.image && <img src={item.image} alt="" className="h-full w-full object-contain p-1" />}
+                      {item.image && <ImageWithSkeleton src={item.image} alt="" className="h-full w-full object-contain p-1" />}
                       {!item.image && <Icon name="package" className="h-4 w-4 text-[#797983]" />}
                     </div>
                     <div className="min-w-0 flex-1">

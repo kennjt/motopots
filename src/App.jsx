@@ -11,6 +11,7 @@ import AdminDashboard from "./AdminDashboard";
 import AccountCreation from "./components/AccountCreation";
 
 import inasal from "./assets/inasal_withoutbg.png";
+import { ImageWithSkeleton } from "./components/Skeleton";
 import "./App.css";
 
 function HomePage() {
@@ -74,7 +75,7 @@ function HomePage() {
               </div>
               <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
                 <div className="w-full max-w-[580px] overflow-hidden">
-                  <img
+                  <ImageWithSkeleton
                     src={inasal}
                     alt="Motopot's Food House: Bacolod Chicken Inasal, Takoyaki and Halo-Halo"
                     className="block h-auto w-full object-contain"
