@@ -8,6 +8,7 @@ const money = formatMoney;
 
 const statusStyles = {
   Pending: "bg-[#22222B] text-[#F5F5F5]",
+  "Pending Confirmation": "bg-[#22222B] text-[#F5F5F5]",
   Preparing: "bg-[#E63946]/20 text-[#F5F5F5]",
   "Ready for Pickup": "bg-[#22222B] text-[#F5F5F5]",
   Completed: "bg-green-500/20 text-green-300",
@@ -21,6 +22,9 @@ const paymentStyles = {
   Rejected: "bg-red-500/15 text-red-300",
   Refunded: "bg-blue-500/15 text-blue-300",
 };
+
+const getOrderStatus = (order) => String(order.orderStatus || order.status || "Pending").trim();
+const isCancellableStatus = (status) => ["pending", "pending confirmation"].includes(String(status).trim().toLowerCase());
 
 function MyOrder({ modal = false, onClose }) {
   const [orders, setOrders] = useState(readOrders);
@@ -40,7 +44,7 @@ function MyOrder({ modal = false, onClose }) {
     };
   }, []);
 
-  const canCancel = (order) => ["Pending", "Pending Confirmation"].includes(order.orderStatus || order.status || "Pending");
+  const canCancel = (order) => isCancellableStatus(getOrderStatus(order));
 
   const cancelOrder = async () => {
     if (!cancelTarget || cancellingOrderId) return;
@@ -98,7 +102,7 @@ function MyOrder({ modal = false, onClose }) {
           <div className="space-y-5">
             {orders.map((order) => {
               const orderDate = order.createdAt || order.date || order.id;
-              const status = order.orderStatus || order.status || "Pending";
+              const status = getOrderStatus(order);
               return (
                 <article key={order.id} className="rounded-xl border border-white/10 bg-[#15151C] p-5 shadow-lg shadow-black/20 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
@@ -106,9 +110,10 @@ function MyOrder({ modal = false, onClose }) {
                       <h2 className="text-lg font-extrabold text-[#F5F5F5]">Order #{String(order.id).slice(-6)}</h2>
                       <p className="mt-1 text-sm text-[#A1A1AA]">{new Date(orderDate).toLocaleString()}</p>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-sm font-bold ${statusStyles[status] || statusStyles.Pending}`}>
-                      {status}
-                    </span>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <span className={`rounded-full px-3 py-1 text-sm font-bold ${statusStyles[status] || statusStyles.Pending}`}>{status}</span>
+                      {canCancel(order) && <button type="button" onClick={() => setCancelTarget(order)} disabled={cancellingOrderId === order.id} className="rounded-lg border border-red-400/30 px-3 py-1.5 text-xs font-extrabold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50">{cancellingOrderId === order.id ? "Cancelling…" : "Cancel Order"}</button>}
+                    </div>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
                     <span className={`rounded-full px-3 py-1 ${paymentStyles[order.paymentStatus] || paymentStyles.Unpaid}`}>Payment: {order.paymentStatus || "Unpaid"}</span>
@@ -130,9 +135,6 @@ function MyOrder({ modal = false, onClose }) {
                   <div className="mt-5 flex justify-between border-t border-white/10 pt-4 text-lg font-extrabold text-[#F5F5F5]">
                     <span>Total</span>
                     <span className="text-[#E63946]">{money(order.total)}</span>
-                  </div>
-                  <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-                    {canCancel(order) && <button type="button" onClick={() => setCancelTarget(order)} disabled={cancellingOrderId === order.id} className="rounded-lg border border-red-400/30 px-3 py-2 text-sm font-bold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50">{cancellingOrderId === order.id ? "Cancelling…" : "Cancel Order"}</button>}
                   </div>
                 </article>
               );
