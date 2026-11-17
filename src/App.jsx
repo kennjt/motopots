@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 import AppNavbar from "./components/navbar";
 import Menu from "./components/menu";
@@ -15,6 +16,11 @@ import { ImageWithSkeleton } from "./components/Skeleton";
 import "./App.css";
 
 function HomePage() {
+  const scrollToMenu = (event) => {
+    event.preventDefault();
+    document.getElementById("menu")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <>
       <div>
@@ -59,14 +65,15 @@ function HomePage() {
                   )}
                 </ul>
                 <div className="mt-4 flex flex-wrap gap-3 font-['Nunito',sans-serif]">
-                  <a
-                    href="#menu"
+                  <Link
+                    to="/?login=user"
                     className="min-h-11 rounded-xl border border-[#E63946] bg-[#E63946] px-4 py-2 text-lg font-extrabold text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#C92D3A]"
                   >
                     Order Now
-                  </a>
+                  </Link>
                   <a
                     href="#menu"
+                    onClick={scrollToMenu}
                     className="min-h-11 rounded-xl border border-white/10 bg-[#15151C] px-4 py-2 text-lg font-extrabold text-[#F5F5F5] no-underline transition-all hover:-translate-y-0.5 hover:border-[#E63946] hover:bg-[#22222B]"
                   >
                     View Menu

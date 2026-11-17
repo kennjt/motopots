@@ -1,20 +1,28 @@
 
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import LoginForm from "./LoginForm";
 
 function AppNavbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const loginRole = new URLSearchParams(location.search).get("login");
-  const [showLogin, setShowLogin] = useState(loginRole === "user" || loginRole === "admin");
+  const [loginOpen, setLoginOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(loginRole === "admin" ? "staff" : "customer");
   const [expanded, setExpanded] = useState(false);
   const [loginMenuOpen, setLoginMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("Home");
+  const queryLoginOpen = loginRole === "user" || loginRole === "admin";
+  const showLogin = loginOpen || queryLoginOpen;
+
+  const closeLogin = useCallback(() => {
+    setLoginOpen(false);
+    if (queryLoginOpen) navigate("/");
+  }, [navigate, queryLoginOpen]);
 
   const openLogin = (role) => {
     setSelectedRole(role);
-    setShowLogin(true);
+    setLoginOpen(true);
     setExpanded(false);
     setLoginMenuOpen(false);
   };
@@ -23,14 +31,22 @@ function AppNavbar() {
     if (!showLogin) return undefined;
 
     const onKeyDown = (event) => {
-      if (event.key === "Escape") setShowLogin(false);
+      if (event.key === "Escape") closeLogin();
     };
 
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [showLogin]);
+  }, [closeLogin, showLogin]);
 
   const closeMobileNav = () => setExpanded(false);
+
+  const navigateToSection = (event, label) => {
+    event.preventDefault();
+    const section = document.getElementById(label.toLowerCase());
+    section?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setActiveNav(label);
+    closeMobileNav();
+  };
 
   return (
     <>
@@ -58,10 +74,7 @@ function AppNavbar() {
                 <a
                   key={label}
                   href={`#${label.toLowerCase()}`}
-                  onClick={() => {
-                    setActiveNav(label);
-                    closeMobileNav();
-                  }}
+                  onClick={(event) => navigateToSection(event, label)}
                   className={`min-h-11 rounded-3xl py-1 no-underline transition-colors hover:text-[#E63946] lg:min-h-0 lg:px-[13px] lg:py-0 ${
                     activeNav === label
                       ? "font-bold text-[#E63946]"
@@ -117,7 +130,7 @@ function AppNavbar() {
         <div
           className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-4"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setShowLogin(false);
+            if (event.target === event.currentTarget) closeLogin();
           }}
         >
           {/* Glassmorphism Modal */}
@@ -139,7 +152,7 @@ function AppNavbar() {
               <button
                 type="button"
                 aria-label="Close"
-                onClick={() => setShowLogin(false)}
+                onClick={closeLogin}
                 className="rounded px-2 text-2xl leading-none text-[#A1A1AA] transition hover:text-[#E63946]"
               >
                 &times;

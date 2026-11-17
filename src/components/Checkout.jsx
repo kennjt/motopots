@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatMoney } from "../data/menuData";
+import { ADDRESSES_UPDATED_EVENT, createAddressId, emptyAddress, formatAddress, readSavedAddresses, saveSavedAddresses } from "../data/addressStorage";
+import { loadPsgcArea, loadPsgcIndex, PSGC_SOURCE_URL } from "../data/psgc";
 import gcashlogo from "../assets/GCash_logo.svg";
 import { ImageWithSkeleton } from "./Skeleton";
 
@@ -21,6 +23,24 @@ const readCustomer = () => {
   }
 };
 
+function SearchableLocationField({ id, label, value, options, onSelect, disabled = false, required = true }) {
+  return (
+    <label className="text-sm font-bold text-[#F5F5F5]">
+      {label}
+      <input
+        list={id}
+        value={value || ""}
+        onChange={(event) => onSelect(options.find((option) => option.name === event.target.value) || null)}
+        disabled={disabled}
+        required={required}
+        placeholder={`Search ${label.toLowerCase()}`}
+        className={`mt-1.5 ${inputClass} disabled:cursor-not-allowed disabled:opacity-50`}
+      />
+      <datalist id={id}>{options.map((option) => <option key={option.code} value={option.name} />)}</datalist>
+    </label>
+  );
+}
+
 function Checkout({
   cartItems,
   subtotal,
@@ -36,6 +56,40 @@ function Checkout({
   const [referenceNumber, setReferenceNumber] = useState("");
   const [proof, setProof] = useState(null);
   const [error, setError] = useState("");
+  const [addresses, setAddresses] = useState(readSavedAddresses);
+  const [selectedAddressId, setSelectedAddressId] = useState(() => readSavedAddresses().find((address) => address.isDefault)?.id || null);
+  const [addressManagerOpen, setAddressManagerOpen] = useState(false);
+  const [addressDraft, setAddressDraft] = useState(emptyAddress);
+  const [addressError, setAddressError] = useState("");
+  const [psgcIndex, setPsgcIndex] = useState(null);
+  const [psgcArea, setPsgcArea] = useState(null);
+  const [psgcLoading, setPsgcLoading] = useState(false);
+  const [psgcError, setPsgcError] = useState("");
+
+  const activeAddressId = addresses.some((address) => address.id === selectedAddressId)
+    ? selectedAddressId
+    : addresses.find((address) => address.isDefault)?.id || addresses[0]?.id || null;
+  const selectedAddress = addresses.find((address) => address.id === activeAddressId) || null;
+  const selectedRegion = psgcIndex?.regions?.find((region) => region.code === addressDraft.regionCode);
+  const provinceOptions = selectedRegion ? [...(selectedRegion.provinces || []), ...(selectedRegion.independent || [])] : [];
+  const cityOptions = psgcArea?.cities || [];
+  const barangayOptions = psgcArea?.cities?.find((city) => city.code === addressDraft.cityCode)?.barangays?.map(([code, name]) => ({ code, name })) || [];
+
+  useEffect(() => {
+    const syncAddresses = () => setAddresses(readSavedAddresses());
+    window.addEventListener(ADDRESSES_UPDATED_EVENT, syncAddresses);
+    window.addEventListener("storage", syncAddresses);
+    return () => {
+      window.removeEventListener(ADDRESSES_UPDATED_EVENT, syncAddresses);
+      window.removeEventListener("storage", syncAddresses);
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    loadPsgcIndex().then((data) => { if (active) setPsgcIndex(data); }).catch(() => { if (active) setPsgcError("Philippine location data could not be loaded. Check your connection and try again."); });
+    return () => { active = false; };
+  }, []);
 
   const cashValue = Number(cashAmount || 0);
   const change = cashValue - subtotal;
@@ -44,6 +98,93 @@ function Checkout({
       ...current,
       [event.target.name]: event.target.value,
     }));
+  const openAddressManager = () => {
+    setAddressError("");
+    setAddressManagerOpen(true);
+  };
+  const startNewAddress = () => {
+    setAddressError("");
+    setAddressDraft({ ...emptyAddress, isDefault: addresses.length === 0 });
+    setPsgcArea(null);
+  };
+  const startEditAddress = (address) => {
+    setAddressError("");
+    setAddressDraft({ ...emptyAddress, ...address });
+    setPsgcArea(null);
+    if (address.provinceCode || address.cityCode) {
+      setPsgcLoading(true);
+      loadPsgcArea(address.provinceCode || address.cityCode).then(setPsgcArea).catch(() => setPsgcError("Unable to load the saved location data.")).finally(() => setPsgcLoading(false));
+    }
+  };
+  const updateAddressDraft = (event) => {
+    const { name, value, checked, type } = event.target;
+    setAddressDraft((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
+  };
+  const selectRegion = (event) => {
+    const region = psgcIndex?.regions?.find((item) => item.code === event.target.value);
+    setAddressDraft((current) => ({ ...current, regionCode: region?.code || "", region: region?.name || "", provinceCode: "", province: "", cityCode: "", city: "", barangayCode: "", barangay: "" }));
+    setPsgcArea(null);
+  };
+  const selectProvince = (event) => {
+    const options = [...(psgcIndex?.regions?.find((item) => item.code === addressDraft.regionCode)?.provinces || []), ...(psgcIndex?.regions?.find((item) => item.code === addressDraft.regionCode)?.independent || [])];
+    const selected = options.find((item) => item.code === event.target.value);
+    const independent = Boolean(selected?.type && !psgcIndex?.regions?.find((item) => item.code === addressDraft.regionCode)?.provinces?.some((item) => item.code === selected.code));
+    setAddressDraft((current) => ({ ...current, provinceCode: independent ? "" : selected?.code || "", province: independent ? "" : selected?.name || "", cityCode: independent ? selected?.code || "" : "", city: independent ? selected?.name || "" : "", barangayCode: "", barangay: "", isIndependent: independent }));
+    setPsgcLoading(true);
+    loadPsgcArea(selected?.code).then(setPsgcArea).catch(() => setPsgcError("Unable to load the selected province or city.")).finally(() => setPsgcLoading(false));
+  };
+  const selectCity = (event) => {
+    const selected = psgcArea?.cities?.find((item) => item.code === event.target.value);
+    setAddressDraft((current) => ({ ...current, cityCode: selected?.code || "", city: selected?.name || "", barangayCode: "", barangay: "" }));
+  };
+  const selectBarangay = (event) => {
+    const selected = psgcArea?.cities?.find((city) => city.code === addressDraft.cityCode)?.barangays?.find((item) => item[0] === event.target.value);
+    setAddressDraft((current) => ({ ...current, barangayCode: selected?.[0] || "", barangay: selected?.[1] || "" }));
+  };
+  const saveAddress = () => {
+    const required = ["region", "city", "barangay", "street", "houseNumber", "postalCode"];
+    if (required.some((field) => !String(addressDraft[field] || "").trim())) {
+      setAddressError("Complete all required address fields before saving.");
+      return;
+    }
+    if (!addressDraft.province && !addressDraft.isIndependent) {
+      setAddressError("Select a province or independent city from the location list.");
+      return;
+    }
+    const location = { ...addressDraft };
+    delete location.fullName;
+    delete location.phone;
+    const address = { ...location, id: addressDraft.id || createAddressId(), updatedAt: new Date().toISOString() };
+    const nextAddresses = addresses.some((item) => item.id === address.id)
+      ? addresses.map((item) => item.id === address.id ? address : item)
+      : [...addresses, address];
+    const withDefault = address.isDefault || nextAddresses.length === 1
+      ? nextAddresses.map((item) => ({ ...item, isDefault: item.id === address.id }))
+      : nextAddresses;
+    saveSavedAddresses(withDefault);
+    setAddresses(withDefault);
+    setSelectedAddressId(address.id);
+    setAddressDraft(emptyAddress);
+    setAddressError("");
+  };
+  const setDefaultAddress = (id) => {
+    const nextAddresses = addresses.map((address) => ({ ...address, isDefault: address.id === id }));
+    saveSavedAddresses(nextAddresses);
+    setAddresses(nextAddresses);
+  };
+  const deleteAddress = (address) => {
+    if (address.id === activeAddressId) {
+      setAddressError("Select another address before deleting the address used for this checkout.");
+      return;
+    }
+    if (!window.confirm("Delete this saved address? This cannot be undone.")) return;
+    const remaining = addresses.filter((item) => item.id !== address.id);
+    const nextAddresses = address.isDefault && remaining.length
+      ? remaining.map((item, index) => ({ ...item, isDefault: index === 0 }))
+      : remaining;
+    saveSavedAddresses(nextAddresses);
+    setAddresses(nextAddresses);
+  };
   const handleProof = (event) => {
     const file = event.target.files?.[0];
     if (!file) {
@@ -82,6 +223,10 @@ function Checkout({
       setError("Enter a full name and a valid contact number.");
       return;
     }
+    if (orderType === "Delivery" && !selectedAddress) {
+      setError("Select or add a delivery address before placing your order.");
+      return;
+    }
     if (paymentMethod === "Cash" && cashValue < subtotal) {
       setError("Cash received must be at least the order total.");
       return;
@@ -104,6 +249,8 @@ function Checkout({
       change: paymentMethod === "Cash" ? change : null,
       referenceNumber: paymentMethod === "GCash" ? referenceNumber.trim() : "",
       proof: paymentMethod === "GCash" ? await readProof() : null,
+      deliveryAddressId: orderType === "Delivery" ? selectedAddress.id : null,
+      deliveryAddress: orderType === "Delivery" ? { ...selectedAddress } : null,
     });
   };
 
@@ -197,7 +344,7 @@ function Checkout({
                 onChange={(event) => setOrderType(event.target.value)}
                 className="mr-2 accent-[#E63946]"
               />
-              Dine-in{" "}
+              For Here{" "}
               <span className="ml-2 text-sm text-[#A1A1AA]">
                 Eat at the restaurant.
               </span>
@@ -211,7 +358,7 @@ function Checkout({
                 onChange={(event) => setOrderType(event.target.value)}
                 className="mr-2 accent-[#E63946]"
               />
-              Pickup{" "}
+              To Go{" "}
               <span className="ml-2 text-sm text-[#A1A1AA]">
                 Collect your order at the restaurant.
               </span>
@@ -225,12 +372,41 @@ function Checkout({
                 onChange={(event) => setOrderType(event.target.value)}
                 className="mr-2 accent-[#E63946]"
               />
-              Delivery{" "}
+              For Delivery{" "}
               <span className="ml-2 text-sm text-[#A1A1AA]">
                 Have your order delivered to your address.
               </span>
             </label>
           </section>
+          {orderType === "Delivery" && (
+            <section className="rounded-2xl border border-white/10 bg-[#15151C] p-5 shadow-lg shadow-black/20">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-xl font-extrabold text-[#F5F5F5]">Delivery Address</h2>
+                  <p className="mt-1 text-sm text-[#A1A1AA]">Choose where this order should be delivered.</p>
+                </div>
+                <button type="button" onClick={openAddressManager} className="rounded-xl border border-[#E63946] px-3 py-2 text-sm font-extrabold text-[#FF8B93] hover:bg-[#E63946]/10">
+                  {selectedAddress ? "Change Address" : "Add Address"}
+                </button>
+              </div>
+              {selectedAddress ? (
+                <div className="mt-4 rounded-xl border border-[#E63946]/60 bg-[#E63946]/10 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-[#E63946] px-2.5 py-1 text-[10px] font-extrabold uppercase text-white">{selectedAddress.label}</span>
+                    {selectedAddress.isDefault && <span className="rounded-full border border-[#E63946]/50 px-2.5 py-1 text-[10px] font-extrabold uppercase text-[#FF8B93]">Default</span>}
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-[#D1D1D6]">{formatAddress(selectedAddress)}</p>
+                  {(selectedAddress.subdivision || selectedAddress.landmark) && <p className="mt-1 text-xs text-[#A1A1AA]">{[selectedAddress.subdivision, selectedAddress.landmark && `Landmark: ${selectedAddress.landmark}`].filter(Boolean).join(" · ")}</p>}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border border-dashed border-[#E63946]/50 bg-[#E63946]/5 p-5 text-center">
+                  <p className="font-extrabold text-[#F5F5F5]">No saved delivery address</p>
+                  <p className="mt-1 text-sm text-[#A1A1AA]">Add an address to continue with delivery.</p>
+                  <button type="button" onClick={openAddressManager} className="mt-3 rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-extrabold text-white hover:bg-[#C92D3A]">Add New Address</button>
+                </div>
+              )}
+            </section>
+          )}
           <section className="rounded-2xl border border-white/10 bg-[#15151C] p-5 shadow-lg shadow-black/20">
             <h2 className="text-xl font-extrabold text-[#F5F5F5]">
               Payment Method
@@ -352,13 +528,15 @@ function Checkout({
             {cartItems.map((item) => (
               <div
                 key={item.id}
-                className="flex gap-3 border-b border-white/10 pb-4"
+                className="flex min-w-0 items-start gap-3 border-b border-white/10 pb-4"
               >
-                <ImageWithSkeleton
-                  src={item.image}
-                  alt=""
-                  className="h-14 w-14 rounded-lg bg-[#22222B] object-contain"
-                />
+                <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-[#22222B] sm:h-28 sm:w-28">
+                  <ImageWithSkeleton
+                    src={item.image}
+                    alt=""
+                    className="h-full w-full rounded-lg object-contain"
+                  />
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-[#F5F5F5]">{item.name}</p>
                   {item.details?.length > 0 && (
@@ -376,7 +554,7 @@ function Checkout({
                     {formatMoney(item.finalUnitPrice ?? item.price)}
                   </p>
                 </div>
-                <span className="font-bold text-[#E63946]">
+                <span className="shrink-0 font-bold text-[#E63946]">
                   {formatMoney(
                     (item.finalUnitPrice ?? item.price) * item.quantity,
                   )}
@@ -390,6 +568,50 @@ function Checkout({
           </div>
         </aside>
       </div>
+      {addressManagerOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) { setAddressManagerOpen(false); setAddressDraft(emptyAddress); } }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="address-manager-title" className="max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-y-auto rounded-2xl border border-white/10 bg-[#15151C] p-5 shadow-2xl shadow-black/50 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div><h2 id="address-manager-title" className="text-xl font-extrabold text-[#F5F5F5]">Delivery Addresses</h2><p className="mt-1 text-sm text-[#A1A1AA]">Select an address for this order or manage your saved addresses.</p></div>
+              <button type="button" onClick={() => { setAddressManagerOpen(false); setAddressDraft(emptyAddress); }} aria-label="Close address manager" className="rounded-lg px-2 text-2xl leading-none text-[#A1A1AA] hover:text-[#E63946]">&times;</button>
+            </div>
+            {!addressDraft.id && (
+              <div className="mt-5 space-y-3">
+                {addresses.length === 0 && <p className="rounded-xl border border-dashed border-white/15 p-5 text-center text-sm text-[#A1A1AA]">You have no saved addresses yet.</p>}
+                {addresses.map((address) => (
+                  <article key={address.id} className={`rounded-xl border p-4 transition ${activeAddressId === address.id ? "border-[#E63946] bg-[#E63946]/10" : "border-white/10 bg-[#22222B]/60"}`}>
+                    <button type="button" onClick={() => { setSelectedAddressId(address.id); setAddressManagerOpen(false); }} className="w-full text-left">
+                      <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-[#E63946] px-2 py-1 text-[10px] font-extrabold uppercase text-white">{address.label}</span>{address.isDefault && <span className="rounded-full border border-[#E63946]/50 px-2 py-1 text-[10px] font-extrabold uppercase text-[#FF8B93]">Default</span>}{activeAddressId === address.id && <span className="ml-auto text-xs font-extrabold text-[#FF8B93]">Selected</span>}</div>
+                      <p className="mt-2 text-sm leading-relaxed text-[#D1D1D6]">{formatAddress(address)}</p>
+                      {(address.subdivision || address.landmark) && <p className="mt-1 text-xs text-[#A1A1AA]">{[address.subdivision, address.landmark && `Landmark: ${address.landmark}`].filter(Boolean).join(" · ")}</p>}
+                    </button>
+                    <div className="mt-3 flex flex-wrap gap-2 border-t border-white/10 pt-3"><button type="button" onClick={() => setDefaultAddress(address.id)} disabled={address.isDefault} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-[#F5F5F5] disabled:cursor-default disabled:opacity-50">Set as Default</button><button type="button" onClick={() => startEditAddress(address)} className="rounded-lg border border-white/10 px-3 py-1.5 text-xs font-bold text-[#F5F5F5] hover:bg-[#15151C]">Edit</button><button type="button" onClick={() => deleteAddress(address)} className="rounded-lg border border-red-400/30 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-500/10">Delete</button></div>
+                  </article>
+                ))}
+                <button type="button" onClick={startNewAddress} className="w-full rounded-xl border border-dashed border-[#E63946]/60 px-4 py-3 text-sm font-extrabold text-[#FF8B93] hover:bg-[#E63946]/10">+ Add New Address</button>
+              </div>
+            )}
+            {addressDraft && (addressDraft.id || addressManagerOpen && !addresses.length || addressDraft !== emptyAddress) && addressDraft !== emptyAddress && (
+              <div className="mt-5 rounded-xl border border-white/10 bg-[#22222B]/60 p-4">
+                <h3 className="font-extrabold text-[#F5F5F5]">{addressDraft.id ? "Edit Address" : "Add New Address"}</h3>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <SearchableLocationField id="address-region-list" label="Region" value={addressDraft.region} options={psgcIndex?.regions || []} onSelect={(option) => selectRegion({ target: { value: option?.code || "" } })} disabled={!psgcIndex} />
+                  <SearchableLocationField id="address-province-list" label={addressDraft.isIndependent ? "Province (not applicable)" : "Province"} value={addressDraft.province || (addressDraft.isIndependent ? "Independent city" : "")} options={provinceOptions} onSelect={(option) => selectProvince({ target: { value: option?.code || "" } })} disabled={!addressDraft.regionCode || addressDraft.isIndependent} required={!addressDraft.isIndependent} />
+                  <SearchableLocationField id="address-city-list" label="City/Municipality" value={addressDraft.city} options={cityOptions} onSelect={(option) => selectCity({ target: { value: option?.code || "" } })} disabled={!psgcArea || addressDraft.isIndependent} />
+                  <SearchableLocationField id="address-barangay-list" label="Barangay" value={addressDraft.barangay} options={barangayOptions} onSelect={(option) => selectBarangay({ target: { value: option?.code || "" } })} disabled={!addressDraft.cityCode} />
+                  {[['street', 'Street Name', true], ['houseNumber', 'House/Building Number', true], ['subdivision', 'Subdivision/Village', false], ['landmark', 'Landmark', false], ['postalCode', 'Postal Code', true]].map(([name, label, required]) => <label key={name} className="text-sm font-bold text-[#F5F5F5]">{label}{!required && <span className="ml-1 font-normal text-[#A1A1AA]">(optional)</span>}<input name={name} value={addressDraft[name]} onChange={updateAddressDraft} required={required} className={`mt-1.5 ${inputClass}`} /></label>)}
+                  <label className="text-sm font-bold text-[#F5F5F5]">Address Label<select name="label" value={addressDraft.label} onChange={updateAddressDraft} className={`mt-1.5 ${inputClass}`}><option>Home</option><option>Work</option><option>Other</option></select></label>
+                  <label className="flex items-center gap-2 self-end pb-3 text-sm font-bold text-[#F5F5F5]"><input type="checkbox" name="isDefault" checked={addressDraft.isDefault} onChange={updateAddressDraft} className="h-4 w-4 accent-[#E63946]" />Set as Default Address</label>
+                </div>
+                {psgcLoading && <p className="mt-3 text-xs text-[#A1A1AA]">Loading Philippine location data…</p>}
+                {psgcError && <p role="alert" className="mt-3 text-xs font-bold text-red-300">{psgcError} <a href={PSGC_SOURCE_URL} target="_blank" rel="noreferrer" className="underline">View source</a></p>}
+                {addressError && <p role="alert" className="mt-3 rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm font-bold text-red-300">{addressError}</p>}
+                <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" onClick={() => { setAddressDraft(emptyAddress); setAddressError(""); }} className="rounded-xl border border-white/10 px-4 py-2.5 text-sm font-bold text-[#F5F5F5] hover:bg-[#15151C]">Cancel</button><button type="button" onClick={saveAddress} className="rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-extrabold text-white hover:bg-[#C92D3A]">Save Address</button></div>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
     </form>
   );
 }

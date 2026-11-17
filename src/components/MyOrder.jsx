@@ -119,6 +119,7 @@ function MyOrder({ modal = false, onClose }) {
                     <span className={`rounded-full px-3 py-1 ${paymentStyles[order.paymentStatus] || paymentStyles.Unpaid}`}>Payment: {order.paymentStatus || "Unpaid"}</span>
                     {order.paymentMethod && <span className="rounded-full bg-[#22222B] px-3 py-1 text-[#A1A1AA]">{order.paymentMethod}</span>}
                   </div>
+                  {order.orderType === "Delivery" && order.deliveryAddress && <div className="mt-4 rounded-xl border border-[#E63946]/25 bg-[#E63946]/5 p-3 text-sm"><p className="font-extrabold text-[#F5F5F5]">Delivery address · {order.deliveryAddress.label}</p><p className="mt-1 text-[#A1A1AA]">{[order.deliveryAddress.houseNumber, order.deliveryAddress.street, order.deliveryAddress.subdivision, order.deliveryAddress.barangay, order.deliveryAddress.city, order.deliveryAddress.province, order.deliveryAddress.region, order.deliveryAddress.postalCode].filter(Boolean).join(", ")}</p>{order.deliveryAddress.landmark && <p className="mt-1 text-[#A1A1AA]">Landmark: {order.deliveryAddress.landmark}</p>}</div>}
                   <div className="mt-4 space-y-3">
                     {(order.items || []).map((item) => (
                       <div key={item.id || item.name} className="flex flex-wrap items-center justify-between gap-2 text-sm">
