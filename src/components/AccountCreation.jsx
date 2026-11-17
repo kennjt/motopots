@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { showSuccess, showWarning } from "../utils/swal";
 
 const initialForm = { fullName: "", email: "", phone: "", password: "", confirmPassword: "", terms: false };
 
@@ -35,12 +36,16 @@ function AccountCreation() {
   const handleSubmit = (event) => {
     event.preventDefault();
     setSubmitted(true);
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      showWarning("Check your information", "Complete the required fields and password requirements before continuing.");
+      return;
+    }
     setSubmitted(false);
     setIsLoading(true);
     window.setTimeout(() => {
       setIsLoading(false);
       setSuccess(true);
+      showSuccess("Account ready", "Your account details passed validation.");
       window.setTimeout(() => setSuccess(false), 5000);
     }, 800);
   };

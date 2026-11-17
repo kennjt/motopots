@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomerNavbar from "./customernavbar";
+import { showSuccess, showWarning } from "../utils/swal";
 
 const emptyProfile = { name: "", email: "", phone: "" };
 
@@ -34,18 +35,15 @@ function ProfileSettings({ modal = false, onClose }) {
     next: "",
     confirm: "",
   });
-  const [savedMessage, setSavedMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleProfileChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
-    setSavedMessage("");
     setErrorMessage("");
   };
 
   const handlePasswordChange = (e) => {
     setPasswords({ ...passwords, [e.target.name]: e.target.value });
-    setSavedMessage("");
     setErrorMessage("");
   };
 
@@ -55,23 +53,22 @@ function ProfileSettings({ modal = false, onClose }) {
     const changingPassword = Object.values(passwords).some(Boolean);
     if (changingPassword && (!passwords.current || !passwords.next)) {
       setErrorMessage("Enter your current password and a new password to continue.");
+      showWarning("Check password details", "Enter your current password and a new password to continue.");
       return;
     }
     if (passwords.next !== passwords.confirm) {
       setErrorMessage("New password and confirmation do not match.");
+      showWarning("Passwords do not match", "Enter the same new password in both fields.");
       return;
     }
 
     // Keep credentials out of localStorage; only profile information is persisted.
     localStorage.setItem("motopots-profile", JSON.stringify(profile));
 
-    setSavedMessage("Profile updated successfully.");
+    showSuccess("Profile updated successfully");
     setErrorMessage("");
     setPasswords({ current: "", next: "", confirm: "" });
 
-    setTimeout(() => {
-      setSavedMessage("");
-    }, 3000);
   };
 
   const profileCard = (
@@ -162,11 +159,6 @@ function ProfileSettings({ modal = false, onClose }) {
             </div>
 
             {errorMessage && <p className="rounded-lg bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-300">{errorMessage}</p>}
-            {savedMessage && (
-              <p className="rounded-lg bg-green-500/10 px-4 py-3 text-sm font-semibold text-green-300">
-                {savedMessage}
-              </p>
-            )}
 
             {/* Buttons */}
             <div className="flex flex-col-reverse justify-end gap-3 pt-4 sm:flex-row">

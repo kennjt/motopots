@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { formatMoney } from "../data/menuData";
 import carticon from "../assets/cart_icon.svg";
+import { showConfirm, showSuccess } from "../utils/swal";
 
 function MenuIcon({ open }) {
   return (
@@ -41,6 +42,13 @@ function CustomerNavbar({
   const [cartOpen, setCartOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const logout = async (event) => {
+    event.preventDefault();
+    const result = await showConfirm({ title: "Log out?", text: "Are you sure you want to log out of your account?", confirmText: "Yes, log out", cancelText: "Stay logged in" });
+    if (!result.isConfirmed) return;
+    showSuccess("Logged out successfully");
+    window.location.hash = "#/";
+  };
   const [editingNotes, setEditingNotes] = useState({});
   const cartRef = useRef(null);
   const favoritesRef = useRef(null);
@@ -304,7 +312,7 @@ function CustomerNavbar({
                 </Link>
                 <Link
                   to="/"
-                  onClick={() => setSettingsMenuOpen(false)}
+                  onClick={(event) => { setSettingsMenuOpen(false); logout(event); }}
                   className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-[#FF8B93] no-underline transition hover:bg-[#3A2025] hover:text-[#FFB1B7]"
                 >
                   <LogoutIcon />

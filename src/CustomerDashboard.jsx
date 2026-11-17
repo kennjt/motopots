@@ -10,6 +10,7 @@ import { formatMoney, makeCartItem, menuItems } from "./data/menuData";
 import { ORDERS_STORAGE_KEY, ORDERS_UPDATED_EVENT, readOrders, saveOrders } from "./data/orderStorage";
 import inasal from "./assets/inasal_withoutbg.png";
 import { ImageWithSkeleton } from "./components/Skeleton";
+import { showConfirm, showError, showInfo, showSuccess } from "./utils/swal";
 
 const money = formatMoney;
 const FAVORITE_ORDERS_KEY = "motopots-favorite-orders";
@@ -68,10 +69,13 @@ function CustomerDashboard() {
     (sum, item) => sum + (item.finalUnitPrice ?? item.price ?? 0) * item.quantity,
     0,
   );
-  const addToCart = (item) => setCart((current) => ({
-    ...current,
-    [item.id]: { ...item, quantity: (current[item.id]?.quantity || 0) + 1, subtotal: item.finalUnitPrice * ((current[item.id]?.quantity || 0) + 1) },
-  }));
+  const addToCart = (item) => {
+    setCart((current) => ({
+      ...current,
+      [item.id]: { ...item, quantity: (current[item.id]?.quantity || 0) + 1, subtotal: item.finalUnitPrice * ((current[item.id]?.quantity || 0) + 1) },
+    }));
+    showSuccess("Added to cart successfully", item.name);
+  };
   const resolveFavoriteItem = (savedItem) => {
     const product = menuItems.find((item) => item.id === savedItem.productId);
     if (!product) return { error: `${savedItem.name || "An item"} is no longer available.` };
@@ -86,7 +90,7 @@ function CustomerDashboard() {
     const resolved = savedOrder.items.map(resolveFavoriteItem);
     const error = resolved.find((item) => item.error);
     if (error) {
-      window.alert(error.error);
+      showError("Unable to reorder", error.error);
       return;
     }
     setCart((current) => resolved.reduce((next, item, index) => {
@@ -99,12 +103,13 @@ function CustomerDashboard() {
     setCheckoutOrderType(savedOrder.orderType || "Pickup");
     setActiveSection("menu");
     setFavoriteNotice("Saved order added to your cart.");
+    showSuccess("Added to cart successfully");
   };
   const editFavorite = (savedOrder) => {
     const firstItem = savedOrder.items?.[0];
     const resolved = firstItem && resolveFavoriteItem(firstItem);
     if (!resolved || resolved.error) {
-      window.alert(resolved?.error || "This saved order is unavailable.");
+      showError("Saved order unavailable", resolved?.error || "This saved order is unavailable.");
       return;
     }
     setCheckoutOrderType(savedOrder.orderType || "Pickup");
@@ -118,16 +123,19 @@ function CustomerDashboard() {
     const snapshot = { ...confirmationOrder, id: `favorite-${Date.now()}`, name: favoriteName.trim(), savedAt: new Date().toISOString(), items: confirmationOrder.items.map((item) => ({ ...item, savedPrice: item.finalUnitPrice ?? item.price })) };
     if (favoriteOrders.some((order) => savedOrderSignature(order) === savedOrderSignature(snapshot))) {
       setFavoriteNotice("This order is already in your favorites.");
+      showInfo("Already saved", "This order is already in your favorites.");
       return;
     }
     setFavoriteOrders((current) => [snapshot, ...current]);
     setFavoriteNotice("Order added to your favorites!");
+    showSuccess("Added to favorites successfully");
     setFavoriteName("");
   };
   const removeConfirmationFavorite = () => {
     if (!confirmationFavorite) return;
     removeFavorite(confirmationFavorite.id);
     setFavoriteNotice("Order removed from your favorites.");
+    showSuccess("Removed from favorites successfully");
   };
   const changeQuantity = (id, amount) =>
     setCart((current) => {
@@ -139,12 +147,16 @@ function CustomerDashboard() {
       }
       return { ...current, [id]: { ...current[id], quantity: nextQuantity, subtotal: (current[id].finalUnitPrice ?? current[id].price) * nextQuantity } };
     });
-  const removeFromCart = (id) =>
+  const removeFromCart = async (id) => {
+    const result = await showConfirm({ title: "Remove this item?", text: "Are you sure you want to remove this item from your cart?", confirmText: "Yes, remove", cancelText: "Keep item" });
+    if (!result.isConfirmed) return;
     setCart((current) => {
       const next = { ...current };
       delete next[id];
       return next;
     });
+    showSuccess("Item removed from cart");
+  };
   const beginCheckout = () => {
     if (cartItems.length) setActiveSection("checkout");
   };

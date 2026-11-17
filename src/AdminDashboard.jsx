@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatMoney, menuItems } from "./data/menuData";
 import { ORDERS_STORAGE_KEY, ORDERS_UPDATED_EVENT, readOrders, saveOrders } from "./data/orderStorage";
 import { ImageWithSkeleton } from "./components/Skeleton";
+import { showConfirm, showSuccess } from "./utils/swal";
 
 const orderStatuses = ["Pending", "Preparing", "Ready for Pickup", "Completed", "Cancelled"];
 
@@ -73,6 +74,7 @@ function getProductPriceLabel(item) {
 }
 
 function AdminDashboard() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState(readOrders);
   const [today] = useState(() => new Date());
   const [search, setSearch] = useState("");
@@ -170,6 +172,15 @@ function AdminDashboard() {
       order.id === orderId ? { ...order, status, orderStatus: status } : order
     ));
     saveOrders(updatedOrders);
+    showSuccess("Order status updated successfully");
+  };
+
+  const logout = async (event) => {
+    event.preventDefault();
+    const result = await showConfirm({ title: "Log out?", text: "Are you sure you want to log out of your account?", confirmText: "Yes, log out", cancelText: "Stay logged in" });
+    if (!result.isConfirmed) return;
+    showSuccess("Logged out successfully");
+    navigate("/");
   };
 
   const chartMax = Math.max(...salesByDay.map((day) => day.amount), 1);
@@ -255,7 +266,7 @@ function AdminDashboard() {
                     <Link to="/?login=user" onClick={() => setAccountMenuOpen(false)} className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]">User Login</Link>
                     <Link to="/?login=admin" onClick={() => setAccountMenuOpen(false)} className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]">Admin Login</Link>
                     <div className="my-1 border-t border-white/10" />
-                    <Link to="/" onClick={() => setAccountMenuOpen(false)} className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]">Log out</Link>
+                    <Link to="/" onClick={(event) => { setAccountMenuOpen(false); logout(event); }} className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]">Log out</Link>
                   </div>
                 )}
               </div>

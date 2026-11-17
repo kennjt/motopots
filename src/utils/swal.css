@@ -1,0 +1,75 @@
+/* SweetAlert notifications use compact, reference-style banners while keeping the app's dark palette. */
+.motopots-swal-popup {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+  font-family: Nunito, sans-serif;
+}
+
+.motopots-swal-popup.swal2-toast {
+  width: min(calc(100vw - 2rem), 22rem);
+  min-height: 3rem;
+  padding: 0.6rem 2rem 0.6rem 0.75rem;
+  border-radius: 0.2rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.24);
+  text-align: left;
+}
+
+.motopots-swal-popup.swal2-toast.swal2-icon-success { background: #193a2b !important; border-color: #3f9c67; }
+.motopots-swal-popup.swal2-toast.swal2-icon-warning { background: #443719 !important; border-color: #c29a32; }
+.motopots-swal-popup.swal2-toast.swal2-icon-error { background: #48232a !important; border-color: #d65d6b; }
+.motopots-swal-popup.swal2-toast.swal2-icon-info { background: #193b4b !important; border-color: #3a9bc0; }
+
+.motopots-swal-popup.swal2-toast .swal2-icon {
+  width: 1rem;
+  height: 1rem;
+  margin: 0 0.6rem 0 0;
+  border-width: 1px;
+  font-size: 0.65rem;
+}
+
+.motopots-swal-popup.swal2-toast .motopots-swal-title {
+  margin: 0;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: left;
+}
+
+.motopots-swal-popup.swal2-toast .motopots-swal-content {
+  margin: 0.1rem 0 0;
+  padding: 0;
+  color: rgba(245, 245, 245, 0.72);
+  font-size: 0.63rem;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.motopots-swal-popup.swal2-toast .swal2-close {
+  position: absolute;
+  top: 50%;
+  right: 0.45rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  padding: 0;
+  color: rgba(245, 245, 245, 0.65);
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  transform: translateY(-50%);
+}
+
+.motopots-swal-title { font-family: Nunito, sans-serif; font-weight: 800; }
+.motopots-swal-content { color: #a1a1aa; }
+.motopots-swal-confirm, .motopots-swal-cancel {
+  border: 0;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.7rem 1rem;
+}
+.motopots-swal-confirm { background: #e63946; color: #fff; }
+.motopots-swal-confirm:hover { background: #c92d3a; }
+.motopots-swal-cancel { background: #15151c; border: 1px solid rgba(255,255,255,.1); color: #f5f5f5; }

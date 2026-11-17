@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Nunito:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
+@import "./utils/swal.css";
 @tailwind utilities;
 @source "./App.jsx";
 @source "./components";
@@ -92,3 +93,4 @@ body {
 @keyframes mp-skeleton-shimmer { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
 
 @media (prefers-reduced-motion: reduce) { .mp-skeleton { animation: none; } }
+@import "./utils/swal.css";

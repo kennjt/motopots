@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import CustomerNavbar from "./customernavbar";
 import { formatMoney } from "../data/menuData";
 import { ORDERS_UPDATED_EVENT, readOrders, saveOrders } from "../data/orderStorage";
+import { showConfirm, showError, showSuccess } from "../utils/swal";
 
 const money = formatMoney;
 
@@ -30,7 +31,6 @@ function MyOrder({ modal = false, onClose }) {
   const [orders, setOrders] = useState(readOrders);
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancellingOrderId, setCancellingOrderId] = useState(null);
-  const [cancelNotice, setCancelNotice] = useState("");
 
   useEffect(() => {
     const syncOrders = () => setOrders(readOrders());
@@ -48,13 +48,15 @@ function MyOrder({ modal = false, onClose }) {
 
   const cancelOrder = async () => {
     if (!cancelTarget || cancellingOrderId) return;
+    const confirmation = await showConfirm({ title: "Cancel this order?", text: "Are you sure you want to cancel this order?", confirmText: "Yes, cancel order", cancelText: "Keep order" });
+    if (!confirmation.isConfirmed) return;
     const currentOrders = readOrders();
     const currentOrder = currentOrders.find((order) => String(order.id) === String(cancelTarget.id));
     // Re-check against the latest stored status so a stale page cannot cancel a progressed order.
     if (!currentOrder || !canCancel(currentOrder)) {
       setOrders(currentOrders);
       setCancelTarget(null);
-      setCancelNotice("This order can no longer be cancelled.");
+      showError("Order cannot be cancelled", "This order can no longer be cancelled.");
       return;
     }
     setCancellingOrderId(currentOrder.id);
@@ -64,7 +66,7 @@ function MyOrder({ modal = false, onClose }) {
     setOrders(updatedOrders);
     setCancellingOrderId(null);
     setCancelTarget(null);
-    setCancelNotice(`Order #${String(currentOrder.id).slice(-6)} was cancelled.`);
+    showSuccess("Order cancelled successfully", `Order #${String(currentOrder.id).slice(-6)} was cancelled.`);
   };
 
   const cancelDialog = cancelTarget && (
@@ -175,7 +177,6 @@ function MyOrder({ modal = false, onClose }) {
               &times;
             </button>
           </header>
-          {cancelNotice && <p role="status" className="px-5 pt-4 text-sm font-bold text-emerald-300">{cancelNotice}</p>}
           {orderContent}
           {cancelDialog}
         </section>
@@ -186,7 +187,6 @@ function MyOrder({ modal = false, onClose }) {
   return (
     <div className="min-h-screen text-[#F5F5F5]">
       <CustomerNavbar />
-      {cancelNotice && <p role="status" className="mx-auto mt-4 max-w-4xl px-5 text-sm font-bold text-emerald-300">{cancelNotice}</p>}
       {orderContent}
       {cancelDialog}
     </div>

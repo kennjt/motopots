@@ -4,6 +4,7 @@ import { ADDRESSES_UPDATED_EVENT, createAddressId, emptyAddress, formatAddress, 
 import { loadPsgcArea, loadPsgcIndex, PSGC_SOURCE_URL } from "../data/psgc";
 import gcashlogo from "../assets/GCash_logo.svg";
 import { ImageWithSkeleton } from "./Skeleton";
+import { showConfirm, showError, showSuccess, showWarning } from "../utils/swal";
 
 const emptyCustomer = { name: "", phone: "", email: "" };
 const inputClass =
@@ -145,15 +146,18 @@ function Checkout({
     const required = ["region", "city", "barangay", "street", "houseNumber", "postalCode"];
     if (required.some((field) => !String(addressDraft[field] || "").trim())) {
       setAddressError("Complete all required address fields before saving.");
+      showWarning("Incomplete address", "Complete all required delivery location fields before saving.");
       return;
     }
     if (!addressDraft.province && !addressDraft.isIndependent) {
       setAddressError("Select a province or independent city from the location list.");
+      showWarning("Select a location", "Choose a province or independent city from the searchable list.");
       return;
     }
     const location = { ...addressDraft };
     delete location.fullName;
     delete location.phone;
+    const wasEditing = Boolean(addressDraft.id);
     const address = { ...location, id: addressDraft.id || createAddressId(), updatedAt: new Date().toISOString() };
     const nextAddresses = addresses.some((item) => item.id === address.id)
       ? addresses.map((item) => item.id === address.id ? address : item)
@@ -166,24 +170,28 @@ function Checkout({
     setSelectedAddressId(address.id);
     setAddressDraft(emptyAddress);
     setAddressError("");
+    showSuccess(wasEditing ? "Address updated successfully" : "Address added successfully");
   };
   const setDefaultAddress = (id) => {
     const nextAddresses = addresses.map((address) => ({ ...address, isDefault: address.id === id }));
     saveSavedAddresses(nextAddresses);
     setAddresses(nextAddresses);
+    showSuccess("Default address updated");
   };
-  const deleteAddress = (address) => {
+  const deleteAddress = async (address) => {
     if (address.id === activeAddressId) {
       setAddressError("Select another address before deleting the address used for this checkout.");
       return;
     }
-    if (!window.confirm("Delete this saved address? This cannot be undone.")) return;
+    const result = await showConfirm({ title: "Remove this address?", text: "Are you sure you want to delete this saved address?", confirmText: "Yes, remove", cancelText: "Keep address" });
+    if (!result.isConfirmed) return;
     const remaining = addresses.filter((item) => item.id !== address.id);
     const nextAddresses = address.isDefault && remaining.length
       ? remaining.map((item, index) => ({ ...item, isDefault: index === 0 }))
       : remaining;
     saveSavedAddresses(nextAddresses);
     setAddresses(nextAddresses);
+    showSuccess("Address deleted successfully");
   };
   const handleProof = (event) => {
     const file = event.target.files?.[0];
@@ -193,6 +201,7 @@ function Checkout({
     }
     if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
       setError("Payment proof must be an image smaller than 5 MB.");
+      showError("Invalid payment proof", "Upload an image smaller than 5 MB.");
       setProof(null);
       return;
     }
@@ -221,14 +230,17 @@ function Checkout({
       !/^\+?[0-9\s()-]{7,20}$/.test(customer.phone.trim())
     ) {
       setError("Enter a full name and a valid contact number.");
+      showWarning("Check customer information", "Enter a full name and a valid contact number.");
       return;
     }
     if (orderType === "Delivery" && !selectedAddress) {
       setError("Select or add a delivery address before placing your order.");
+      showWarning("Delivery address required", "Select or add a delivery address before placing your order.");
       return;
     }
     if (paymentMethod === "Cash" && cashValue < subtotal) {
       setError("Cash received must be at least the order total.");
+      showWarning("Insufficient cash", "Cash received must be at least the order total.");
       return;
     }
     if (
@@ -238,6 +250,7 @@ function Checkout({
       setError(
         "Enter a valid GCash reference number and upload payment proof.",
       );
+      showWarning("Check payment details", "Enter a valid GCash reference number and upload payment proof.");
       return;
     }
     setError("");
@@ -252,6 +265,7 @@ function Checkout({
       deliveryAddressId: orderType === "Delivery" ? selectedAddress.id : null,
       deliveryAddress: orderType === "Delivery" ? { ...selectedAddress } : null,
     });
+    showSuccess("Order placed successfully", "Your order has been submitted.");
   };
 
   if (!cartItems.length)

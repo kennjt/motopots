@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { showSuccess } from "../utils/swal";
 
 function LoginForm({ role }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +22,7 @@ function LoginForm({ role }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    showSuccess("Login successful", `Welcome back${formData.email ? `, ${formData.email}` : ""}.`);
 
     if (role === "customer") {
       navigate("/customer");
