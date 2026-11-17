@@ -26,9 +26,10 @@ function Checkout({
   onBack,
   onSubmit,
   submitting = false,
+  initialOrderType = "Pickup",
 }) {
   const [customer, setCustomer] = useState(readCustomer);
-  const [orderType, setOrderType] = useState("Pickup");
+  const [orderType, setOrderType] = useState(initialOrderType);
   const [paymentMethod, setPaymentMethod] = useState("Cash");
   const [cashAmount, setCashAmount] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
@@ -139,7 +140,7 @@ function Checkout({
         </button>
       </div>
       <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(12rem,35dvh)] gap-6 overflow-hidden lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-1">
-        <div className="min-h-0 space-y-6 overflow-y-auto pr-1 [scrollbar-color:#3f3f46_transparent] [scrollbar-width:thin]">
+        <div className="min-h-0 space-y-6 overflow-y-auto pr-1">
           <section className="rounded-2xl border border-white/10 bg-[#15151C] p-5 shadow-lg shadow-black/20">
             <h2 className="text-xl font-extrabold text-[#F5F5F5]">
               Customer Information
@@ -346,7 +347,7 @@ function Checkout({
           <h2 className="text-xl font-extrabold text-[#F5F5F5]">
             Order Summary
           </h2>
-          <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1 [scrollbar-color:#3f3f46_transparent] [scrollbar-width:thin]">
+          <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
             {cartItems.map((item) => (
               <div
                 key={item.id}

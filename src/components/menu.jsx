@@ -1,12 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { categories, formatMoney, getVariant, makeCartItem, menuItems } from "../data/menuData";
 
-function Menu({ onAddToCart, cart = {}, showAddToCart = false }) {
+function Menu({ onAddToCart, cart = {}, showAddToCart = false, favoriteToEdit, onFavoriteEditHandled }) {
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selection, setSelection] = useState({});
   const filteredItems = menuItems.filter((item) => (activeCategory === "All" || item.category === activeCategory) && item.name.toLowerCase().includes(search.toLowerCase()));
+
+  useEffect(() => {
+    if (!favoriteToEdit) return;
+    const product = menuItems.find((item) => item.id === favoriteToEdit.productId);
+    if (!product) return;
+    const variant = product.variants.find((item) => item.label === favoriteToEdit.variant && (!favoriteToEdit.flavor || item.flavor === favoriteToEdit.flavor)) || product.variants.find((item) => item.label === favoriteToEdit.variant);
+    if (!variant) return;
+    const addOns = (product.addOns || []).filter((addOn) => (favoriteToEdit.addOns || []).includes(addOn.label)).map((addOn) => addOn.id);
+    // This effect intentionally hydrates the existing customization modal from a saved order.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedProduct(product);
+    setSelection({ variantId: variant.id, flavor: favoriteToEdit.flavor || variant.flavor, quantity: favoriteToEdit.variant || variant.label, addOns, notes: favoriteToEdit.notes || "" });
+    onFavoriteEditHandled?.();
+  }, [favoriteToEdit, onFavoriteEditHandled]);
 
   const openProduct = (product) => {
     const first = product.variants[0];

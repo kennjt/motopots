@@ -13,10 +13,43 @@
   --color-primary-text: #F5F5F5;
   --color-secondary-text: #A1A1AA;
   --color-border: rgba(255, 255, 255, 0.08);
+  --scrollbar-track: rgba(21, 21, 28, 0.72);
+  --scrollbar-thumb: #F5F5F5;
+  --scrollbar-thumb-hover: #FFFFFF;
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+/* A shared, understated scrollbar for the page and every nested scroll region. */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  min-height: 36px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #D4D4D8 100%);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 html {

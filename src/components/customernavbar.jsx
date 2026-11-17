@@ -3,6 +3,26 @@ import { Link } from "react-router-dom";
 import { formatMoney } from "../data/menuData";
 import carticon from "../assets/cart_icon.svg";
 
+function MenuIcon({ open }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path d={open ? "M6 6l12 12M18 6L6 18" : "M4 6h16M4 12h16M4 18h16"} fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><circle cx="12" cy="8" r="3.25" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M5.5 19c.8-3 3-4.5 6.5-4.5s5.7 1.5 6.5 4.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="1.8" /></svg>;
+}
+
+function LogoutIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M14 5H6.5A1.5 1.5 0 005 6.5v11A1.5 1.5 0 006.5 19H14M11 12h9m0 0l-3.5-3.5M20 12l-3.5 3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>;
+}
+
+function HeartIcon({ filled = false }) {
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M20.8 8.6c0 5.5-8.8 10.2-8.8 10.2S3.2 14.1 3.2 8.6A4.6 4.6 0 0112 6.3a4.6 4.6 0 018.8 2.3z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>;
+}
+
 function CustomerNavbar({
   onOrdersClick,
   onProfileClick,
@@ -12,25 +32,35 @@ function CustomerNavbar({
   onRemove,
   onNotesChange,
   onCheckout,
+  favoriteOrders = [],
+  favoriteCount = 0,
+  onReorderFavorite,
+  onEditFavorite,
+  onRemoveFavorite,
 }) {
   const [cartOpen, setCartOpen] = useState(false);
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [editingNotes, setEditingNotes] = useState({});
   const cartRef = useRef(null);
-  const accountRef = useRef(null);
+  const favoritesRef = useRef(null);
+  const settingsRef = useRef(null);
   const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
     const closeOnOutsideClick = (event) => {
       if (cartRef.current && !cartRef.current.contains(event.target))
         setCartOpen(false);
-      if (accountRef.current && !accountRef.current.contains(event.target))
-        setAccountMenuOpen(false);
+      if (favoritesRef.current && !favoritesRef.current.contains(event.target))
+        setFavoritesOpen(false);
+      if (settingsRef.current && !settingsRef.current.contains(event.target))
+        setSettingsMenuOpen(false);
     };
     const closeOnEscape = (event) => {
       if (event.key === "Escape") {
         setCartOpen(false);
-        setAccountMenuOpen(false);
+        setFavoritesOpen(false);
+        setSettingsMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", closeOnOutsideClick);
@@ -217,7 +247,19 @@ function CustomerNavbar({
               </div>
             )}
           </div>
-          <Link
+          <div ref={favoritesRef} className="relative">
+            <button type="button" onClick={() => { setFavoritesOpen((value) => !value); setCartOpen(false); }} aria-expanded={favoritesOpen} aria-controls="customer-favorites-panel" aria-label={`Favorite orders, ${favoriteCount} saved`} className="relative flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/10 bg-[#15151C]/80 px-3 text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:text-[#FF8B93] hover:shadow-xl">
+              <HeartIcon filled={favoritesOpen || favoriteCount > 0} />
+              {favoriteCount > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E63946] px-1 text-[11px] font-extrabold text-white">{favoriteCount}</span>}
+            </button>
+            {favoritesOpen && <div id="customer-favorites-panel" className="absolute right-0 z-50 mt-2 w-[min(25rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#15151C]/95 shadow-2xl shadow-black/40 backdrop-blur-xl">
+              <div className="flex items-center justify-between border-b border-white/10 bg-[#22222B]/70 px-4 py-3"><h2 className="font-extrabold text-[#F5F5F5]">Favorite Orders</h2><span className="text-xs text-[#A1A1AA]">{favoriteCount} saved</span></div>
+              <div className="max-h-[min(60vh,30rem)] overflow-y-auto p-4">
+                {!favoriteOrders.length ? <div className="py-7 text-center"><HeartIcon /><p className="mt-2 text-sm text-[#A1A1AA]">No favorite orders yet.</p><p className="mt-1 text-xs text-[#71717A]">Save an order after checkout to quickly order it again.</p></div> : <div className="space-y-3">{favoriteOrders.map((order) => <article key={order.id} className="rounded-xl border border-white/10 bg-[#22222B]/50 p-3 transition hover:border-[#E63946]/40"><div className="flex gap-3"><div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-[#15151C]"><img src={order.items?.[0]?.image} alt="" className="h-full w-full object-contain" /></div><div className="min-w-0 flex-1"><p className="truncate font-bold text-[#F5F5F5]">{order.name || order.items?.[0]?.name || "Saved order"}</p><p className="mt-1 text-xs text-[#A1A1AA]">{order.items?.length > 1 ? `${order.items.length} items` : order.items?.[0]?.name} · {order.orderType}</p><p className="mt-1 text-xs text-[#A1A1AA]">{order.items?.map((item) => `${item.variant || "Standard"}${item.flavor ? ` · ${item.flavor}` : ""}${item.addOns?.length ? ` · ${item.addOns.join(", ")}` : ""}${item.notes ? ` · Note: ${item.notes}` : ""} × ${item.quantity}`).join("; ")}</p></div></div><div className="mt-3 flex flex-wrap gap-2"><button type="button" onClick={() => onReorderFavorite?.(order)} className="rounded-lg bg-[#E63946] px-2.5 py-1.5 text-xs font-extrabold text-white transition hover:bg-[#C92D3A]">Reorder</button><button type="button" onClick={() => onEditFavorite?.(order)} className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs font-bold text-[#F5F5F5] transition hover:bg-[#15151C]">Edit / Customize</button><button type="button" onClick={() => onRemoveFavorite?.(order.id)} className="rounded-lg border border-white/10 px-2.5 py-1.5 text-xs font-bold text-[#FF8B93] transition hover:bg-[#3A2025]">Remove</button></div></article>)}</div>}
+              </div>
+             </div>}
+           </div>
+           <Link
             to="/customer/orders"
             onClick={
               onOrdersClick
@@ -231,71 +273,45 @@ function CustomerNavbar({
           >
             My Orders
           </Link>
-          <div ref={accountRef} className="relative">
+          <div ref={settingsRef} className="relative">
             <button
               type="button"
-              onClick={() => setAccountMenuOpen((value) => !value)}
-              aria-expanded={accountMenuOpen}
-              aria-label="Account options"
-              className="flex h-10 min-w-10 items-center justify-center rounded-full border border-white/10 bg-[#15151C]/80 px-3 text-sm font-bold text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition hover:border-[#E63946]/50 hover:bg-[#22222B] sm:min-h-11 sm:rounded-full sm:px-4"
+              onClick={() => setSettingsMenuOpen((value) => !value)}
+              aria-expanded={settingsMenuOpen}
+              aria-controls="customer-settings-menu"
+              aria-label={settingsMenuOpen ? "Close settings menu" : "Open settings menu"}
+              className="flex h-10 min-w-10 items-center justify-center rounded-full border border-white/10 bg-[#15151C]/80 text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition hover:border-[#E63946]/50 hover:bg-[#22222B] sm:h-11 sm:min-w-11"
             >
-              <span className="sm:hidden" aria-hidden="true">
+              <span className="hidden" aria-hidden="true">
                 •••
               </span>
-              <span className="hidden sm:inline">Account</span>
-              <span
-                className="ml-1 hidden text-xs sm:inline"
-                aria-hidden="true"
-              >
-                ▼
-              </span>
+              <MenuIcon open={settingsMenuOpen} />
             </button>
-            {accountMenuOpen && (
-              <div className="absolute right-0 z-50 mt-2 w-48 rounded-xl border border-white/10 bg-[#22222B] p-1.5 shadow-xl shadow-black/30">
+            <div id="customer-settings-menu" aria-hidden={!settingsMenuOpen} className={`absolute right-0 z-50 mt-2 w-[min(13rem,calc(100vw-2rem))] origin-top-right rounded-2xl border border-white/10 bg-[#22222B]/95 p-1.5 shadow-2xl shadow-black/40 backdrop-blur-xl transition duration-200 ${settingsMenuOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"}`}>
                 <Link
-                  to="/?login=user"
-                  onClick={() => setAccountMenuOpen(false)}
-                  className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]"
+                  to="/customer/profile"
+                  onClick={(event) => {
+                    setSettingsMenuOpen(false);
+                    if (onProfileClick) {
+                      event.preventDefault();
+                      onProfileClick();
+                    }
+                  }}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-[#F5F5F5] no-underline transition hover:bg-[#15151C] hover:text-[#E63946]"
                 >
-                  User Login
+                  <UserIcon />
+                  Profile
                 </Link>
-                <Link
-                  to="/?login=admin"
-                  onClick={() => setAccountMenuOpen(false)}
-                  className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]"
-                >
-                  Admin Login
-                </Link>
-                <div className="my-1 border-t border-white/10" />
                 <Link
                   to="/"
-                  onClick={() => setAccountMenuOpen(false)}
-                  className="block rounded-md px-3.5 py-2 text-sm font-semibold text-[#F5F5F5] no-underline hover:bg-[#15151C] hover:text-[#E63946]"
+                  onClick={() => setSettingsMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-[#FF8B93] no-underline transition hover:bg-[#3A2025] hover:text-[#FFB1B7]"
                 >
-                  Log out
+                  <LogoutIcon />
+                  Logout
                 </Link>
-              </div>
-            )}
+            </div>
           </div>
-          <Link
-            to="/customer/profile"
-            onClick={
-              onProfileClick
-                ? (event) => {
-                    event.preventDefault();
-                    onProfileClick();
-                  }
-                : undefined
-            }
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#22222B] transition hover:bg-[#15151C]"
-            aria-label="Profile Settings"
-          >
-            <img
-              src="/src/assets/person_icon.svg"
-              alt="Profile"
-              className="h-6 w-6 invert"
-            />
-          </Link>
         </div>
       </div>
     </nav>

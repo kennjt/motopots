@@ -92,12 +92,13 @@ function LoginForm({ role }) {
       {isCustomer && (
         <p className="pt-2 text-center text-sm text-[#A1A1AA]">
           Don't have an account?{" "}
-          <a
-            href="#register"
+          <button
+            type="button"
+            onClick={() => navigate("/register")}
             className="font-bold text-[#E63946] no-underline hover:underline"
           >
             Create Account
-          </a>
+          </button>
         </p>
       )}
     </form>
