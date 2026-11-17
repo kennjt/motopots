@@ -1,8 +1,11 @@
+import bannerBackground from "../assets/banner_bg.jpg";
+
 function CustomerBanner() {
   return (
     <div className="aspect-[5/1] w-full overflow-hidden">
                   <img
-                    src="/src/assets/banner_bg.jpg"
+                    src={bannerBackground}
+                    alt=""
                     className="h-full w-full object-cover"
                   />
     </div>
