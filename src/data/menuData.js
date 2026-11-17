@@ -1,4 +1,4 @@
-import inasal from "../assets/inasal.png";
+import inasal from "../assets/Inasal.png";
 import inasalplatter from "../assets/inasalplatter.png";
 import halohalo from "../assets/Special Halo Halo.png";
 import sagingConYelo from "../assets/sagingconyelo.png";
