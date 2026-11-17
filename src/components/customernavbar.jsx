@@ -79,12 +79,12 @@ function CustomerNavbar({
 
   return (
     <nav className="sticky top-0 z-40 bg-transparent py-2.5">
-      <div className="relative mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-3 px-5 sm:px-6 lg:px-5">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-1 px-3 sm:gap-x-3 sm:px-6 lg:px-5">
         <Link
           to="/customer"
-          className="mr-2 inline-flex shrink-0 flex-col leading-none no-underline sm:mr-6"
+          className="mr-1 inline-flex min-w-0 shrink flex-col leading-none no-underline sm:mr-6"
         >
-          <span className="font-['Alfa_Slab_One',serif] text-[1.4rem] tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000]">
+          <span className="font-['Alfa_Slab_One',serif] text-[1.15rem] tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000] sm:text-[1.4rem]">
             MOTOPOT&apos;S
           </span>
           <span className="mt-1 self-start bg-[#22222B] px-2 py-0.5 font-['Alfa_Slab_One',serif] text-[0.65rem] italic text-[#F5F5F5]">
@@ -92,7 +92,7 @@ function CustomerNavbar({
           </span>
         </Link>
 
-        <div className="flex items-center gap-2 lg:order-3">
+        <div className="flex items-center gap-1 sm:gap-2 lg:order-3">
           <div ref={cartRef} className="relative">
             <button
               type="button"

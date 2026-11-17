@@ -230,7 +230,7 @@ function AdminDashboard() {
         </aside>
 
         <main className="min-w-0 flex-1 px-4 pb-10 pt-5 sm:px-7 lg:px-10 lg:pt-8">
-          <header className="mb-7 flex items-center justify-between gap-4">
+          <header className="mb-7 flex flex-wrap items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="m-0 text-xs font-bold text-[#85858F]">{dateLabel}</p>
               <h1 className="mb-0 mt-1 font-['Alfa_Slab_One',serif] text-2xl sm:text-[30px]">Dashboard overview</h1>

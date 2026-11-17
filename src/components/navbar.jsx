@@ -115,7 +115,7 @@ function AppNavbar() {
 
       {showLogin && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setShowLogin(false);
           }}
@@ -125,7 +125,7 @@ function AppNavbar() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="loginTitle"
-            className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[#15151C] shadow-2xl shadow-black/40"
+            className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-[#15151C] shadow-2xl shadow-black/40 sm:max-h-[calc(100dvh-2rem)]"
           >
             {/* Modal Header */}
             <header className="flex items-center justify-between border-b border-white/10 bg-[#22222B] px-5 py-4">

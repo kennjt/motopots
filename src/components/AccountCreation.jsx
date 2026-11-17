@@ -50,7 +50,7 @@ function AccountCreation() {
 
   return (
     <main
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/70 px-4 py-4 backdrop-blur-sm sm:px-6"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-3 py-3 backdrop-blur-sm sm:items-center sm:px-6 sm:py-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) navigate("/");
       }}
@@ -58,7 +58,7 @@ function AccountCreation() {
     >
       <div className="pointer-events-none absolute -left-24 top-16 h-72 w-72 rounded-full bg-[#E63946]/10 blur-3xl" />
       <div className="pointer-events-none absolute -right-28 bottom-0 h-96 w-96 rounded-full bg-[#8B1722]/20 blur-3xl" />
-      <section aria-labelledby="accountCreationTitle" aria-modal="true" className="relative grid w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-[#15151C]/95 shadow-2xl shadow-black/40 backdrop-blur-xl lg:grid-cols-[0.82fr_1.18fr]">
+      <section aria-labelledby="accountCreationTitle" aria-modal="true" className="relative my-auto grid max-h-[calc(100dvh-1.5rem)] w-full max-w-5xl overflow-y-auto rounded-3xl border border-white/10 bg-[#15151C]/95 shadow-2xl shadow-black/40 backdrop-blur-xl sm:max-h-[calc(100dvh-2rem)] lg:grid-cols-[0.82fr_1.18fr] lg:overflow-hidden">
         <aside className="hidden flex-col justify-between bg-gradient-to-br from-[#E63946]/20 via-[#22222B] to-[#15151C] p-8 lg:flex">
           <div><Link to="/" className="font-['Alfa_Slab_One',serif] text-2xl text-[#F5F5F5] no-underline">Motopot&apos;s <span className="text-[#E63946]">.</span></Link><p className="mt-12 max-w-xs font-['Alfa_Slab_One',serif] text-4xl leading-tight text-[#F5F5F5]">Good food is better shared.</p><p className="mt-4 max-w-sm text-base leading-relaxed text-[#A1A1AA]">Save your favorites, reorder in a few taps, and make every craving easier to satisfy.</p></div>
           <p className="text-sm font-semibold text-[#A1A1AA]">Freshly made. Comfortably ordered.</p>

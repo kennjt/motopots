@@ -123,10 +123,10 @@ function Checkout({
     );
 
   return (
-    <form onSubmit={submit} className="mx-auto flex h-[calc(100dvh-6rem)] min-h-0 max-w-6xl flex-col overflow-hidden pb-2">
-      <div className="mb-6 flex shrink-0 items-center justify-between gap-4">
+    <form onSubmit={submit} className="mx-auto flex min-h-[calc(100dvh-6rem)] max-w-6xl flex-col overflow-hidden pb-2 lg:h-[calc(100dvh-6rem)]">
+      <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#F5F5F5]">Checkout</h1>
+          <h1 className="text-2xl font-extrabold text-[#F5F5F5] sm:text-3xl">Checkout</h1>
           <p className="mt-1 text-sm text-[#A1A1AA]">
             Review your order and choose how you will pay.
           </p>
@@ -134,7 +134,7 @@ function Checkout({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-xl border border-white/10 px-4 py-2 text-sm font-bold text-[#A1A1AA] hover:bg-[#22222B]"
+          className="shrink-0 rounded-xl border border-white/10 px-3 py-2 text-sm font-bold text-[#A1A1AA] hover:bg-[#22222B] sm:px-4"
         >
           Back to Menu
         </button>
