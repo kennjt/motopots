@@ -28,6 +28,10 @@ const savedOrderSignature = (order) => JSON.stringify({
   items: (order.items || []).map((item) => ({ productId: item.productId, variant: item.variant, flavor: item.flavor, addOns: item.addOns || [], notes: item.notes || "", quantity: item.quantity })),
 });
 
+function FavoriteHeart({ filled = false }) {
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M20.8 8.6c0 5.5-8.8 10.2-8.8 10.2S3.2 14.1 3.2 8.6A4.6 4.6 0 0112 6.3a4.6 4.6 0 018.8 2.3z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>;
+}
+
 function CustomerDashboard() {
   const [activeSection, setActiveSection] = useState("menu");
   const [showOrders, setShowOrders] = useState(false);
@@ -108,6 +112,7 @@ function CustomerDashboard() {
     setActiveSection("menu");
   };
   const removeFavorite = (favoriteId) => setFavoriteOrders((current) => current.filter((order) => order.id !== favoriteId));
+  const confirmationFavorite = confirmationOrder && favoriteOrders.find((order) => savedOrderSignature(order) === savedOrderSignature(confirmationOrder));
   const saveConfirmationAsFavorite = () => {
     if (!confirmationOrder) return;
     const snapshot = { ...confirmationOrder, id: `favorite-${Date.now()}`, name: favoriteName.trim(), savedAt: new Date().toISOString(), items: confirmationOrder.items.map((item) => ({ ...item, savedPrice: item.finalUnitPrice ?? item.price })) };
@@ -118,6 +123,11 @@ function CustomerDashboard() {
     setFavoriteOrders((current) => [snapshot, ...current]);
     setFavoriteNotice("Order added to your favorites!");
     setFavoriteName("");
+  };
+  const removeConfirmationFavorite = () => {
+    if (!confirmationFavorite) return;
+    removeFavorite(confirmationFavorite.id);
+    setFavoriteNotice("Order removed from your favorites.");
   };
   const changeQuantity = (id, amount) =>
     setCart((current) => {
@@ -284,7 +294,7 @@ function CustomerDashboard() {
             <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#E63946]/15 text-[#FF8B93]"><svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6"><path d="M20.8 8.6c0 5.5-8.8 10.2-8.8 10.2S3.2 14.1 3.2 8.6A4.6 4.6 0 0112 6.3a4.6 4.6 0 018.8 2.3z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg></div>
             <h2 className="mt-3 text-lg font-extrabold text-[#F5F5F5]">Enjoy this order? Save it to Favorites!</h2>
             <p className="mt-1 text-sm text-[#A1A1AA]">Save your customized order and easily order it again next time.</p>
-            <div className="mx-auto mt-4 flex max-w-md flex-col gap-2 sm:flex-row"><input value={favoriteName} onChange={(event) => setFavoriteName(event.target.value)} placeholder="Name this order (optional)" className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#15151C] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none placeholder:text-[#71717A] focus:border-[#E63946]" /><button type="button" onClick={saveConfirmationAsFavorite} className="rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-[#C92D3A]">Add to Favorite Orders</button></div>
+            <div className="mx-auto mt-4 flex max-w-md flex-col gap-2 sm:flex-row"><input value={favoriteName} onChange={(event) => setFavoriteName(event.target.value)} disabled={Boolean(confirmationFavorite)} placeholder="Name this order (optional)" className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#15151C] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none placeholder:text-[#71717A] focus:border-[#E63946] disabled:cursor-not-allowed disabled:opacity-60" /><button type="button" onClick={confirmationFavorite ? removeConfirmationFavorite : saveConfirmationAsFavorite} aria-pressed={Boolean(confirmationFavorite)} className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition ${confirmationFavorite ? "border border-[#E63946]/40 bg-[#E63946]/15 text-[#FF8B93] hover:bg-[#E63946]/25" : "bg-[#E63946] hover:bg-[#C92D3A]"}`}><FavoriteHeart filled={Boolean(confirmationFavorite)} />{confirmationFavorite ? "Saved to Favorites" : "Add to Favorite Orders"}</button></div>
             {favoriteNotice && <p role="status" className="mt-3 text-sm font-bold text-emerald-300">{favoriteNotice}</p>}
           </section>
         )}
