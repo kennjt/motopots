@@ -15,7 +15,21 @@ const baseConfig = {
 };
 
 export function showSuccess(title, text = "") {
-  return Swal.fire({ ...baseConfig, toast: true, position: "top-end", icon: "success", title, text, timer: 2600, showConfirmButton: false, timerProgressBar: true });
+  return Swal.fire({
+    ...baseConfig,
+    toast: true,
+    position: "bottom-end",
+    icon: "success",
+    title,
+    text,
+    timer: 2600,
+    showConfirmButton: false,
+    timerProgressBar: true,
+    customClass: {
+      ...baseConfig.customClass,
+      container: "motopots-swal-toast-container",
+    },
+  });
 }
 
 export function showError(title, text = "") {
@@ -28,6 +42,10 @@ export function showWarning(title, text = "") {
 
 export function showInfo(title, text = "") {
   return Swal.fire({ ...baseConfig, icon: "info", title, text, confirmButtonText: "Okay" });
+}
+
+export function showClosedStore(title, text = "") {
+  return Swal.fire({ ...baseConfig, icon: "error", title, text, confirmButtonText: "Okay" });
 }
 
 export function showConfirm({ title, text, confirmText = "Yes, continue", cancelText = "Cancel", icon = "warning" }) {

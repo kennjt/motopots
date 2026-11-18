@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomerNavbar from "./customernavbar";
-import { showSuccess, showWarning } from "../utils/swal";
+import { showError, showSuccess, showWarning } from "../utils/swal";
 
 const emptyProfile = { name: "", email: "", phone: "" };
 
@@ -36,6 +36,7 @@ function ProfileSettings({ modal = false, onClose }) {
     confirm: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleProfileChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
@@ -47,8 +48,10 @@ function ProfileSettings({ modal = false, onClose }) {
     setErrorMessage("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (saving) return;
 
     const changingPassword = Object.values(passwords).some(Boolean);
     if (changingPassword && (!passwords.current || !passwords.next)) {
@@ -62,13 +65,24 @@ function ProfileSettings({ modal = false, onClose }) {
       return;
     }
 
-    // Keep credentials out of localStorage; only profile information is persisted.
-    localStorage.setItem("motopots-profile", JSON.stringify(profile));
+    setSaving(true);
+    try {
+      await Promise.resolve();
+      // Keep credentials out of localStorage; only profile information is persisted.
+      localStorage.setItem("motopots-profile", JSON.stringify(profile));
 
-    showSuccess("Profile updated successfully");
-    setErrorMessage("");
-    setPasswords({ current: "", next: "", confirm: "" });
-
+      showSuccess("Profile updated successfully");
+      setErrorMessage("");
+      setPasswords({ current: "", next: "", confirm: "" });
+      if (modal && onClose) {
+        onClose();
+      }
+    } catch {
+      setErrorMessage("Unable to save your profile. Please try again.");
+      showError("Profile could not be updated", "Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const profileCard = (
@@ -172,9 +186,10 @@ function ProfileSettings({ modal = false, onClose }) {
 
               <button
                 type="submit"
-                className="rounded-lg bg-[#E63946] px-6 py-3 font-extrabold text-white transition hover:bg-[#C92D3A]"
+                disabled={saving}
+                className="rounded-lg bg-[#E63946] px-6 py-3 font-extrabold text-white transition hover:bg-[#C92D3A] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Save Changes
+                {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
 

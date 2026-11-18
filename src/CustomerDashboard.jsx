@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Menu from "./components/menu";
 import CustomerNavbar from "./components/customernavbar";
 import MyOrder from "./components/MyOrder";
@@ -7,10 +7,11 @@ import Checkout from "./components/Checkout";
 import FAQ from "./components/faq";
 import Footer from "./components/footer";
 import { formatMoney, makeCartItem, menuItems } from "./data/menuData";
+import { readStoreStatus, readSchedule } from "./data/adminSettingsStorage";
 import { ORDERS_STORAGE_KEY, ORDERS_UPDATED_EVENT, readOrders, saveOrders } from "./data/orderStorage";
 import inasal from "./assets/inasal_withoutbg.png";
 import { ImageWithSkeleton } from "./components/Skeleton";
-import { showConfirm, showError, showInfo, showSuccess } from "./utils/swal";
+import { showClosedStore, showConfirm, showError, showInfo, showSuccess } from "./utils/swal";
 
 const money = formatMoney;
 const FAVORITE_ORDERS_KEY = "motopots-favorite-orders";
@@ -29,6 +30,68 @@ const savedOrderSignature = (order) => JSON.stringify({
   items: (order.items || []).map((item) => ({ productId: item.productId, variant: item.variant, flavor: item.flavor, addOns: item.addOns || [], notes: item.notes || "", quantity: item.quantity })),
 });
 
+const toMinutes = (time) => {
+  const [hours, minutes] = String(time || "").split(":").map(Number);
+  return Number.isFinite(hours) && Number.isFinite(minutes) ? hours * 60 + minutes : null;
+};
+
+const formatTime = (time) => {
+  const minutes = toMinutes(time);
+  if (minutes === null) return "";
+  const hours = Math.floor(minutes / 60) % 24;
+  const mins = minutes % 60;
+  return `${hours % 12 || 12}:${String(mins).padStart(2, "0")} ${hours >= 12 ? "PM" : "AM"}`;
+};
+
+const getNextOpening = (schedule) => {
+  if (!schedule) return null;
+  const now = new Date();
+  const dateParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(now);
+  const getPart = (type) => dateParts.find((part) => part.type === type)?.value;
+  const currentMinutes = Number(getPart("hour")) * 60 + Number(getPart("minute"));
+  const todayDate = new Date(`${getPart("year")}-${getPart("month")}-${getPart("day")}T12:00:00Z`);
+
+  for (let offset = 0; offset < 14; offset += 1) {
+    const candidate = new Date(todayDate);
+    candidate.setUTCDate(todayDate.getUTCDate() + offset);
+    const dayName = new Intl.DateTimeFormat("en-US", {
+      timeZone: "UTC",
+      weekday: "long",
+    }).format(candidate);
+    const entry = schedule[dayName];
+    if (!entry?.enabled || !entry.opening) continue;
+
+    const openingMinutes = toMinutes(entry.opening);
+    const closingMinutes = toMinutes(entry.closing);
+    if (offset === 0 && candidate.toISOString().slice(0, 10) === todayDate.toISOString().slice(0, 10)) {
+      if (openingMinutes !== null && currentMinutes < openingMinutes) {
+        return { dayName, date: candidate, opening: entry.opening, offset: 0 };
+      }
+      if (closingMinutes !== null) {
+        if (closingMinutes > openingMinutes && currentMinutes < closingMinutes) {
+          continue;
+        }
+        if (closingMinutes < openingMinutes && currentMinutes < closingMinutes) {
+          continue;
+        }
+      }
+      continue;
+    }
+
+    if (offset > 0) return { dayName, date: candidate, opening: entry.opening, offset };
+  }
+  return null;
+};
+
 function FavoriteHeart({ filled = false }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M20.8 8.6c0 5.5-8.8 10.2-8.8 10.2S3.2 14.1 3.2 8.6A4.6 4.6 0 0112 6.3a4.6 4.6 0 018.8 2.3z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>;
 }
@@ -44,6 +107,9 @@ function CustomerDashboard() {
   const [favoriteNotice, setFavoriteNotice] = useState("");
   const [favoriteToEdit, setFavoriteToEdit] = useState(null);
   const [checkoutOrderType, setCheckoutOrderType] = useState("Pickup");
+  const [storeStatus, setStoreStatus] = useState("closed");
+  const closedPopupShownRef = useRef(false);
+  const [nextOpening, setNextOpening] = useState("");
   const [cart, setCart] = useState(() =>
     JSON.parse(localStorage.getItem("motopots-cart") || "{}"),
   );
@@ -53,6 +119,55 @@ function CustomerDashboard() {
     [cart],
   );
   useEffect(() => localStorage.setItem(FAVORITE_ORDERS_KEY, JSON.stringify(favoriteOrders)), [favoriteOrders]);
+  useEffect(() => {
+    const syncStoreStatus = async () => {
+      const status = await readStoreStatus();
+      setStoreStatus(status);
+      if (status === "closed") {
+        let schedule = null;
+        try {
+          schedule = await readSchedule();
+        } catch (error) {
+          console.error("Unable to read the store operating schedule.", error);
+        }
+        const nextOpeningInfo = getNextOpening(schedule);
+        let openingLabel = "";
+        if (nextOpeningInfo) {
+          const dateLabel = nextOpeningInfo.offset === 0
+            ? "today"
+            : nextOpeningInfo.offset === 1
+              ? "tomorrow"
+              : new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", weekday: "long", month: "short", day: "numeric" }).format(nextOpeningInfo.date);
+          openingLabel = `${dateLabel} (${nextOpeningInfo.dayName}) at ${formatTime(nextOpeningInfo.opening)}`;
+          setNextOpening(openingLabel);
+        } else {
+          setNextOpening("");
+        }
+
+        if (!closedPopupShownRef.current) {
+          closedPopupShownRef.current = true;
+          showClosedStore(
+            "Store Currently Closed",
+            openingLabel
+              ? `We're currently closed. We'll be open ${openingLabel}.`
+              : "We're currently closed. Please check back for our next operating schedule.",
+          );
+        }
+      } else {
+        setNextOpening("");
+      }
+    };
+    syncStoreStatus();
+    const interval = window.setInterval(syncStoreStatus, 5000);
+    const handleStorage = (event) => {
+      if (event.key === "motopots-store-status") syncStoreStatus();
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
   useEffect(() => {
     const syncOrders = (event) => {
       if (!event.key || event.key === ORDERS_STORAGE_KEY) setOrders(readOrders());
@@ -70,6 +185,10 @@ function CustomerDashboard() {
     0,
   );
   const addToCart = (item) => {
+    if (storeStatus === "closed") {
+      showError("Store is closed", "Sorry, we're currently closed and not accepting orders.");
+      return;
+    }
     setCart((current) => ({
       ...current,
       [item.id]: { ...item, quantity: (current[item.id]?.quantity || 0) + 1, subtotal: item.finalUnitPrice * ((current[item.id]?.quantity || 0) + 1) },
@@ -87,6 +206,10 @@ function CustomerDashboard() {
     return { product, selection: { variantId: variant.id, flavor: savedItem.flavor || variant.flavor, quantity: savedItem.variant || variant.label, addOns, notes: savedItem.notes || "" } };
   };
   const reorderFavorite = (savedOrder) => {
+    if (storeStatus === "closed") {
+      showError("Store is closed", "Sorry, we're currently closed and not accepting orders.");
+      return;
+    }
     const resolved = savedOrder.items.map(resolveFavoriteItem);
     const error = resolved.find((item) => item.error);
     if (error) {
@@ -158,11 +281,22 @@ function CustomerDashboard() {
     showSuccess("Item removed from cart");
   };
   const beginCheckout = () => {
+    if (storeStatus === "closed") {
+      showError("Store is closed", "Sorry, we're currently closed and not accepting orders.");
+      return;
+    }
     if (cartItems.length) setActiveSection("checkout");
   };
   const updateCartNotes = (id, notes) =>
     setCart((current) => ({ ...current, [id]: { ...current[id], notes } }));
   const placeOrder = async (paymentData) => {
+    const latestStatus = await readStoreStatus();
+    if (latestStatus === "closed") {
+      setStoreStatus("closed");
+      showError("Store is closed", "Sorry, we're currently closed and not accepting orders.");
+      setSubmittingOrder(false);
+      return;
+    }
     if (!cartItems.length || submittingOrder) return;
     setSubmittingOrder(true);
     const order = {
@@ -207,6 +341,11 @@ function CustomerDashboard() {
         onRemoveFavorite={removeFavorite}
       />
       <main className="mx-auto max-w-7xl px-5 py-3">
+        <div className={`mb-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-extrabold ${storeStatus === "open" ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-[#E63946]/30 bg-[#E63946]/10 text-[#FF727D]"}`}>
+          <span className={`h-2.5 w-2.5 rounded-full ${storeStatus === "open" ? "bg-emerald-400" : "bg-[#E63946]"}`} />
+          {storeStatus === "open" ? "OPEN NOW" : "CLOSED"}
+          {storeStatus === "closed" && <span className="ml-1 font-semibold text-[#D1D1D6]">— Sorry, we're currently closed and not accepting orders.{nextOpening ? ` Next opening: ${nextOpening}.` : ""}</span>}
+        </div>
         {activeSection === "menu" && (
           <>
             <section
@@ -260,7 +399,7 @@ function CustomerDashboard() {
               <div className="mx-auto w-full max-w-6xl text-center">
                 <h2 className="mb-1 font-['Alfa_Slab_One',serif] text-3xl text-[#F5F5F5] sm:text-4xl">Our Menu</h2>
                 <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">Choose your favorites, customize your order, and add them to your cart.</p>
-                <Menu onAddToCart={addToCart} cart={cart} showAddToCart favoriteToEdit={favoriteToEdit} onFavoriteEditHandled={() => setFavoriteToEdit(null)} />
+                <Menu onAddToCart={addToCart} cart={cart} showAddToCart={storeStatus === "open"} favoriteToEdit={favoriteToEdit} onFavoriteEditHandled={() => setFavoriteToEdit(null)} />
               </div>
             </section>
             <section id="customer-about" className="mb-10 bg-[#15151C]/60 px-4 py-10 sm:px-6 lg:px-4">
@@ -293,7 +432,7 @@ function CustomerDashboard() {
             <Footer />
           </>
         )}
-        {activeSection === "checkout" && <Checkout cartItems={cartItems} subtotal={subtotal} initialOrderType={checkoutOrderType} onBack={() => setActiveSection("menu")} onSubmit={placeOrder} submitting={submittingOrder} />}
+        {activeSection === "checkout" && <Checkout cartItems={cartItems} subtotal={subtotal} initialOrderType={checkoutOrderType} onBack={() => setActiveSection("menu")} onSubmit={placeOrder} submitting={submittingOrder || storeStatus === "closed"} storeOpen={storeStatus === "open"} />}
         {activeSection === "confirmation" && confirmationOrder && (
           <section className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20 sm:p-10">
             <div className="text-center"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15 text-3xl text-green-300">✓</div><h1 className="mt-4 text-3xl font-extrabold text-[#F5F5F5]">Order Submitted</h1><p className="mt-2 text-[#A1A1AA]">Order #{String(confirmationOrder.id).slice(-6)} was received.</p></div>

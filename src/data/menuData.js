@@ -8,8 +8,10 @@ import octobits from "../assets/octobits.png";
 import cheesebomb from "../assets/cheesebomb.png";
 import takocanton from "../assets/takocanton.png";
 import takofries from "../assets/takofries.png";
+import { openAdminDatabase } from "./adminDatabase";
 
 export const categories = ["All", "Bacolod Chicken Inasal", "Takoyaki", "Halo-Halo"];
+const CATALOG_STORAGE_KEY = "motopots-menu-catalog";
 
 export const menuItems = [
   {
@@ -53,6 +55,82 @@ export const menuItems = [
   { id: "mais-con-yelo", name: "Mais Con Yelo", category: "Halo-Halo", description: "Sweet corn, milk, and crushed ice in a classic Filipino dessert.", image: maisConYelo, variants: [{ id: "12-oz", label: "12 oz", price: 50 }, { id: "16-oz", label: "16 oz", price: 60 }, { id: "22-oz", label: "22 oz", price: 80 }] },
   { id: "regular-fries", name: "Regular Fries", category: "Takoyaki", description: "Crispy fries tossed in your choice of flavor.", image: takofries, variants: [{ id: "regular", label: "Regular", price: 55 }], flavors: ["Barbeque", "Cheese"] },
 ];
+
+const hasStoredCatalog = () => {
+  try {
+    return JSON.parse(localStorage.getItem(CATALOG_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+};
+
+const storedCatalog = hasStoredCatalog();
+if (storedCatalog?.items?.length) {
+  const storedById = new Map(storedCatalog.items.map((item) => [item.id, item]));
+  menuItems.forEach((item, index) => {
+    if (storedById.has(item.id)) menuItems[index] = storedById.get(item.id);
+  });
+  storedCatalog.items.forEach((item) => {
+    if (!menuItems.some((existing) => existing.id === item.id)) menuItems.push(item);
+  });
+  const storedCategories = storedCatalog.categories?.filter((category) => category !== "All");
+  if (Array.isArray(storedCategories)) {
+    categories.splice(1, categories.length - 1, ...storedCategories);
+  }
+}
+menuItems.forEach((item) => {
+  if (item.available === undefined) item.available = true;
+});
+
+export function saveMenuCatalog(nextItems, nextCategories) {
+  const payload = { items: nextItems, categories: ["All", ...nextCategories] };
+  localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(payload));
+
+  if ("indexedDB" in window) {
+    openAdminDatabase()
+      .then((database) => {
+        const transaction = database.transaction("menu", "readwrite");
+        const store = transaction.objectStore("menu");
+        store.clear();
+        store.put({ id: "catalog", value: payload });
+        transaction.oncomplete = () => database.close();
+        transaction.onerror = () => {
+          database.close();
+          console.error("Unable to persist the menu catalog to IndexedDB.", transaction.error);
+        };
+      })
+      .catch((error) => console.error("Unable to open the admin database for the menu catalog.", error));
+  }
+
+  menuItems.splice(0, menuItems.length, ...nextItems);
+  categories.splice(1, categories.length - 1, ...nextCategories);
+  window.dispatchEvent(new CustomEvent("motopots-menu-updated"));
+}
+
+export async function loadMenuCatalog() {
+  if (!("indexedDB" in window)) return;
+  try {
+    const database = await openAdminDatabase();
+    const transaction = database.transaction("menu", "readonly");
+    const store = transaction.objectStore("menu");
+    const getRequest = store.get("catalog");
+    getRequest.onsuccess = () => {
+      const catalog = getRequest.result?.value;
+      if (catalog?.items?.length) {
+        menuItems.splice(0, menuItems.length, ...catalog.items);
+        menuItems.forEach((item) => {
+          if (item.available === undefined) item.available = true;
+        });
+        categories.splice(1, categories.length - 1, ...(catalog.categories?.filter((category) => category !== "All") || []));
+        localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(catalog));
+        window.dispatchEvent(new CustomEvent("motopots-menu-updated"));
+      }
+      database.close();
+    };
+  } catch (error) {
+    console.error("Unable to load the menu catalog from IndexedDB.", error);
+  }
+}
 
 export const formatMoney = (value) => `₱${Number(value || 0).toFixed(2)}`;
 

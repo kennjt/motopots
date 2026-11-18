@@ -48,6 +48,7 @@ function Checkout({
   onBack,
   onSubmit,
   submitting = false,
+  storeOpen = true,
   initialOrderType = "Pickup",
 }) {
   const [customer, setCustomer] = useState(readCustomer);
@@ -225,6 +226,11 @@ function Checkout({
     });
   const submit = async (event) => {
     event.preventDefault();
+    if (!storeOpen) {
+      setError("Sorry, we're currently closed and not accepting orders.");
+      showWarning("Store is closed", "Sorry, we're currently closed and not accepting orders.");
+      return;
+    }
     if (
       !customer.name.trim() ||
       !/^\+?[0-9\s()-]{7,20}$/.test(customer.phone.trim())

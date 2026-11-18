@@ -7,12 +7,22 @@
 }
 
 .motopots-swal-popup.swal2-toast {
-  width: min(calc(100vw - 2rem), 22rem);
-  min-height: 3rem;
-  padding: 0.6rem 2rem 0.6rem 0.75rem;
+  width: min(calc(100vw - 2rem), 24rem);
+  min-height: 3.5rem;
+  padding: 0.75rem 2.25rem 0.75rem 0.875rem;
   border-radius: 0.2rem;
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.24);
   text-align: left;
+}
+
+.motopots-swal-toast-container {
+  --swal2-container-padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .motopots-swal-toast-container {
+    --swal2-container-padding: 0.75rem;
+  }
 }
 
 .motopots-swal-popup.swal2-toast.swal2-icon-success { background: #193a2b !important; border-color: #3f9c67; }
@@ -21,27 +31,27 @@
 .motopots-swal-popup.swal2-toast.swal2-icon-info { background: #193b4b !important; border-color: #3a9bc0; }
 
 .motopots-swal-popup.swal2-toast .swal2-icon {
-  width: 1rem;
-  height: 1rem;
-  margin: 0 0.6rem 0 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0 0.7rem 0 0;
   border-width: 1px;
-  font-size: 0.65rem;
+  font-size: 0.75rem;
 }
 
 .motopots-swal-popup.swal2-toast .motopots-swal-title {
   margin: 0;
   padding: 0;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 800;
   line-height: 1.2;
   text-align: left;
 }
 
 .motopots-swal-popup.swal2-toast .motopots-swal-content {
-  margin: 0.1rem 0 0;
+  margin: 0.15rem 0 0;
   padding: 0;
   color: rgba(245, 245, 245, 0.72);
-  font-size: 0.63rem;
+  font-size: 0.72rem;
   line-height: 1.25;
   text-align: left;
 }
@@ -49,15 +59,15 @@
 .motopots-swal-popup.swal2-toast .swal2-close {
   position: absolute;
   top: 50%;
-  right: 0.45rem;
-  width: 1.25rem;
-  height: 1.25rem;
+  right: 0.5rem;
+  width: 1.375rem;
+  height: 1.375rem;
   margin: 0;
   padding: 0;
   color: rgba(245, 245, 245, 0.65);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 400;
-  line-height: 1.25rem;
+  line-height: 1.375rem;
   transform: translateY(-50%);
 }
 

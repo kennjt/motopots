@@ -6,6 +6,7 @@
 @source "./components";
 
 :root {
+  --sidebar-width: 248px;
   --color-primary-bg: #0B0B0F;
   --color-secondary-bg: #15151C;
   --color-tertiary-bg: #22222B;
@@ -79,6 +80,31 @@ body {
 #root {
   min-height: 100vh;
   width: 100%;
+}
+
+.admin-main-content {
+  height: 100vh;
+  margin-left: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.admin-route-content {
+  animation: admin-route-enter 160ms ease-out;
+}
+
+@keyframes admin-route-enter {
+  from { opacity: 0.88; }
+  to { opacity: 1; }
+}
+
+@media (min-width: 1024px) {
+  .admin-main-content {
+    margin-left: var(--sidebar-width);
+  }
 }
 
 .mp-skeleton {

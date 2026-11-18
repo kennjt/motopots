@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { categories, formatMoney, getVariant, makeCartItem, menuItems } from "../data/menuData";
+import { categories, formatMoney, getVariant, loadMenuCatalog, makeCartItem, menuItems } from "../data/menuData";
 import { ImageWithSkeleton } from "./Skeleton";
 
 function Menu({ onAddToCart, cart = {}, showAddToCart = false, favoriteToEdit, onFavoriteEditHandled }) {
@@ -7,7 +7,14 @@ function Menu({ onAddToCart, cart = {}, showAddToCart = false, favoriteToEdit, o
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selection, setSelection] = useState({});
-  const filteredItems = menuItems.filter((item) => (activeCategory === "All" || item.category === activeCategory) && item.name.toLowerCase().includes(search.toLowerCase()));
+  const [catalogItems, setCatalogItems] = useState(() => [...menuItems]);
+  useEffect(() => {
+    loadMenuCatalog();
+    const syncCatalog = () => setCatalogItems([...menuItems]);
+    window.addEventListener("motopots-menu-updated", syncCatalog);
+    return () => window.removeEventListener("motopots-menu-updated", syncCatalog);
+  }, []);
+  const filteredItems = catalogItems.filter((item) => item.available !== false && (activeCategory === "All" || item.category === activeCategory) && item.name.toLowerCase().includes(search.toLowerCase()));
 
   useEffect(() => {
     if (!favoriteToEdit) return;
