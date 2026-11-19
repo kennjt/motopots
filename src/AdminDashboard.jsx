@@ -401,10 +401,10 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
           to="/customer"
           className="mr-1 inline-flex min-w-0 shrink flex-col leading-none no-underline sm:mr-6"
         >
-          <span className="font-['Alfa_Slab_One',serif] text-[1.15rem] tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000] sm:text-[1.4rem]">
+          <span className="font-display text-[1.15rem] tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000] sm:text-[1.4rem]">
             MOTOPOT&apos;S
           </span>
-          <span className="mt-1 mb-5 self-start bg-[#22222B] px-2 py-0.5 font-['Alfa_Slab_One',serif] text-[0.65rem] italic text-[#F5F5F5]">
+          <span className="mt-1 mb-5 self-start bg-[#22222B] px-2 py-0.5 font-display text-[0.65rem] italic text-[#F5F5F5]">
             FOOD HOUSE
           </span>
         </Link>
@@ -478,7 +478,7 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
               <p className="m-0 text-xs font-bold text-[#85858F]">
                 {dateLabel}
               </p>
-              <h1 className="mb-0 mt-1 font-['Alfa_Slab_One',serif] text-2xl sm:text-[30px]">
+                <h1 className="mb-0 mt-1 font-heading text-2xl sm:text-[30px]">
                 Dashboard overview
               </h1>
             </div>
@@ -541,7 +541,7 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[1.2px] text-[#D2BFC1]">
                   Admin workspace
                 </span>
-                <h2 className="mb-0 mt-3 font-['Alfa_Slab_One',serif] text-xl sm:text-2xl">
+                <h2 className="mb-0 mt-3 font-heading text-xl sm:text-2xl">
                   Good food. Good to see you.
                 </h2>
                 <p className="mb-0 mt-1.5 text-sm text-[#C1AEB0]">

@@ -214,7 +214,7 @@ function ProfileSettings({ modal = false, onClose }) {
           <header className="flex items-center justify-between border-b border-white/10 bg-[#22222B] px-5 py-4">
             <h2
               id="profileTitle"
-              className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#F5F5F5]"
+              className="m-0 font-heading text-xl text-[#F5F5F5]"
             >
               Profile Settings
             </h2>

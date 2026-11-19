@@ -133,7 +133,7 @@ function AccountCreation() {
             </p>
             <h1
               id="accountCreationTitle"
-              className="font-['Alfa_Slab_One',serif] text-3xl leading-tight text-[#F5F5F5] sm:text-4xl"
+              className="font-heading text-3xl leading-tight text-[#F5F5F5] sm:text-4xl"
             >
               Create Your Account
             </h1>

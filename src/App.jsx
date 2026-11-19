@@ -40,27 +40,27 @@ function HomePage() {
           <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-4">
             <div className="grid grid-cols-1 items-center gap-10 sm:gap-8 lg:grid-cols-12">
               <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
-                <p className="mb-2 font-['Nunito',sans-serif] text-sm font-extrabold uppercase tracking-[3px] text-[#E63946]">
+                <p className="mb-2 font-sans text-sm font-extrabold uppercase tracking-[3px] text-[#E63946]">
                   Welcome to
                 </p>
 
                 <h1 className="mb-1 leading-[0.95]">
-                  <span className="block font-['Alfa_Slab_One',serif] text-[clamp(25px,7vw,60px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                  <span className="block font-display text-[clamp(25px,7vw,60px)] font-extrabold text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
                     Motopot's
                   </span>
 
-                  <span className="mt-3 block font-['Alfa_Slab_One',serif] text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
+                  <span className="mt-3 block font-display text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
                     Food House
                   </span>
                 </h1>
 
-                <p className="mt-3 mb-3 max-w-[780px] font-['Nunito',sans-serif] text-lg leading-[1.55] text-[#A1A1AA] sm:text-xl">
+                <p className="mt-3 mb-3 max-w-[780px] font-sans text-lg leading-[1.55] text-[#A1A1AA] sm:text-xl">
                   Grilled, sizzling and sweet, all in one place. Order your
                   favorites online or let our team manage the kitchen, stocks
                   and sales in one simple system.
                 </p>
 
-                <ul className="mb-6 flex list-none flex-wrap gap-2 p-0 font-['Nunito',sans-serif]">
+                <ul className="mb-6 flex list-none flex-wrap gap-2 p-0 font-sans">
                   {["Bacolod Chicken Inasal", "Takoyaki", "Halo-Halo"].map(
                     (item) => (
                       <li
@@ -72,7 +72,7 @@ function HomePage() {
                     ),
                   )}
                 </ul>
-                <div className="mt-4 flex flex-wrap gap-3 font-['Nunito',sans-serif]">
+                <div className="mt-4 flex flex-wrap gap-3 font-sans">
                   <Link
                     to="/?login=user"
                     className="min-h-11 rounded-xl border border-[#E63946] bg-[#E63946] px-4 py-2 text-lg font-extrabold text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#C92D3A]"
@@ -105,10 +105,10 @@ function HomePage() {
       <main>
         <section id="menu" className="relative z-10 min-h-screen w-full py-16">
           <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-4 text-center">
-            <h2 className="mb-1 font-['Alfa_Slab_One',serif] text-3xl text-[#F5F5F5] sm:text-4xl">
+            <h2 className="mb-1 font-heading text-3xl text-[#F5F5F5] sm:text-4xl">
               Our Menu
             </h2>
-            <p className="mb-3 font-['Nunito',sans-serif] text-base leading-[1.55] text-[#A1A1AA]">
+            <p className="mb-3 font-sans text-base leading-[1.55] text-[#A1A1AA]">
               Pick a category or search for your favorite dish.
             </p>
             <Menu />
@@ -119,7 +119,7 @@ function HomePage() {
           id="about"
           className="mb-10 bg-[#15151C]/60 px-4 py-10 sm:px-6 lg:px-4"
         >
-          <h2 className="mb-8 font-['Alfa_Slab_One',serif] text-center text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">
+          <h2 className="mb-8 font-heading text-center text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">
             About Us
           </h2>
 
@@ -127,16 +127,16 @@ function HomePage() {
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
                 <h1 className="mb-1 leading-[0.95]">
-                  <span className="block font-['Alfa_Slab_One',serif] text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                  <span className="block font-display text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
                     Motopot's
                   </span>
 
-                  <span className="mt-3 block font-['Alfa_Slab_One',serif] text-[clamp(25px,5vw,30px)] italic text-[#F5F5F5]">
+                  <span className="mt-3 block font-display text-[clamp(25px,5vw,30px)] italic text-[#F5F5F5]">
                     Food House
                   </span>
                 </h1>
 
-                <p className="mt-3 mb-3 max-w-[780px] font-['Nunito',sans-serif] text-lg leading-[1.55] text-[#A1A1AA] sm:text-md">
+                <p className="mt-3 mb-3 max-w-[780px] font-sans text-lg leading-[1.55] text-[#A1A1AA] sm:text-md">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
                   do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                   Ut enim ad minim veniam, quis nostrud exercitation ullamco

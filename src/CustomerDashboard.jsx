@@ -359,10 +359,10 @@ function CustomerDashboard() {
                       Welcome to
                     </p>
                     <h1 className="mb-1 leading-[0.95]">
-                      <span className="block font-['Alfa_Slab_One',serif] text-[clamp(25px,7vw,60px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                      <span className="block font-display text-[clamp(25px,7vw,60px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
                         Motopot&apos;s
                       </span>
-                      <span className="mt-3 block font-['Alfa_Slab_One',serif] text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
+                      <span className="mt-3 block font-display text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
                         Food House
                       </span>
                     </h1>
@@ -397,23 +397,23 @@ function CustomerDashboard() {
 
             <section id="customer-menu" className="relative z-10 min-h-screen w-full py-12">
               <div className="mx-auto w-full max-w-6xl text-center">
-                <h2 className="mb-1 font-['Alfa_Slab_One',serif] text-3xl text-[#F5F5F5] sm:text-4xl">Our Menu</h2>
+                <h2 className="mb-1 font-heading text-3xl text-[#F5F5F5] sm:text-4xl">Our Menu</h2>
                 <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">Choose your favorites, customize your order, and add them to your cart.</p>
                 <Menu onAddToCart={addToCart} cart={cart} showAddToCart={storeStatus === "open"} favoriteToEdit={favoriteToEdit} onFavoriteEditHandled={() => setFavoriteToEdit(null)} />
               </div>
             </section>
             <section id="customer-about" className="mb-10 bg-[#15151C]/60 px-4 py-10 sm:px-6 lg:px-4">
-              <h2 className="mb-8 text-center font-['Alfa_Slab_One',serif] text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">
+              <h2 className="mb-8 text-center font-heading text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">
                 About Us
               </h2>
               <div className="mx-auto w-full max-w-6xl">
                 <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
                   <div className="min-w-0 lg:col-span-7">
                     <h2 className="mb-1 leading-[0.95]">
-                      <span className="block font-['Alfa_Slab_One',serif] text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                      <span className="block font-display text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
                         Motopot&apos;s
                       </span>
-                      <span className="mt-3 block font-['Alfa_Slab_One',serif] text-[clamp(25px,5vw,30px)] italic text-[#F5F5F5]">
+                      <span className="mt-3 block font-display text-[clamp(25px,5vw,30px)] italic text-[#F5F5F5]">
                         Food House
                       </span>
                     </h2>

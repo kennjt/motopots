@@ -492,7 +492,7 @@ function Checkout({
                     code will appear here once configured. Do not send payment
                     to unverified accounts.
                   </p>
-                  <p className="mt-2 font-bold text-[#E63946]">
+                  <p className="font-heading mt-2 font-bold text-[#E63946]">
                     Exact amount: {formatMoney(subtotal)}
                   </p>
                 </div>
@@ -574,7 +574,7 @@ function Checkout({
                     {formatMoney(item.finalUnitPrice ?? item.price)}
                   </p>
                 </div>
-                <span className="shrink-0 font-bold text-[#E63946]">
+                <span className="font-heading shrink-0 font-bold text-[#E63946]">
                   {formatMoney(
                     (item.finalUnitPrice ?? item.price) * item.quantity,
                   )}
@@ -584,7 +584,7 @@ function Checkout({
           </div>
           <div className="mt-5 flex shrink-0 justify-between border-t border-white/10 pt-4 text-lg font-extrabold text-[#F5F5F5]">
             <span>Total</span>
-            <span className="text-[#E63946]">{formatMoney(subtotal)}</span>
+            <span className="font-heading font-bold text-[#E63946]">{formatMoney(subtotal)}</span>
           </div>
         </aside>
       </div>
