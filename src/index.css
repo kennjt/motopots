@@ -82,6 +82,12 @@ body {
   width: 100%;
 }
 
+.auth-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.20);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
 .admin-main-content {
   height: 100vh;
   margin-left: 0;

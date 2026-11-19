@@ -219,7 +219,7 @@ function App() {
       </Route>
       <Route path="/customer/profile" element={<ProfileSettings />} />
       <Route path="/customer/orders" element={<MyOrder />} />
-      <Route path="/register" element={<AccountCreation />} />
+      <Route path="/register" element={<><HomePage /><AccountCreation /></>} />
     </Routes>
   );
 }
