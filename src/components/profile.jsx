@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomerNavbar from "./customernavbar";
 import { showError, showSuccess, showWarning } from "../utils/swal";
+import {
+  saveCustomerAccountProfile,
+  setActiveCustomerProfile,
+} from "../data/customerProfileStorage";
 
 const emptyProfile = { name: "", email: "", phone: "" };
 
@@ -68,8 +72,8 @@ function ProfileSettings({ modal = false, onClose }) {
     setSaving(true);
     try {
       await Promise.resolve();
-      // Keep credentials out of localStorage; only profile information is persisted.
-      localStorage.setItem("motopots-profile", JSON.stringify(profile));
+      if (profile.email.trim()) saveCustomerAccountProfile(profile);
+      setActiveCustomerProfile(profile);
 
       showSuccess("Profile updated successfully");
       setErrorMessage("");

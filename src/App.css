@@ -2,3 +2,65 @@
 .mp-hero-img {
   max-width: min(100%, 420px);
 }
+
+.logout-modal-overlay {
+  animation: logout-overlay-in 180ms ease-out both;
+}
+
+.logout-modal-overlay.is-closing {
+  animation: logout-overlay-out 160ms ease-in both;
+}
+
+.logout-modal-panel {
+  animation: logout-panel-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.logout-modal-overlay.is-closing .logout-modal-panel {
+  animation: logout-panel-out 160ms ease-in both;
+}
+
+.login-choice-overlay {
+  animation: logout-overlay-in 180ms ease-out both;
+}
+
+.login-choice-overlay.is-closing {
+  animation: logout-overlay-out 160ms ease-in both;
+  pointer-events: none;
+}
+
+.login-choice-panel {
+  animation: logout-panel-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.login-choice-overlay.is-closing .login-choice-panel {
+  animation: logout-panel-out 160ms ease-in both;
+}
+
+@keyframes logout-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes logout-overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes logout-panel-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes logout-panel-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(4px) scale(0.99); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-choice-overlay,
+  .login-choice-panel,
+  .login-choice-overlay.is-closing,
+  .login-choice-overlay.is-closing .login-choice-panel {
+    animation-duration: 1ms;
+  }
+}

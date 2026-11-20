@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatMoney } from "../data/menuData";
 import carticon from "../assets/cart_icon.svg";
-import { showConfirm, showSuccess } from "../utils/swal";
+import { showSuccess } from "../utils/swal";
+import LogoutConfirmationModal from "./LogoutConfirmationModal";
 
 function MenuIcon({ open }) {
   return (
@@ -24,6 +25,19 @@ function HeartIcon({ filled = false }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5"><path d="M20.8 8.6c0 5.5-8.8 10.2-8.8 10.2S3.2 14.1 3.2 8.6A4.6 4.6 0 0112 6.3a4.6 4.6 0 018.8 2.3z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>;
 }
 
+function readCustomerName() {
+  try {
+    const profile = JSON.parse(localStorage.getItem("motopots-profile") || "{}");
+    return typeof profile.name === "string"
+      ? profile.name.trim()
+      : typeof profile.fullName === "string"
+        ? profile.fullName.trim()
+        : "";
+  } catch {
+    return "";
+  }
+}
+
 function CustomerNavbar({
   onOrdersClick,
   onProfileClick,
@@ -40,14 +54,16 @@ function CustomerNavbar({
   onRemoveFavorite,
 }) {
   const [cartOpen, setCartOpen] = useState(false);
+  const [customerName, setCustomerName] = useState(readCustomerName);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
-  const logout = async (event) => {
-    event.preventDefault();
-    const result = await showConfirm({ title: "Log out?", text: "Are you sure you want to log out of your account?", confirmText: "Yes, log out", cancelText: "Stay logged in" });
-    if (!result.isConfirmed) return;
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const navigate = useNavigate();
+  const logout = () => {
+    localStorage.removeItem("motopots-profile");
+    window.dispatchEvent(new Event("motopots-profile-updated"));
     showSuccess("Logged out successfully");
-    window.location.hash = "#/";
+    navigate("/?login=user");
   };
   const [editingNotes, setEditingNotes] = useState({});
   const cartRef = useRef(null);
@@ -56,6 +72,7 @@ function CustomerNavbar({
   const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   useEffect(() => {
+    const syncCustomerName = () => setCustomerName(readCustomerName());
     const closeOnOutsideClick = (event) => {
       if (cartRef.current && !cartRef.current.contains(event.target))
         setCartOpen(false);
@@ -73,9 +90,13 @@ function CustomerNavbar({
     };
     document.addEventListener("mousedown", closeOnOutsideClick);
     document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("storage", syncCustomerName);
+    window.addEventListener("motopots-profile-updated", syncCustomerName);
     return () => {
       document.removeEventListener("mousedown", closeOnOutsideClick);
       document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("storage", syncCustomerName);
+      window.removeEventListener("motopots-profile-updated", syncCustomerName);
     };
   }, []);
 
@@ -85,7 +106,28 @@ function CustomerNavbar({
     setCartOpen(false);
   };
 
+  const toggleCart = () => {
+    setFavoritesOpen(false);
+    if (window.matchMedia?.("(max-width: 639px)").matches) {
+      setCartOpen(false);
+      navigate("/customer/cart");
+      return;
+    }
+    setCartOpen((value) => !value);
+  };
+
+  const toggleFavorites = () => {
+    setCartOpen(false);
+    if (window.matchMedia?.("(max-width: 639px)").matches) {
+      setFavoritesOpen(false);
+      navigate("/customer/favorites");
+      return;
+    }
+    setFavoritesOpen((value) => !value);
+  };
+
   return (
+    <>
     <nav className="sticky top-0 z-40 bg-transparent py-2.5">
       <div className="relative mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-1 px-3 sm:gap-x-3 sm:px-6 lg:px-5">
         <Link
@@ -100,11 +142,18 @@ function CustomerNavbar({
           </span>
         </Link>
 
-        <div className="flex items-center gap-1 sm:gap-2 lg:order-3">
+        <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2 lg:order-3">
+          <div
+            aria-label={`Customer: ${customerName || "Customer"}`}
+            className="inline-flex min-w-0 max-w-[42vw] shrink items-center gap-1.5 px-1.5 py-2 text-sm font-semibold text-[#F5F5F5] sm:max-w-40 sm:gap-2"
+          >
+            <UserIcon />
+            <span className="min-w-0 truncate">{customerName || "Customer"}</span>
+          </div>
           <div ref={cartRef} className="relative">
             <button
               type="button"
-              onClick={() => setCartOpen((value) => !value)}
+              onClick={toggleCart}
               aria-expanded={cartOpen}
               aria-label={`Shopping cart, ${itemCount} items`}
               className="relative flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/10 bg-[#15151C]/80 px-3 text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:shadow-xl"
@@ -256,7 +305,7 @@ function CustomerNavbar({
             )}
           </div>
           <div ref={favoritesRef} className="relative">
-            <button type="button" onClick={() => { setFavoritesOpen((value) => !value); setCartOpen(false); }} aria-expanded={favoritesOpen} aria-controls="customer-favorites-panel" aria-label={`Favorite orders, ${favoriteCount} saved`} className="relative flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/10 bg-[#15151C]/80 px-3 text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:text-[#FF8B93] hover:shadow-xl">
+            <button type="button" onClick={toggleFavorites} aria-expanded={favoritesOpen} aria-controls="customer-favorites-panel" aria-label={`Favorite orders, ${favoriteCount} saved`} className="relative flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/10 bg-[#15151C]/80 px-3 text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:text-[#FF8B93] hover:shadow-xl">
               <HeartIcon filled={favoritesOpen || favoriteCount > 0} />
               {favoriteCount > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E63946] px-1 text-[11px] font-extrabold text-white">{favoriteCount}</span>}
             </button>
@@ -310,19 +359,26 @@ function CustomerNavbar({
                   <UserIcon />
                   Profile
                 </Link>
-                <Link
-                  to="/"
-                  onClick={(event) => { setSettingsMenuOpen(false); logout(event); }}
-                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-[#FF8B93] no-underline transition hover:bg-[#3A2025] hover:text-[#FFB1B7]"
+                <button
+                  type="button"
+                  onClick={() => { setSettingsMenuOpen(false); setLogoutOpen(true); }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-bold text-[#FF8B93] transition hover:bg-[#3A2025] hover:text-[#FFB1B7]"
                 >
                   <LogoutIcon />
                   Logout
-                </Link>
+                </button>
             </div>
           </div>
         </div>
       </div>
     </nav>
+    {logoutOpen && (
+      <LogoutConfirmationModal
+        onCancel={() => setLogoutOpen(false)}
+        onConfirm={logout}
+      />
+    )}
+    </>
   );
 }
 

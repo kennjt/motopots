@@ -7,11 +7,15 @@
 }
 
 .motopots-swal-popup.swal2-toast {
-  width: min(calc(100vw - 2rem), 24rem);
-  min-height: 3.5rem;
-  padding: 0.75rem 2.25rem 0.75rem 0.875rem;
-  border-radius: 0.2rem;
-  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.24);
+  width: min(calc(100vw - 1.5rem), 24rem);
+  max-width: calc(100vw - 1.5rem);
+  min-height: 3.25rem;
+  padding: 0.65rem 2.125rem 0.65rem 0.8rem;
+  border-radius: 0.9rem;
+  background: rgba(21, 21, 28, 0.96) !important;
+  box-shadow: 0 0.4rem 1.125rem rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   text-align: left;
 }
 
@@ -21,14 +25,18 @@
 
 @media (max-width: 640px) {
   .motopots-swal-toast-container {
-    --swal2-container-padding: 0.75rem;
+    --swal2-container-padding:
+      calc(4.25rem + env(safe-area-inset-top))
+      max(0.75rem, env(safe-area-inset-right))
+      0.75rem
+      max(0.75rem, env(safe-area-inset-left));
   }
 }
 
-.motopots-swal-popup.swal2-toast.swal2-icon-success { background: #193a2b !important; border-color: #3f9c67; }
-.motopots-swal-popup.swal2-toast.swal2-icon-warning { background: #443719 !important; border-color: #c29a32; }
-.motopots-swal-popup.swal2-toast.swal2-icon-error { background: #48232a !important; border-color: #d65d6b; }
-.motopots-swal-popup.swal2-toast.swal2-icon-info { background: #193b4b !important; border-color: #3a9bc0; }
+.motopots-swal-popup.swal2-toast.swal2-icon-success { border-left: 3px solid #45b878; }
+.motopots-swal-popup.swal2-toast.swal2-icon-warning { border-left: 3px solid #d5a348; }
+.motopots-swal-popup.swal2-toast.swal2-icon-error { border-left: 3px solid #e63946; }
+.motopots-swal-popup.swal2-toast.swal2-icon-info { border-left: 3px solid #8b929d; }
 
 .motopots-swal-popup.swal2-toast .swal2-icon {
   width: 1.125rem;
@@ -39,6 +47,8 @@
 }
 
 .motopots-swal-popup.swal2-toast .motopots-swal-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin: 0;
   padding: 0;
   font-size: 0.82rem;
@@ -48,6 +58,8 @@
 }
 
 .motopots-swal-popup.swal2-toast .motopots-swal-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin: 0.15rem 0 0;
   padding: 0;
   color: rgba(245, 245, 245, 0.72);
@@ -71,6 +83,24 @@
   transform: translateY(-50%);
 }
 
+.motopots-swal-popup.swal2-toast.swal2-show {
+  animation: motopots-toast-in 180ms ease-out both;
+}
+
+.motopots-swal-popup.swal2-toast.swal2-hide {
+  animation: motopots-toast-out 150ms ease-in both;
+}
+
+@keyframes motopots-toast-in {
+  from { opacity: 0; transform: translateY(-0.4rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes motopots-toast-out {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-0.25rem); }
+}
+
 .motopots-swal-title { font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; }
 .motopots-swal-content { color: #a1a1aa; }
 .motopots-swal-confirm, .motopots-swal-cancel {
@@ -83,3 +113,10 @@
 .motopots-swal-confirm { background: #e63946; color: #fff; }
 .motopots-swal-confirm:hover { background: #c92d3a; }
 .motopots-swal-cancel { background: #15151c; border: 1px solid rgba(255,255,255,.1); color: #f5f5f5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .motopots-swal-popup.swal2-toast.swal2-show,
+  .motopots-swal-popup.swal2-toast.swal2-hide {
+    animation-duration: 1ms;
+  }
+}

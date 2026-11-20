@@ -1,6 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { showSuccess } from "../utils/swal";
+import { showError, showSuccess } from "../utils/swal";
+import {
+  findCustomerProfile,
+  readActiveCustomerProfile,
+  setActiveCustomerProfile,
+} from "../data/customerProfileStorage";
 
 function LoginForm({ role, onClose, onCreateAccount }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,6 +27,20 @@ function LoginForm({ role, onClose, onCreateAccount }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (role === "customer") {
+      try {
+        const email = formData.email.trim();
+        const savedProfile = findCustomerProfile(email);
+        const currentProfile = readActiveCustomerProfile();
+        const matchingCurrentProfile = currentProfile?.email.toLowerCase() === email.toLowerCase()
+          ? currentProfile
+          : null;
+        setActiveCustomerProfile(savedProfile || matchingCurrentProfile || { name: "", email, phone: "" });
+      } catch (error) {
+        showError("Unable to load customer profile", error.message || "Please try again.");
+        return;
+      }
+    }
     showSuccess("Login successful", `Welcome back${formData.email ? `, ${formData.email}` : ""}.`);
 
     if (role === "customer") {

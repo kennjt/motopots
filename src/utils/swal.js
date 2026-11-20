@@ -14,38 +14,57 @@ const baseConfig = {
   },
 };
 
-export function showSuccess(title, text = "") {
+function showNotification({ icon, title, text = "", timer, desktopToastPosition }) {
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 640px)").matches;
+  const useToast = isMobile || Boolean(desktopToastPosition);
+
   return Swal.fire({
     ...baseConfig,
-    toast: true,
-    position: "bottom-end",
+    icon,
+    title,
+    text,
+    ...(useToast
+      ? {
+          toast: true,
+          position: isMobile ? "top" : desktopToastPosition,
+          timer,
+          showConfirmButton: false,
+          timerProgressBar: true,
+          customClass: {
+            ...baseConfig.customClass,
+            container: "motopots-swal-toast-container",
+          },
+        }
+      : { confirmButtonText: "Okay" }),
+  });
+}
+
+export function showSuccess(title, text = "") {
+  return showNotification({
     icon: "success",
     title,
     text,
     timer: 2600,
-    showConfirmButton: false,
-    timerProgressBar: true,
-    customClass: {
-      ...baseConfig.customClass,
-      container: "motopots-swal-toast-container",
-    },
+    desktopToastPosition: "bottom-end",
   });
 }
 
 export function showError(title, text = "") {
-  return Swal.fire({ ...baseConfig, icon: "error", title, text, confirmButtonText: "Okay" });
+  return showNotification({ icon: "error", title, text, timer: 5000 });
 }
 
 export function showWarning(title, text = "") {
-  return Swal.fire({ ...baseConfig, icon: "warning", title, text, confirmButtonText: "Okay" });
+  return showNotification({ icon: "warning", title, text, timer: 4500 });
 }
 
 export function showInfo(title, text = "") {
-  return Swal.fire({ ...baseConfig, icon: "info", title, text, confirmButtonText: "Okay" });
+  return showNotification({ icon: "info", title, text, timer: 4000 });
 }
 
 export function showClosedStore(title, text = "") {
-  return Swal.fire({ ...baseConfig, icon: "error", title, text, confirmButtonText: "Okay" });
+  return showNotification({ icon: "error", title, text, timer: 5000 });
 }
 
 export function showConfirm({ title, text, confirmText = "Yes, continue", cancelText = "Cancel", icon = "warning" }) {

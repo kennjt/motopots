@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Menu from "./components/menu";
 import CustomerNavbar from "./components/customernavbar";
+import CustomerCartPage from "./components/CustomerCartPage";
+import CustomerFavoritesPage from "./components/CustomerFavoritesPage";
 import MyOrder from "./components/MyOrder";
 import ProfileSettings from "./components/profile";
 import Checkout from "./components/Checkout";
@@ -97,6 +100,13 @@ function FavoriteHeart({ filled = false }) {
 }
 
 function CustomerDashboard() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isMenuPage = location.pathname === "/customer/menu";
+  const isCartPage = location.pathname === "/customer/cart";
+  const isFavoritesPage = location.pathname === "/customer/favorites";
+  const isCheckoutPage = location.pathname === "/customer/checkout";
+  const isDedicatedPage = isCartPage || isFavoritesPage || isCheckoutPage;
   const [activeSection, setActiveSection] = useState("menu");
   const [showOrders, setShowOrders] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -114,6 +124,13 @@ function CustomerDashboard() {
     JSON.parse(localStorage.getItem("motopots-cart") || "{}"),
   );
   const [orders, setOrders] = useState(readOrders);
+  useEffect(() => {
+    if (location.pathname !== "/customer/order" && !isMenuPage) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("customer-menu")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isMenuPage, location.pathname]);
   useEffect(
     () => localStorage.setItem("motopots-cart", JSON.stringify(cart)),
     [cart],
@@ -225,6 +242,7 @@ function CustomerDashboard() {
     }, { ...current }));
     setCheckoutOrderType(savedOrder.orderType || "Pickup");
     setActiveSection("menu");
+    if (isFavoritesPage) navigate("/customer/cart");
     setFavoriteNotice("Saved order added to your cart.");
     showSuccess("Added to cart successfully");
   };
@@ -238,8 +256,60 @@ function CustomerDashboard() {
     setCheckoutOrderType(savedOrder.orderType || "Pickup");
     setFavoriteToEdit(firstItem);
     setActiveSection("menu");
+    if (isFavoritesPage) navigate("/customer/menu");
   };
   const removeFavorite = (favoriteId) => setFavoriteOrders((current) => current.filter((order) => order.id !== favoriteId));
+  const removeFavoriteItem = (favoriteId, itemIndex) => {
+    setFavoriteOrders((current) => current.flatMap((order) => {
+      if (order.id !== favoriteId) return [order];
+      const items = (order.items || []).filter((_, index) => index !== itemIndex);
+      if (!items.length) return [];
+      const total = items.reduce(
+        (sum, item) => sum + (item.subtotal ?? (item.finalUnitPrice ?? item.price ?? item.savedPrice ?? 0) * (item.quantity || 1)),
+        0,
+      );
+      return [{ ...order, items, total }];
+    }));
+  };
+  const addFavoriteItemToCart = (savedItem) => {
+    if (storeStatus === "closed") {
+      showError("Store is closed", "Sorry, we're currently closed and not accepting orders.");
+      return;
+    }
+    const resolved = resolveFavoriteItem(savedItem);
+    if (resolved.error) {
+      showError("Unable to add favorite", resolved.error);
+      return;
+    }
+    const cartItem = makeCartItem(resolved.product, resolved.selection);
+    const quantity = savedItem.quantity || 1;
+    setCart((current) => {
+      const nextQuantity = (current[cartItem.id]?.quantity || 0) + quantity;
+      return {
+        ...current,
+        [cartItem.id]: {
+          ...cartItem,
+          quantity: nextQuantity,
+          subtotal: cartItem.finalUnitPrice * nextQuantity,
+        },
+      };
+    });
+    showSuccess("Added to cart successfully", cartItem.name);
+  };
+  const customizeFavoriteItem = (savedItem) => {
+    if (storeStatus === "closed") {
+      showError("Store is closed", "Sorry, we're currently closed and not accepting orders.");
+      return;
+    }
+    const resolved = resolveFavoriteItem(savedItem);
+    if (resolved.error) {
+      showError("Favorite item unavailable", resolved.error);
+      return;
+    }
+    setFavoriteToEdit(savedItem);
+    setActiveSection("menu");
+    navigate("/customer/menu");
+  };
   const confirmationFavorite = confirmationOrder && favoriteOrders.find((order) => savedOrderSignature(order) === savedOrderSignature(confirmationOrder));
   const saveConfirmationAsFavorite = () => {
     if (!confirmationOrder) return;
@@ -285,7 +355,7 @@ function CustomerDashboard() {
       showError("Store is closed", "Sorry, we're currently closed and not accepting orders.");
       return;
     }
-    if (cartItems.length) setActiveSection("checkout");
+    if (cartItems.length) navigate("/customer/checkout");
   };
   const updateCartNotes = (id, notes) =>
     setCart((current) => ({ ...current, [id]: { ...current[id], notes } }));
@@ -346,7 +416,37 @@ function CustomerDashboard() {
           {storeStatus === "open" ? "OPEN NOW" : "CLOSED"}
           {storeStatus === "closed" && <span className="ml-1 font-semibold text-[#D1D1D6]">— Sorry, we're currently closed and not accepting orders.{nextOpening ? ` Next opening: ${nextOpening}.` : ""}</span>}
         </div>
-        {activeSection === "menu" && (
+        {isCartPage && (
+          <CustomerCartPage
+            cartItems={cartItems}
+            subtotal={subtotal}
+            storeOpen={storeStatus === "open"}
+            onQuantityChange={changeQuantity}
+            onRemove={removeFromCart}
+            onCheckout={beginCheckout}
+          />
+        )}
+        {isFavoritesPage && (
+          <CustomerFavoritesPage
+            favoriteOrders={favoriteOrders}
+            storeOpen={storeStatus === "open"}
+            onAddToCart={addFavoriteItemToCart}
+            onCustomize={customizeFavoriteItem}
+            onRemove={removeFavoriteItem}
+          />
+        )}
+        {isCheckoutPage && activeSection !== "confirmation" && (
+          <Checkout
+            cartItems={cartItems}
+            subtotal={subtotal}
+            initialOrderType={checkoutOrderType}
+            onBack={() => navigate("/customer/cart")}
+            onSubmit={placeOrder}
+            submitting={submittingOrder || storeStatus === "closed"}
+            storeOpen={storeStatus === "open"}
+          />
+        )}
+        {!isDedicatedPage && activeSection === "menu" && (
           <>
             <section
               id="home"
@@ -370,20 +470,20 @@ function CustomerDashboard() {
                       Grilled, sizzling and sweet, all in one place. Order your
                       favorites online and we&apos;ll get them ready for you.
                     </p>
-                    <ul className="mb-6 flex list-none flex-wrap gap-2 p-0">
+                    <ul className="mb-0 flex list-none flex-wrap gap-2 p-0">
                       {["Bacolod Chicken Inasal", "Takoyaki", "Halo-Halo"].map((item) => (
                         <li key={item} className="rounded-full border border-white/10 bg-[#22222B] px-3 py-1 text-sm font-extrabold text-[#F5F5F5]">
                           {item}
                         </li>
                       ))}
                     </ul>
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <a href="#customer-menu" className="min-h-11 rounded-xl border border-[#E63946] bg-[#E63946] px-4 py-2 text-lg font-extrabold text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#C92D3A]">
+                    <div className="mt-4">
+                      <Link
+                        to="/customer/order"
+                        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#E63946] bg-[#E63946] px-4 py-2 text-base font-extrabold text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#C92D3A] sm:text-lg"
+                      >
                         Order Now
-                      </a>
-                      <a href="#customer-menu" className="min-h-11 rounded-xl border border-white/10 bg-[#15151C] px-4 py-2 text-lg font-extrabold text-[#F5F5F5] no-underline transition-all hover:-translate-y-0.5 hover:border-[#E63946] hover:bg-[#22222B]">
-                        View Menu
-                      </a>
+                      </Link>
                     </div>
                   </div>
                   <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
@@ -398,8 +498,8 @@ function CustomerDashboard() {
             <section id="customer-menu" className="relative z-10 min-h-screen w-full py-12">
               <div className="mx-auto w-full max-w-6xl text-center">
                 <h2 className="mb-1 font-heading text-3xl text-[#F5F5F5] sm:text-4xl">Our Menu</h2>
-                <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">Choose your favorites, customize your order, and add them to your cart.</p>
-                <Menu onAddToCart={addToCart} cart={cart} showAddToCart={storeStatus === "open"} favoriteToEdit={favoriteToEdit} onFavoriteEditHandled={() => setFavoriteToEdit(null)} />
+                <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">{isMenuPage ? "Browse products by category and compare descriptions and prices." : "Choose your favorites, customize your order, and add them to your cart."}</p>
+                <Menu onAddToCart={addToCart} cart={cart} showAddToCart={!isMenuPage && storeStatus === "open"} browseMode={isMenuPage} favoriteToEdit={favoriteToEdit} onFavoriteEditHandled={() => setFavoriteToEdit(null)} />
               </div>
             </section>
             <section id="customer-about" className="mb-10 bg-[#15151C]/60 px-4 py-10 sm:px-6 lg:px-4">
@@ -432,7 +532,7 @@ function CustomerDashboard() {
             <Footer />
           </>
         )}
-        {activeSection === "checkout" && <Checkout cartItems={cartItems} subtotal={subtotal} initialOrderType={checkoutOrderType} onBack={() => setActiveSection("menu")} onSubmit={placeOrder} submitting={submittingOrder || storeStatus === "closed"} storeOpen={storeStatus === "open"} />}
+        {!isDedicatedPage && activeSection === "checkout" && <Checkout cartItems={cartItems} subtotal={subtotal} initialOrderType={checkoutOrderType} onBack={() => setActiveSection("menu")} onSubmit={placeOrder} submitting={submittingOrder || storeStatus === "closed"} storeOpen={storeStatus === "open"} />}
         {activeSection === "confirmation" && confirmationOrder && (
           <section className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20 sm:p-10">
             <div className="text-center"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15 text-3xl text-green-300">✓</div><h1 className="mt-4 text-3xl font-extrabold text-[#F5F5F5]">Order Submitted</h1><p className="mt-2 text-[#A1A1AA]">Order #{String(confirmationOrder.id).slice(-6)} was received.</p></div>
@@ -440,7 +540,7 @@ function CustomerDashboard() {
             {confirmationOrder.orderType === "Delivery" && confirmationOrder.deliveryAddress && <div className="mt-4 rounded-xl border border-[#E63946]/25 bg-[#E63946]/5 p-4 text-sm"><p className="font-extrabold text-[#F5F5F5]">Delivery address · {confirmationOrder.deliveryAddress.label}</p><p className="mt-1 text-[#A1A1AA]">{[confirmationOrder.deliveryAddress.houseNumber, confirmationOrder.deliveryAddress.street, confirmationOrder.deliveryAddress.subdivision, confirmationOrder.deliveryAddress.barangay, confirmationOrder.deliveryAddress.city, confirmationOrder.deliveryAddress.province, confirmationOrder.deliveryAddress.region, confirmationOrder.deliveryAddress.postalCode].filter(Boolean).join(", ")}</p>{confirmationOrder.deliveryAddress.landmark && <p className="mt-1 text-[#A1A1AA]">Landmark: {confirmationOrder.deliveryAddress.landmark}</p>}</div>}
             {confirmationOrder.paymentMethod === "GCash" && <p className="mt-5 rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">Your GCash payment is pending verification. It will not be marked as paid until authorized staff confirms it.</p>}
             <div className="mt-6 space-y-3">{confirmationOrder.items.map((item) => <div key={item.id} className="flex justify-between gap-4 border-b border-white/10 pb-3 text-sm"><div><p className="font-bold text-[#F5F5F5]">{item.name} × {item.quantity}</p><p className="text-[#A1A1AA]">{item.details?.join(" · ")}</p>{item.notes && <p className="mt-1 italic text-[#D8A6AA]">Note: {item.notes}</p>}</div><span className="font-bold text-[#E63946]">{money(item.subtotal)}</span></div>)}</div>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"><button type="button" onClick={() => setShowOrders(true)} className="rounded-xl bg-[#E63946] px-5 py-3 font-bold text-white hover:bg-[#C92D3A]">View My Orders</button><button type="button" onClick={() => setActiveSection("menu")} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]">Back to Menu</button><button type="button" onClick={() => setActiveSection("menu")} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]">Back to Home</button></div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"><button type="button" onClick={() => setShowOrders(true)} className="rounded-xl bg-[#E63946] px-5 py-3 font-bold text-white hover:bg-[#C92D3A]">View My Orders</button><button type="button" onClick={() => isCheckoutPage ? navigate("/customer/menu") : setActiveSection("menu")} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]">Back to Menu</button><button type="button" onClick={() => isCheckoutPage ? navigate("/customer") : setActiveSection("menu")} className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]">Back to Home</button></div>
           </section>
         )}
         {activeSection === "confirmation" && confirmationOrder && (
