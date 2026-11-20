@@ -27,6 +27,12 @@ function AppNavbar() {
     setLoginMenuOpen(false);
   };
 
+  const openAccountCreation = useCallback(() => {
+    setLoginOpen(false);
+    setLoginMenuOpen(false);
+    navigate("/register");
+  }, [navigate]);
+
   useEffect(() => {
     if (!showLogin) return undefined;
 
@@ -69,7 +75,7 @@ function AppNavbar() {
             id="mainNav"
             className={`${expanded ? "flex" : "hidden"} w-full min-w-0 flex-col pt-3 lg:flex lg:w-auto lg:flex-1 lg:flex-row lg:items-center lg:pt-0`}
           >
-            <div className="flex flex-col rounded-3xl border border-white/10 bg-[#15151C]/80 p-2 shadow-lg shadow-black/20 backdrop-blur-xl lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:flex-row">
+            <div className="flex flex-col rounded-3xl border border-white/10 bg-[#15151C]/80 p-2 shadow-lg shadow-black/20 backdrop-blur-[2px] lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:flex-row">
               {["Home", "Menu", "About"].map((label) => (
                 <a
                   key={label}
@@ -93,7 +99,7 @@ function AppNavbar() {
                   id="loginDropdown"
                   aria-expanded={loginMenuOpen}
                   onClick={() => setLoginMenuOpen((value) => !value)}
-                  className="min-h-11 w-full rounded-full border border-white/10 bg-[#15151C]/80 px-4 py-2 text-left text-sm font-medium text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:shadow-xl lg:min-h-0 lg:w-auto"
+                  className="min-h-11 w-full rounded-full border border-white/10 bg-[#15151C]/80 px-4 py-2 text-left text-sm font-medium text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-[2px] transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:shadow-xl lg:min-h-0 lg:w-auto"
                 >
                   Log in{" "}
                   <span aria-hidden="true" className="ml-1 text-xs">
@@ -102,7 +108,7 @@ function AppNavbar() {
                 </button>
 
                 {loginMenuOpen && (
-                  <div className="absolute right-0 z-50 mt-2 w-[min(13rem,calc(100vw-2rem))] rounded-xl border border-white/10 bg-[#22222B] p-1.5 shadow-xl shadow-black/30 backdrop-blur-xl">
+                  <div className="absolute right-0 z-50 mt-2 w-[min(13rem,calc(100vw-2rem))] rounded-xl border border-white/10 bg-[#22222B] p-1.5 shadow-xl shadow-black/30 backdrop-blur-[2px]">
                     <button
                       type="button"
                       onClick={() => openLogin("customer")}
@@ -128,52 +134,16 @@ function AppNavbar() {
 
       {showLogin && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-3 backdrop-blur-sm sm:items-center sm:p-4"
+          className="auth-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeLogin();
           }}
         >
-          {/* Glassmorphism Modal */}
-          <section
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="loginTitle"
-            className="my-auto max-h-[calc(100dvh-1.5rem)] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/10 bg-[#15151C] shadow-2xl shadow-black/40 sm:max-h-[calc(100dvh-2rem)]"
-          >
-            {/* Modal Header */}
-            <header className="flex items-center justify-between border-b border-white/10 bg-[#22222B] px-5 py-4">
-              <h2
-                id="loginTitle"
-                className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#F5F5F5]"
-              >
-                Login
-              </h2>
-
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={closeLogin}
-                className="rounded px-2 text-2xl leading-none text-[#A1A1AA] transition hover:text-[#E63946]"
-              >
-                &times;
-              </button>
-            </header>
-
-            {/* Modal Content */}
-            <div className="bg-[#15151C] p-5">
-              <div className="mb-5 text-center">
-                <p className="mb-1 text-sm text-[#A1A1AA]">
-                  Welcome to Motopot&apos;s Food House!
-                </p>
-
-                <h3 className="text-xl font-extrabold text-[#F5F5F5]">
-                  {selectedRole === "customer" ? "User sign in" : "Admin sign in"}
-                </h3>
-              </div>
-
-              <LoginForm role={selectedRole} />
-            </div>
-          </section>
+          <LoginForm
+            role={selectedRole}
+            onClose={closeLogin}
+            onCreateAccount={openAccountCreation}
+          />
         </div>
       )}
     </>

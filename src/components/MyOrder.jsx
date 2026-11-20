@@ -131,13 +131,13 @@ function MyOrder({ modal = false, onClose }) {
                           {item.notes && <p className="mt-1 italic text-[#D8A6AA]">Note: {item.notes}</p>}
                           <p className="text-[#A1A1AA]">Quantity: {item.quantity} × {money(item.finalUnitPrice ?? item.price)}</p>
                         </div>
-                        <span className="font-bold text-[#E63946]">{money((item.finalUnitPrice ?? item.price) * item.quantity)}</span>
+                        <span className="font-heading font-bold text-[#E63946]">{money((item.finalUnitPrice ?? item.price) * item.quantity)}</span>
                       </div>
                     ))}
                   </div>
                   <div className="mt-5 flex justify-between border-t border-white/10 pt-4 text-lg font-extrabold text-[#F5F5F5]">
                     <span>Total</span>
-                    <span className="text-[#E63946]">{money(order.total)}</span>
+                    <span className="font-heading font-bold text-[#E63946]">{money(order.total)}</span>
                   </div>
                 </article>
               );
@@ -164,7 +164,7 @@ function MyOrder({ modal = false, onClose }) {
           <header className="flex items-center justify-between border-b border-white/10 bg-[#22222B] px-5 py-4">
             <h2
               id="ordersTitle"
-              className="m-0 font-['Alfa_Slab_One',serif] text-xl text-[#F5F5F5]"
+              className="m-0 font-heading text-xl text-[#F5F5F5]"
             >
               My Orders
             </h2>

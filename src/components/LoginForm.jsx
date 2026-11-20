@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { showSuccess } from "../utils/swal";
 
-function LoginForm({ role }) {
+function LoginForm({ role, onClose, onCreateAccount }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -31,8 +31,43 @@ function LoginForm({ role }) {
     }
   };
 
+  const handleCreateAccount = () => {
+    if (onCreateAccount) {
+      onCreateAccount();
+      return;
+    }
+
+    navigate("/register");
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-white/10 bg-[#22222B] p-5 shadow-xl shadow-black/30">
+    <form
+      onSubmit={handleSubmit}
+      role="dialog"
+      aria-modal="true"
+      aria-label={isCustomer ? "User sign in" : "Admin sign in"}
+      className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-[25rem] space-y-4 overflow-y-auto rounded-2xl border border-white/10 bg-[#22222B] p-5 shadow-xl shadow-black/30 sm:max-h-[calc(100dvh-2rem)]"
+    >
+
+      <button
+        type="button"
+        aria-label="Close login form"
+        onClick={onClose}
+        className="absolute right-3 top-2 rounded px-2 text-2xl leading-none text-[#A1A1AA] transition hover:text-[#E63946]"
+      >
+        &times;
+      </button>
+
+      <div className="mt-5 mb-0 text-center text-2xl font-bold text-[#F5F5F5]">
+        {isCustomer ? "Welcome Back!" : "Admin Login"}
+      </div>
+
+      <p className="text-center text-sm text-[#A1A1AA]">
+        {isCustomer
+          ? "Log in to continue to your account."
+          : "Log in to continue to your account."}
+      </p>
+
       <div>
         <label className="mb-1.5 block text-sm font-bold text-[#F5F5F5]">
           {isCustomer ? "Email" : "Username / Email"}
@@ -96,7 +131,7 @@ function LoginForm({ role }) {
           Don't have an account?{" "}
           <button
             type="button"
-            onClick={() => navigate("/register")}
+            onClick={handleCreateAccount}
             className="font-bold text-[#E63946] no-underline hover:underline"
           >
             Create Account

@@ -3,7 +3,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
-  font-family: Nunito, sans-serif;
+  font-family: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 .motopots-swal-popup.swal2-toast {
@@ -71,7 +71,7 @@
   transform: translateY(-50%);
 }
 
-.motopots-swal-title { font-family: Nunito, sans-serif; font-weight: 800; }
+.motopots-swal-title { font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; }
 .motopots-swal-content { color: #a1a1aa; }
 .motopots-swal-confirm, .motopots-swal-cancel {
   border: 0;

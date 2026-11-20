@@ -42,8 +42,8 @@ export default function AdminLayout() {
       {mobileNavOpen && <button type="button" aria-label="Close admin navigation" onClick={() => setMobileNavOpen(false)} className="fixed inset-0 z-20 bg-black/60 lg:hidden" />}
       <aside className={`fixed inset-y-0 left-0 z-30 w-[248px] flex-col overflow-y-auto border-r border-white/[0.07] bg-[#111116] px-5 py-6 ${mobileNavOpen ? "flex" : "hidden"} lg:flex`}>
         <Link to="/staff" onClick={() => setMobileNavOpen(false)} className="mb-8 inline-flex flex-col leading-none no-underline">
-          <span className="font-['Alfa_Slab_One',serif] text-[1.4rem] tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000]">MOTOPOT&apos;S</span>
-          <span className="mt-1 self-start bg-[#22222B] px-2 py-0.5 font-['Alfa_Slab_One',serif] text-[0.65rem] italic text-[#F5F5F5]">FOOD HOUSE</span>
+          <span className="font-display text-[1.4rem] tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000]">MOTOPOT&apos;S</span>
+          <span className="mt-1 self-start bg-[#22222B] px-2 py-0.5 font-display text-[0.65rem] italic text-[#F5F5F5]">FOOD HOUSE</span>
         </Link>
         <nav aria-label="Admin navigation" className="space-y-5">
           {navigation.map(({ label, path, icon: NavigationIcon }) => {

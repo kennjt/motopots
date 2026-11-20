@@ -1,9 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Nunito:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&family=Outfit:wght@700;800&display=swap');
 @import "tailwindcss";
 @import "./utils/swal.css";
 @tailwind utilities;
 @source "./App.jsx";
 @source "./components";
+
+@font-face {
+  font-family: 'FoodBrand';
+  src: url('/fonts/FoodBrandDemoRegular-aY7Xo.otf') format('opentype');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'FoodBrand', system-ui, sans-serif;
+  --font-heading: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+@layer base {
+  body { @apply font-sans font-normal; }
+  h1 { @apply font-display font-extrabold; }
+  h2, h3, h4, h5, h6 { @apply font-heading font-bold; }
+  button, [role='button'] { @apply font-sans font-bold; }
+  nav a, nav button, aside a, aside button { @apply font-sans font-semibold; }
+  label { @apply font-sans font-semibold; }
+  input, textarea, select { @apply font-sans font-normal; }
+}
 
 :root {
   --sidebar-width: 248px;
@@ -64,7 +88,6 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow-x: hidden;
-  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
   color: var(--color-primary-text);
   background-color: var(--color-primary-bg);
   background-image:
@@ -80,6 +103,12 @@ body {
 #root {
   min-height: 100vh;
   width: 100%;
+}
+
+.auth-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.20);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
 .admin-main-content {
@@ -119,4 +148,3 @@ body {
 @keyframes mp-skeleton-shimmer { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
 
 @media (prefers-reduced-motion: reduce) { .mp-skeleton { animation: none; } }
-@import "./utils/swal.css";
