@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Clock3,
   Package,
+  ShieldCheck,
   Store,
   Wallet,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import { readSchedule, readStoreStatus } from "../data/adminSettingsStorage";
 import { ImageWithSkeleton } from "./Skeleton";
 
 const BUSINESS_TIME_ZONE = "Asia/Manila";
+const SCHEDULE_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const datePartsFormatter = new Intl.DateTimeFormat("en-PH", {
   timeZone: BUSINESS_TIME_ZONE,
   year: "numeric",
@@ -338,12 +340,26 @@ export default function AdminOverview() {
         });
       }
     };
+    const syncSchedule = () => {
+      readSchedule()
+        .then((savedSchedule) => {
+          if (!active) return;
+          setSchedule(savedSchedule);
+          setScheduleError("");
+        })
+        .catch((error) => {
+          console.error("Unable to refresh dashboard operating hours.", error);
+          if (active) setScheduleError("Store hours are temporarily unavailable.");
+        });
+    };
     window.addEventListener("storage", syncStatus);
+    window.addEventListener("motopots-settings-updated", syncSchedule);
     const clock = window.setInterval(() => setNow(new Date()), 60_000);
     return () => {
       active = false;
       window.clearInterval(clock);
       window.removeEventListener("storage", syncStatus);
+      window.removeEventListener("motopots-settings-updated", syncSchedule);
     };
   }, []);
 
@@ -529,7 +545,13 @@ export default function AdminOverview() {
             <h2 className="m-0 text-2xl font-extrabold tracking-tight text-[#F5F5F5] sm:text-3xl">Dashboard</h2>
             <p className="mb-0 mt-1 text-sm text-[#A1A1AA]">Welcome back. Here&apos;s your store&apos;s latest activity.</p>
           </div>
-          <p className="m-0 text-sm font-semibold text-[#A1A1AA]">{todayLabel}</p>
+          <div className="flex flex-wrap items-center justify-end gap-3 sm:ml-auto">
+            <p className="m-0 text-sm font-semibold text-[#A1A1AA]">{todayLabel}</p>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E63946]/25 bg-[#E63946]/[0.07] px-3 py-1.5 text-[11px] font-extrabold tracking-[0.12em] text-[#FF929A]">
+              <ShieldCheck aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />
+              ADMINISTRATOR
+            </span>
+          </div>
         </header>
 
         <section aria-label="Store status" className="flex flex-col gap-3 rounded-2xl border border-white/[0.07] bg-[#141419] px-4 py-4 shadow-sm shadow-black/10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
@@ -554,6 +576,33 @@ export default function AdminOverview() {
             <span className="font-bold text-[#D1D1D6]">Today&apos;s hours</span>
             <span className="text-[#A1A1AA]">{scheduleError || todayHours}</span>
           </div>
+        </section>
+
+        <section aria-labelledby="weekly-hours-heading" className="rounded-2xl border border-white/[0.07] bg-[#141419] p-4 shadow-sm shadow-black/10 sm:p-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 id="weekly-hours-heading" className="m-0 text-sm font-bold text-[#D1D1D6]">Shop Operating Hours</h2>
+            <Link to="/staff/settings" className="text-xs font-semibold text-[#FF929A] no-underline hover:text-white">Manage hours</Link>
+          </div>
+          {scheduleError ? (
+            <p className="m-0 text-sm text-[#A1A1AA]">{scheduleError}</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
+              {SCHEDULE_DAYS.map((day) => {
+                const entry = schedule?.[day];
+                const hours = entry
+                  ? entry.enabled
+                    ? `${formatScheduleTime(entry.opening)} – ${formatScheduleTime(entry.closing)}`
+                    : "Closed"
+                  : "Hours not set";
+                return (
+                  <div key={day} className="rounded-xl border border-white/[0.06] bg-[#101016] px-3 py-2.5">
+                    <p className="m-0 text-xs font-semibold text-[#A1A1AA]">{day}</p>
+                    <p className="mb-0 mt-1 text-xs font-bold text-white">{hours}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
 
         <section aria-label="Business statistics" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">

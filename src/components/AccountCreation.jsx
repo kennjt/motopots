@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { showSuccess, showWarning } from "../utils/swal";
+import { showError, showSuccess, showWarning } from "../utils/swal";
+import { saveCustomerAccountProfile } from "../data/customerProfileStorage";
 
 const initialForm = {
   fullName: "",
@@ -94,6 +95,17 @@ function AccountCreation() {
     setSubmitted(false);
     setIsLoading(true);
     window.setTimeout(() => {
+      try {
+        saveCustomerAccountProfile({
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+        });
+      } catch (error) {
+        setIsLoading(false);
+        showError("Account could not be saved", error.message || "Please try again.");
+        return;
+      }
       setIsLoading(false);
       setSuccess(true);
       showSuccess("Account ready", "Your account details passed validation.");

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
@@ -28,9 +28,11 @@ import { showConfirm, showError, showSuccess } from "../utils/swal";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const weekDaysFromSunday = ["Sunday", ...days];
+const clockHours = Array.from({ length: 12 }, (_, index) => index + 1);
+const clockMinutes = Array.from({ length: 12 }, (_, index) => index * 5);
 const shiftTypes = ["Morning Shift", "Afternoon Shift", "Evening Shift", "Custom Shift"];
 const tabs = [
-  { id: "schedule", label: "Operating Schedule", icon: CalendarDays },
+  { id: "schedule", label: "Shop Operating Hours", icon: CalendarDays },
   { id: "availability", label: "Store Availability", icon: Store },
   { id: "shifts", label: "Employee Shifts", icon: Users },
 ];
@@ -76,6 +78,77 @@ const timeToMinutes = (time) => {
   const [hours, minutes] = time.split(":").map(Number);
   if (hours > 23 || minutes > 59) return null;
   return hours * 60 + minutes;
+};
+
+const parseScheduleTime = (time) => {
+  const match = (time || "").trim().match(/^(\d{1,2})(?::([0-5]\d))?\s*(AM|PM)$/i);
+  if (!match) return null;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2] || "0");
+  if (hours < 1 || hours > 12) return null;
+
+  const normalizedHours = (hours % 12) + (match[3].toUpperCase() === "PM" ? 12 : 0);
+  return `${String(normalizedHours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
+const formatScheduleTime = (time) => {
+  const minutes = timeToMinutes(time);
+  if (minutes === null) return "";
+
+  const hours = Math.floor(minutes / 60);
+  return `${String(hours % 12 || 12).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")} ${hours >= 12 ? "PM" : "AM"}`;
+};
+
+const getScheduleInputSegments = (time) => {
+  const parsed = parseScheduleTime(time);
+  if (parsed === null) {
+    const partial = (time || "").trim().match(/^(\d{1,2}|--):(\d{1,2}|--)\s*(AM|PM|--)?$/i);
+    if (!partial) return { hour: "", minute: "", period: "" };
+    return {
+      hour: partial[1] === "--" ? "" : partial[1],
+      minute: partial[2] === "--" ? "" : partial[2],
+      period: ["AM", "PM"].includes(partial[3]?.toUpperCase()) ? partial[3].toUpperCase() : "",
+    };
+  }
+
+  const [hours, minutes] = parsed.split(":").map(Number);
+  return {
+    hour: String(hours % 12 || 12).padStart(2, "0"),
+    minute: String(minutes).padStart(2, "0"),
+    period: hours >= 12 ? "PM" : "AM",
+  };
+};
+
+const formatScheduleInputSegments = ({ hour, minute, period }) => (
+  `${hour || "--"}:${minute || "--"} ${period || "--"}`
+);
+
+const getPickerValues = (time) => {
+  const parsed = parseScheduleTime(time);
+  if (parsed === null) return { hour: "08", minute: "00", period: "AM" };
+
+  const totalMinutes = timeToMinutes(parsed);
+
+  const hours = Math.floor(totalMinutes / 60);
+  return {
+    hour: String(hours % 12 || 12).padStart(2, "0"),
+    minute: String(totalMinutes % 60).padStart(2, "0"),
+    period: hours >= 12 ? "PM" : "AM",
+  };
+};
+
+const getPickerValuesFromSegments = (segments) => {
+  const parsed = parseScheduleTime(formatScheduleInputSegments(segments));
+  if (parsed !== null) return getPickerValues(parsed);
+
+  const hour = Number(segments.hour);
+  const minute = Number(segments.minute);
+  const hours = hour >= 1 && hour <= 12 ? hour : 8;
+  const minutes = minute >= 0 && minute <= 59 ? minute : 0;
+  const period = segments.period === "PM" ? "PM" : "AM";
+  const time = `${String((hours % 12) + (period === "PM" ? 12 : 0)).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+  return getPickerValues(time);
 };
 
 const hasSharedWorkdayInRange = (first, second) => {
@@ -129,11 +202,429 @@ function StatusBadge({ open }) {
   );
 }
 
+function ScheduleTimeField({
+  day,
+  label,
+  displayValue,
+  disabled,
+  onInputChange,
+  onInputBlur,
+  onSelect,
+}) {
+  const [open, setOpen] = useState(false);
+  const [touched, setTouched] = useState(false);
+  const segments = getScheduleInputSegments(displayValue);
+  const [pickerValues, setPickerValues] = useState(() => getPickerValuesFromSegments(getScheduleInputSegments(displayValue)));
+  const [pickerStep, setPickerStep] = useState("hour");
+  const containerRef = useRef(null);
+  const hourInputRef = useRef(null);
+  const minuteInputRef = useRef(null);
+  const periodInputRef = useRef(null);
+  const pickerDialogRef = useRef(null);
+  const pickerCloseRef = useRef(null);
+  const pickerButtonRef = useRef(null);
+  const pickerId = `${day.toLowerCase()}-${label.toLowerCase().replace(/\s+/g, "-")}-picker`;
+  const hasInput = Boolean(segments.hour || segments.minute || segments.period);
+  const invalid = touched && hasInput && parseScheduleTime(formatScheduleInputSegments(segments)) === null;
+
+  const updateSegments = (nextSegments) => {
+    onInputChange(formatScheduleInputSegments(nextSegments));
+  };
+
+  const focusSegment = (ref, atEnd = false) => {
+    const input = ref.current;
+    if (!input) return;
+    input.focus();
+    const position = atEnd ? input.value.length : 0;
+    input.setSelectionRange(position, position);
+  };
+
+  const handleHourChange = (event) => {
+    const raw = event.target.value.replace(/\D/g, "").slice(0, 2);
+    const numeric = Number(raw);
+    const completesHour = (raw.length === 1 && numeric >= 2 && numeric <= 9)
+      || (raw.length === 2 && numeric >= 1 && numeric <= 12);
+    updateSegments({ ...segments, hour: completesHour ? raw.padStart(2, "0") : raw });
+    if (completesHour) focusSegment(minuteInputRef);
+  };
+
+  const handleMinuteChange = (event) => {
+    const raw = event.target.value.replace(/\D/g, "").slice(0, 2);
+    const numeric = Number(raw);
+    const completesMinute = raw.length === 2 && numeric <= 59;
+    const singleDigitMinute = raw.length === 1 && numeric >= 6;
+    updateSegments({ ...segments, minute: singleDigitMinute ? raw.padStart(2, "0") : raw });
+    if (completesMinute || singleDigitMinute) focusSegment(periodInputRef);
+  };
+
+  const handlePeriodChange = (event) => {
+    const typedPeriod = event.target.value.toUpperCase().replace(/[^AP]/g, "").slice(-1);
+    const period = typedPeriod === "A" ? "AM" : typedPeriod === "P" ? "PM" : "";
+    updateSegments({ ...segments, period });
+  };
+
+  const handleSegmentBlur = (segment, event) => {
+    const nextSegments = { ...segments };
+    if (segment === "hour" && /^\d$/.test(nextSegments.hour)) {
+      const hour = Number(nextSegments.hour);
+      if (hour >= 1 && hour <= 9) nextSegments.hour = nextSegments.hour.padStart(2, "0");
+    }
+    if (segment === "minute" && /^\d$/.test(nextSegments.minute)) {
+      nextSegments.minute = nextSegments.minute.padStart(2, "0");
+    }
+    if (nextSegments.hour !== segments.hour || nextSegments.minute !== segments.minute) {
+      updateSegments(nextSegments);
+    }
+    if (!containerRef.current?.contains(event.relatedTarget)) {
+      setTouched(true);
+      onInputBlur(formatScheduleInputSegments(nextSegments));
+    }
+  };
+
+  const handleSegmentKeyDown = (segment, event) => {
+    const input = event.currentTarget;
+    if (event.key === "ArrowRight" && input.selectionStart === input.value.length) {
+      if (segment === "hour") {
+        event.preventDefault();
+        focusSegment(minuteInputRef);
+      } else if (segment === "minute") {
+        event.preventDefault();
+        focusSegment(periodInputRef);
+      }
+    }
+    if (event.key === "ArrowLeft" && input.selectionStart === 0) {
+      if (segment === "minute") {
+        event.preventDefault();
+        focusSegment(hourInputRef, true);
+      } else if (segment === "period") {
+        event.preventDefault();
+        focusSegment(minuteInputRef, true);
+      }
+    }
+    if (event.key === "Backspace" && segment === "minute" && input.selectionStart === 0 && !input.selectionEnd) {
+      event.preventDefault();
+      focusSegment(hourInputRef, true);
+    }
+    if (event.key === "Backspace" && segment === "period") {
+      event.preventDefault();
+      if (segments.period) updateSegments({ ...segments, period: "" });
+      else focusSegment(minuteInputRef, true);
+    }
+    if (segment === "period" && /^[ap]$/i.test(event.key)) {
+      event.preventDefault();
+      updateSegments({ ...segments, period: event.key.toUpperCase() === "A" ? "AM" : "PM" });
+    }
+  };
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        pickerButtonRef.current?.focus();
+        return;
+      }
+      if (event.key !== "Tab" || !pickerDialogRef.current) return;
+      const focusableElements = Array.from(pickerDialogRef.current.querySelectorAll("button"))
+        .filter((element) => element.getClientRects().length > 0);
+      if (!focusableElements.length) return;
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    pickerCloseRef.current?.focus();
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  const togglePicker = () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+
+    setPickerValues(getPickerValuesFromSegments(segments));
+    setPickerStep("hour");
+    setOpen(true);
+  };
+
+  const setTime = () => {
+    const hour = Number(pickerValues.hour);
+    const normalizedHours = (hour % 12) + (pickerValues.period === "PM" ? 12 : 0);
+    const time = `${String(normalizedHours).padStart(2, "0")}:${pickerValues.minute}`;
+    onSelect(time);
+    setTouched(false);
+    setOpen(false);
+    pickerButtonRef.current?.focus();
+  };
+
+  const closePicker = () => {
+    setOpen(false);
+    pickerButtonRef.current?.focus();
+  };
+  const clockValues = pickerStep === "hour" ? clockHours : clockMinutes;
+  const selectedClockValue = pickerStep === "hour"
+    ? Number(pickerValues.hour) % 12
+    : Number(pickerValues.minute);
+  const clockHandAngle = pickerStep === "hour" ? selectedClockValue * 30 : selectedClockValue * 6;
+
+  return (
+    <div ref={containerRef} className={`relative ${open ? "z-30" : ""}`}>
+      <span className="mb-1 block text-xs text-[#A1A1AA]">{label}</span>
+      <div
+        role="group"
+        aria-label={`${day} ${label}`}
+        aria-invalid={invalid}
+        className={`relative flex min-h-11 w-full items-center rounded-xl border bg-[#0f0f15] px-2 text-sm text-white outline-none transition focus-within:border-[#E63946] disabled:opacity-40 ${
+          invalid ? "border-rose-500" : "border-white/[0.1]"
+        }`}
+      >
+        <input
+          ref={hourInputRef}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          spellCheck={false}
+          aria-label={`${day} ${label.toLowerCase()} hour`}
+          aria-invalid={invalid}
+          placeholder="--"
+          maxLength={2}
+          value={segments.hour}
+          disabled={disabled}
+          onChange={handleHourChange}
+          onBlur={(event) => handleSegmentBlur("hour", event)}
+          onKeyDown={(event) => handleSegmentKeyDown("hour", event)}
+          className="w-8 bg-transparent py-2 text-center font-medium tabular-nums text-white outline-none placeholder:text-[#777781] disabled:cursor-not-allowed"
+        />
+        <span aria-hidden="true" className="select-none text-[#A1A1AA]">:</span>
+        <input
+          ref={minuteInputRef}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          spellCheck={false}
+          aria-label={`${day} ${label.toLowerCase()} minutes`}
+          aria-invalid={invalid}
+          placeholder="--"
+          maxLength={2}
+          value={segments.minute}
+          disabled={disabled}
+          onChange={handleMinuteChange}
+          onBlur={(event) => handleSegmentBlur("minute", event)}
+          onKeyDown={(event) => handleSegmentKeyDown("minute", event)}
+          className="w-8 bg-transparent py-2 text-center font-medium tabular-nums text-white outline-none placeholder:text-[#777781] disabled:cursor-not-allowed"
+        />
+        <input
+          ref={periodInputRef}
+          type="text"
+          inputMode="text"
+          autoComplete="off"
+          spellCheck={false}
+          aria-label={`${day} ${label.toLowerCase()} AM or PM`}
+          aria-invalid={invalid}
+          placeholder="--"
+          maxLength={2}
+          value={segments.period}
+          disabled={disabled}
+          onChange={handlePeriodChange}
+          onBlur={(event) => handleSegmentBlur("period", event)}
+          onKeyDown={(event) => handleSegmentKeyDown("period", event)}
+          className="ml-1 w-9 bg-transparent py-2 text-center font-medium text-white outline-none placeholder:text-[#777781] disabled:cursor-not-allowed"
+        />
+        <button
+          ref={pickerButtonRef}
+          type="button"
+          aria-label={`Open time picker for ${day} ${label.toLowerCase()}`}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-controls={pickerId}
+          disabled={disabled}
+          onClick={togglePicker}
+          className="absolute inset-y-0 right-0 flex min-h-11 w-11 items-center justify-center rounded-r-xl text-[#A1A1AA] transition hover:bg-white/5 hover:text-[#FF929A] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#E63946]/40 disabled:cursor-not-allowed"
+        >
+          <Clock3
+            aria-hidden="true"
+            className={`h-5 w-5 transition-transform ${open ? "scale-110 text-[#E63946]" : ""}`}
+          />
+        </button>
+      </div>
+      {invalid && (
+        <span className="mt-1 block text-[11px] text-rose-300">
+          Complete a valid hour, minute, and AM/PM selection.
+        </span>
+      )}
+      {open && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-3 backdrop-blur-[2px]"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closePicker();
+          }}
+        >
+          <div
+            ref={pickerDialogRef}
+            id={pickerId}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${day} ${label.toLowerCase()} picker`}
+            className="max-h-[94dvh] w-[min(22rem,calc(100vw-1.5rem))] overflow-y-auto rounded-2xl border border-white/10 bg-[#15151C] p-4 shadow-2xl shadow-black/50 sm:p-5"
+            onClick={(event) => event.stopPropagation()}
+          >
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-white">Choose {label.toLowerCase()}</p>
+              <p className="mt-1 text-xs text-[#A1A1AA]">
+                Select {pickerStep === "hour" ? "an hour" : "a minute"} on the clock.
+              </p>
+            </div>
+            <button
+              ref={pickerCloseRef}
+              type="button"
+              aria-label="Close clock picker"
+              onClick={closePicker}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#A1A1AA] transition hover:bg-white/5 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#E63946]/40"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            {["hour", "minute"].map((step) => (
+              <button
+                key={step}
+                type="button"
+                aria-pressed={pickerStep === step}
+                onClick={() => setPickerStep(step)}
+                className={`flex min-h-10 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#E63946]/30 ${
+                  pickerStep === step
+                    ? "border-[#E63946]/60 bg-[#E63946]/10 text-[#FF929A]"
+                    : "border-white/10 bg-[#0f0f15] text-[#A1A1AA] hover:text-white"
+                }`}
+              >
+                <span>{step === "hour" ? "Hour" : "Minute"}</span>
+                <span className="tabular-nums text-white">
+                  {step === "hour" ? pickerValues.hour : pickerValues.minute}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div
+            className="relative mx-auto aspect-square w-56 max-w-full rounded-full border border-white/10 bg-[#0f0f15] shadow-inner shadow-black/40"
+            onClick={(event) => {
+              if (event.target.closest("button")) return;
+              const bounds = event.currentTarget.getBoundingClientRect();
+              const dx = event.clientX - (bounds.left + bounds.width / 2);
+              const dy = (bounds.top + bounds.height / 2) - event.clientY;
+              const radians = (Math.atan2(dx, dy) + Math.PI * 2) % (Math.PI * 2);
+              if (pickerStep === "hour") {
+                const hour = Math.round(radians / (Math.PI / 6)) % 12 || 12;
+                setPickerValues((current) => ({ ...current, hour: String(hour).padStart(2, "0") }));
+                setPickerStep("minute");
+              } else {
+                const minute = Math.round(radians / (Math.PI / 30)) % 60;
+                setPickerValues((current) => ({ ...current, minute: String(minute).padStart(2, "0") }));
+              }
+            }}
+          >
+            <div className="absolute inset-[8%] rounded-full border border-white/[0.04]" />
+            <div
+              aria-hidden="true"
+              className="absolute left-1/2 top-[12%] z-[1] h-[38%] w-0.5 origin-bottom bg-[#E63946]/70 transition-transform duration-300"
+              style={{ transform: `translateX(-50%) rotate(${clockHandAngle}deg)` }}
+            />
+            {clockValues.map((clockValue) => {
+              const labelValue = pickerStep === "hour"
+                ? String(clockValue)
+                : String(clockValue).padStart(2, "0");
+              const selected = pickerStep === "hour"
+                ? pickerValues.hour === String(clockValue).padStart(2, "0")
+                : pickerValues.minute === String(clockValue).padStart(2, "0");
+              const angle = pickerStep === "hour"
+                ? (Number(clockValue) % 12) * (Math.PI / 6)
+                : (Number(clockValue) / 5) * (Math.PI / 6);
+
+              return (
+                <button
+                  key={clockValue}
+                  type="button"
+                  aria-label={pickerStep === "hour" ? `${clockValue} o'clock` : `${labelValue} minutes`}
+                  aria-pressed={selected}
+                  onClick={() => {
+                    if (pickerStep === "hour") {
+                      setPickerValues((current) => ({ ...current, hour: String(clockValue).padStart(2, "0") }));
+                      setPickerStep("minute");
+                    } else {
+                      setPickerValues((current) => ({ ...current, minute: String(clockValue).padStart(2, "0") }));
+                    }
+                  }}
+                  className={`absolute z-[2] flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-xs font-bold tabular-nums transition focus:outline-none focus:ring-2 focus:ring-[#E63946]/50 sm:h-9 sm:w-9 ${
+                    selected
+                      ? "bg-[#E63946] text-white shadow-md shadow-[#E63946]/30"
+                      : "text-white hover:bg-white/10 active:bg-[#E63946]/20"
+                  }`}
+                  style={{
+                    left: `${50 + (39 * Math.sin(angle))}%`,
+                    top: `${50 - (39 * Math.cos(angle))}%`,
+                  }}
+                >
+                  {labelValue}
+                </button>
+              );
+            })}
+            <span aria-hidden="true" className="absolute left-1/2 top-1/2 z-[3] h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#E63946]" />
+          </div>
+
+          <div role="group" aria-label="AM or PM" className="mt-3 grid grid-cols-2 gap-2">
+            {["AM", "PM"].map((period) => (
+              <button
+                key={period}
+                type="button"
+                aria-pressed={pickerValues.period === period}
+                onClick={() => setPickerValues((current) => ({ ...current, period }))}
+                className={`min-h-10 rounded-xl border text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-[#E63946]/30 ${
+                  pickerValues.period === period
+                    ? "border-[#E63946]/60 bg-[#E63946]/15 text-[#FF929A]"
+                    : "border-white/10 bg-[#0f0f15] text-[#A1A1AA] hover:text-white"
+                }`}
+              >
+                {period}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={setTime}
+            className="mt-3 min-h-11 w-full rounded-xl bg-[#E63946] px-4 text-sm font-bold text-white transition-colors hover:bg-[#C92D3A] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
+          >
+            Set Time
+          </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminSettings({ embedded = false, initialTab = "schedule" }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [schedule, setSchedule] = useState(createEmptySchedule);
+  const [scheduleTimeDrafts, setScheduleTimeDrafts] = useState({});
   const [scheduleSaved, setScheduleSaved] = useState(false);
   const [availability, setAvailability] = useState({
     mode: "automatic",
@@ -218,10 +709,44 @@ export default function AdminSettings({ embedded = false, initialTab = "schedule
     }));
   };
 
+  const updateScheduleTimeInput = (day, field, value) => {
+    setScheduleTimeDrafts((current) => ({
+      ...current,
+      [day]: { ...current[day], [field]: value },
+    }));
+    updateDay(day, field, parseScheduleTime(value) || "");
+  };
+
+  const normalizeScheduleTimeInput = (day, field, value) => {
+    const normalized = parseScheduleTime(value);
+    if (normalized === null) return;
+
+    setScheduleTimeDrafts((current) => ({
+      ...current,
+      [day]: { ...current[day], [field]: formatScheduleTime(normalized) },
+    }));
+    updateDay(day, field, normalized);
+  };
+
+  const selectScheduleTime = (day, field, value) => {
+    setScheduleTimeDrafts((current) => ({
+      ...current,
+      [day]: { ...current[day], [field]: formatScheduleTime(value) },
+    }));
+    updateDay(day, field, value);
+  };
+
   const saveOperatingSchedule = async () => {
     for (const day of days) {
       const entry = schedule[day];
       if (!entry.enabled) continue;
+      for (const field of ["opening", "closing"]) {
+        const draft = scheduleTimeDrafts[day]?.[field];
+        if (draft && parseScheduleTime(draft) === null) {
+          showError("Invalid time format", `Enter ${day}'s ${field} time as 8:00 AM.`);
+          return;
+        }
+      }
       const opening = timeToMinutes(entry.opening);
       const closing = timeToMinutes(entry.closing);
       if (opening === null || closing === null) {
@@ -435,7 +960,7 @@ export default function AdminSettings({ embedded = false, initialTab = "schedule
 
       <section className={panelClass}>
         <div className="mb-5">
-          <h2 className="text-lg font-bold text-white">Edit operating schedule</h2>
+          <h2 className="text-lg font-bold text-white">Shop Operating Hours</h2>
           <p className={`mt-1 ${mutedTextClass}`}>Set different opening hours for each day, or mark a day closed.</p>
         </div>
         <div className="space-y-2">
@@ -452,28 +977,26 @@ export default function AdminSettings({ embedded = false, initialTab = "schedule
                 >
                   {entry.enabled ? "Open" : "Closed"}
                 </button>
-                <label className="space-y-1 text-xs text-[#A1A1AA]">
-                  Opening time
-                  <input
-                    type="time"
-                    aria-label={`${day} opening time`}
-                    value={entry.opening}
-                    disabled={!entry.enabled}
-                    onChange={(event) => updateDay(day, "opening", event.target.value)}
-                    className={`${fieldClass} disabled:cursor-not-allowed disabled:opacity-40`}
-                  />
-                </label>
-                <label className="space-y-1 text-xs text-[#A1A1AA]">
-                  Closing time
-                  <input
-                    type="time"
-                    aria-label={`${day} closing time`}
-                    value={entry.closing}
-                    disabled={!entry.enabled}
-                    onChange={(event) => updateDay(day, "closing", event.target.value)}
-                    className={`${fieldClass} disabled:cursor-not-allowed disabled:opacity-40`}
-                  />
-                </label>
+                <ScheduleTimeField
+                  key={`${day}-opening-${entry.enabled}`}
+                  day={day}
+                  label="Opening time"
+                  displayValue={scheduleTimeDrafts[day]?.opening ?? formatScheduleTime(entry.opening)}
+                  disabled={!entry.enabled}
+                  onInputChange={(value) => updateScheduleTimeInput(day, "opening", value)}
+                  onInputBlur={(value) => normalizeScheduleTimeInput(day, "opening", value)}
+                  onSelect={(value) => selectScheduleTime(day, "opening", value)}
+                />
+                <ScheduleTimeField
+                  key={`${day}-closing-${entry.enabled}`}
+                  day={day}
+                  label="Closing time"
+                  displayValue={scheduleTimeDrafts[day]?.closing ?? formatScheduleTime(entry.closing)}
+                  disabled={!entry.enabled}
+                  onInputChange={(value) => updateScheduleTimeInput(day, "closing", value)}
+                  onInputBlur={(value) => normalizeScheduleTimeInput(day, "closing", value)}
+                  onSelect={(value) => selectScheduleTime(day, "closing", value)}
+                />
               </div>
             );
           })}
@@ -481,7 +1004,7 @@ export default function AdminSettings({ embedded = false, initialTab = "schedule
         <div className="mt-5 flex justify-end">
           <button type="button" disabled={savingSchedule} onClick={saveOperatingSchedule} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#E63946] px-4 text-sm font-bold text-white transition hover:bg-[#d62f3c] disabled:cursor-wait disabled:opacity-60">
             {savingSchedule ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Save schedule
+            Save Changes
           </button>
         </div>
       </section>

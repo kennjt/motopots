@@ -1,5 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Link } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import AppNavbar from "./components/navbar";
 import Menu from "./components/menu";
@@ -24,19 +23,14 @@ import { ImageWithSkeleton } from "./components/Skeleton";
 import "./App.css";
 
 function HomePage() {
-  const scrollToMenu = (event) => {
-    event.preventDefault();
-    document.getElementById("menu")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <>
       <div>
         <AppNavbar />
         <section
           id="home"
-          className="mp-hero relative isolate flex min-h-[calc(100svh-76px)] items-center overflow-hidden py-8 sm:py-5">
-
+          className="mp-hero relative isolate flex min-h-[calc(100svh-76px)] items-center overflow-hidden py-8 sm:py-5"
+        >
           <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-4">
             <div className="grid grid-cols-1 items-center gap-10 sm:gap-8 lg:grid-cols-12">
               <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
@@ -60,7 +54,7 @@ function HomePage() {
                   and sales in one simple system.
                 </p>
 
-                <ul className="mb-6 flex list-none flex-wrap gap-2 p-0 font-sans">
+                <ul className="mb-0 flex list-none flex-wrap gap-2 p-0 font-sans">
                   {["Bacolod Chicken Inasal", "Takoyaki", "Halo-Halo"].map(
                     (item) => (
                       <li
@@ -72,21 +66,6 @@ function HomePage() {
                     ),
                   )}
                 </ul>
-                <div className="mt-4 flex flex-wrap gap-3 font-sans">
-                  <Link
-                    to="/?login=user"
-                    className="min-h-11 rounded-xl border border-[#E63946] bg-[#E63946] px-4 py-2 text-lg font-extrabold text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#C92D3A]"
-                  >
-                    Order Now
-                  </Link>
-                  <a
-                    href="#menu"
-                    onClick={scrollToMenu}
-                    className="min-h-11 rounded-xl border border-white/10 bg-[#15151C] px-4 py-2 text-lg font-extrabold text-[#F5F5F5] no-underline transition-all hover:-translate-y-0.5 hover:border-[#E63946] hover:bg-[#22222B]"
-                  >
-                    View Menu
-                  </a>
-                </div>
               </div>
               <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
                 <div className="w-full max-w-[580px] overflow-hidden">
@@ -155,71 +134,218 @@ function HomePage() {
   );
 }
 
-
-
 function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/customer" element={<CustomerDashboard />} />
+      <Route path="/customer/order" element={<CustomerDashboard />} />
+      <Route path="/customer/menu" element={<CustomerDashboard />} />
+      <Route path="/customer/cart" element={<CustomerDashboard />} />
+      <Route path="/customer/favorites" element={<CustomerDashboard />} />
+      <Route path="/customer/checkout" element={<CustomerDashboard />} />
       <Route path="/staff" element={<AdminLayout />}>
         <Route index element={<AdminOverview />} />
-        <Route path="orders" element={<AdminWorkspace title="Orders" tabs={[
-          { label: "Orders", to: "/staff/orders" },
-          { label: "Menu Catalog", to: "/staff/orders/menu" },
-          { label: "Categories", to: "/staff/orders/categories" },
-          { label: "Customizations", to: "/staff/orders/customizations" },
-          { label: "Order History", to: "/staff/orders/history" },
-        ]} />}>
-          <Route index element={<AdminDashboard embedded page="orders" showPageHeading={false} />} />
-          <Route path="menu" element={<AdminMenuCatalog view="catalog" showHeading={false} />} />
-          <Route path="categories" element={<AdminMenuCatalog view="categories" showHeading={false} />} />
-          <Route path="customizations" element={<AdminMenuCatalog view="customizations" showHeading={false} />} />
-          <Route path="history" element={<AdminDashboard embedded page="order-history" showPageHeading={false} />} />
+        <Route
+          path="orders"
+          element={
+            <AdminWorkspace
+              title="Orders"
+              tabs={[
+                { label: "Orders", to: "/staff/orders" },
+                { label: "Menu Catalog", to: "/staff/orders/menu" },
+                { label: "Categories", to: "/staff/orders/categories" },
+                { label: "Customizations", to: "/staff/orders/customizations" },
+                { label: "Order History", to: "/staff/orders/history" },
+              ]}
+            />
+          }
+        >
+          <Route
+            index
+            element={
+              <AdminDashboard embedded page="orders" showPageHeading={false} />
+            }
+          />
+          <Route
+            path="menu"
+            element={<AdminMenuCatalog view="catalog" showHeading={false} />}
+          />
+          <Route
+            path="categories"
+            element={<AdminMenuCatalog view="categories" showHeading={false} />}
+          />
+          <Route
+            path="customizations"
+            element={
+              <AdminMenuCatalog view="customizations" showHeading={false} />
+            }
+          />
+          <Route
+            path="history"
+            element={
+              <AdminDashboard
+                embedded
+                page="order-history"
+                showPageHeading={false}
+              />
+            }
+          />
         </Route>
-        <Route path="inventory" element={<AdminWorkspace title="Inventory" tabs={[
-          { label: "Overview", to: "/staff/inventory" },
-          { label: "Ingredients", to: "/staff/inventory/ingredients" },
-          { label: "Recipes", to: "/staff/inventory/recipes" },
-          { label: "Stock Movements", to: "/staff/inventory/stock-movements" },
-          { label: "Suppliers", to: "/staff/inventory/suppliers" },
-        ]} />}>
+        <Route
+          path="inventory"
+          element={
+            <AdminWorkspace
+              title="Inventory"
+              tabs={[
+                { label: "Overview", to: "/staff/inventory" },
+                { label: "Ingredients", to: "/staff/inventory/ingredients" },
+                { label: "Recipes", to: "/staff/inventory/recipes" },
+                {
+                  label: "Stock Movements",
+                  to: "/staff/inventory/stock-movements",
+                },
+                { label: "Suppliers", to: "/staff/inventory/suppliers" },
+              ]}
+            />
+          }
+        >
           <Route index element={<AdminInventoryOverview />} />
-          <Route path="ingredients" element={<AdminInventoryOverview view="ingredients" />} />
-          <Route path="recipes" element={<AdminSectionPage title="Recipes" showHeading={false} />} />
-          <Route path="stock-movements" element={<AdminSectionPage title="Stock Movements" showHeading={false} />} />
-          <Route path="suppliers" element={<AdminSectionPage title="Suppliers" showHeading={false} />} />
+          <Route
+            path="ingredients"
+            element={<AdminInventoryOverview view="ingredients" />}
+          />
+          <Route
+            path="recipes"
+            element={<AdminSectionPage title="Recipes" showHeading={false} />}
+          />
+          <Route
+            path="stock-movements"
+            element={
+              <AdminSectionPage title="Stock Movements" showHeading={false} />
+            }
+          />
+          <Route
+            path="suppliers"
+            element={<AdminSectionPage title="Suppliers" showHeading={false} />}
+          />
         </Route>
-        <Route path="customers" element={<AdminWorkspace title="Customer" tabs={[
-          { label: "Customers", to: "/staff/customers" },
-          { label: "Favorite Orders", to: "/staff/customers/favorites" },
-        ]} />}>
+        <Route
+          path="customers"
+          element={
+            <AdminWorkspace
+              title="Customer"
+              tabs={[
+                { label: "Customers", to: "/staff/customers" },
+                { label: "Favorite Orders", to: "/staff/customers/favorites" },
+              ]}
+            />
+          }
+        >
           <Route index element={<AdminCustomerPages showHeading={false} />} />
-          <Route path="favorites" element={<AdminCustomerPages favorites showHeading={false} />} />
+          <Route
+            path="favorites"
+            element={<AdminCustomerPages favorites showHeading={false} />}
+          />
         </Route>
-        <Route path="order-history" element={<Navigate to="/staff/orders/history" replace />} />
-        <Route path="menu" element={<Navigate to="/staff/orders/menu" replace />} />
-        <Route path="menu/categories" element={<Navigate to="/staff/orders/categories" replace />} />
-        <Route path="menu/customizations" element={<Navigate to="/staff/orders/customizations" replace />} />
-        <Route path="recipes" element={<Navigate to="/staff/inventory/recipes" replace />} />
-        <Route path="stock-movements" element={<Navigate to="/staff/inventory/stock-movements" replace />} />
-        <Route path="suppliers" element={<Navigate to="/staff/inventory/suppliers" replace />} />
-        <Route path="favorite-orders" element={<Navigate to="/staff/customers/favorites" replace />} />
-        <Route path="performance" element={<AdminDashboard embedded page="performance" />} />
-        <Route path="operating-hours" element={<AdminSettings key="operating-hours" embedded initialTab="schedule" />} />
-        <Route path="store-availability" element={<AdminSettings key="store-availability" embedded initialTab="availability" />} />
-        <Route path="settings" element={<AdminSettings key="settings" embedded initialTab="schedule" />} />
-        <Route path="shifts" element={<AdminSettings key="shifts" embedded initialTab="shifts" />} />
-        <Route path="employees" element={<AdminSettings key="employees" embedded initialTab="shifts" />} />
-        <Route path="expenses" element={<AdminSectionPage title="Expenses" />} />
-        <Route path="sales-reports" element={<AdminDashboard embedded page="sales-reports" />} />
-        <Route path="store-information" element={<AdminSectionPage title="Store Information" />} />
+        <Route
+          path="order-history"
+          element={<Navigate to="/staff/orders/history" replace />}
+        />
+        <Route
+          path="menu"
+          element={<Navigate to="/staff/orders/menu" replace />}
+        />
+        <Route
+          path="menu/categories"
+          element={<Navigate to="/staff/orders/categories" replace />}
+        />
+        <Route
+          path="menu/customizations"
+          element={<Navigate to="/staff/orders/customizations" replace />}
+        />
+        <Route
+          path="recipes"
+          element={<Navigate to="/staff/inventory/recipes" replace />}
+        />
+        <Route
+          path="stock-movements"
+          element={<Navigate to="/staff/inventory/stock-movements" replace />}
+        />
+        <Route
+          path="suppliers"
+          element={<Navigate to="/staff/inventory/suppliers" replace />}
+        />
+        <Route
+          path="favorite-orders"
+          element={<Navigate to="/staff/customers/favorites" replace />}
+        />
+        <Route
+          path="performance"
+          element={<AdminDashboard embedded page="performance" />}
+        />
+        <Route
+          path="operating-hours"
+          element={
+            <AdminSettings
+              key="operating-hours"
+              embedded
+              initialTab="schedule"
+            />
+          }
+        />
+        <Route
+          path="store-availability"
+          element={
+            <AdminSettings
+              key="store-availability"
+              embedded
+              initialTab="availability"
+            />
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <AdminSettings key="settings" embedded initialTab="schedule" />
+          }
+        />
+        <Route
+          path="shifts"
+          element={<AdminSettings key="shifts" embedded initialTab="shifts" />}
+        />
+        <Route
+          path="employees"
+          element={
+            <AdminSettings key="employees" embedded initialTab="shifts" />
+          }
+        />
+        <Route
+          path="expenses"
+          element={<AdminSectionPage title="Expenses" />}
+        />
+        <Route
+          path="sales-reports"
+          element={<AdminDashboard embedded page="sales-reports" />}
+        />
+        <Route
+          path="store-information"
+          element={<AdminSectionPage title="Store Information" />}
+        />
         <Route path="profile" element={<AdminSectionPage title="Profile" />} />
         <Route path="*" element={<AdminSectionPage title="Page not found" />} />
       </Route>
       <Route path="/customer/profile" element={<ProfileSettings />} />
       <Route path="/customer/orders" element={<MyOrder />} />
-      <Route path="/register" element={<><HomePage /><AccountCreation /></>} />
+      <Route
+        path="/register"
+        element={
+          <>
+            <HomePage />
+            <AccountCreation />
+          </>
+        }
+      />
     </Routes>
   );
 }
