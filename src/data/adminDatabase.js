@@ -1,6 +1,6 @@
 const DB_NAME = "motopots-admin";
-const DB_VERSION = 2;
-const STORE_NAMES = ["menu", "settings", "employees", "shifts"];
+const DB_VERSION = 3;
+const STORE_NAMES = ["menu", "settings", "employees", "shifts", "expenses"];
 
 export function openAdminDatabase() {
   return new Promise((resolve, reject) => {

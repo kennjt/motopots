@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { showError, showSuccess, showWarning } from "../utils/swal";
-import { saveCustomerAccountProfile } from "../data/customerProfileStorage";
+import {
+  findCustomerProfile,
+  saveCustomerAccountProfile,
+} from "../data/customerProfileStorage";
 
 const initialForm = {
   fullName: "",
@@ -11,6 +13,34 @@ const initialForm = {
   confirmPassword: "",
   terms: false,
 };
+
+function getValidationErrors(formData) {
+  const passwordScore = [
+    formData.password.length >= 8,
+    /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password),
+    /\d/.test(formData.password) && /[^A-Za-z0-9]/.test(formData.password),
+  ].filter(Boolean).length;
+
+  return {
+    fullName: formData.fullName.trim() ? "" : "Please enter your full name.",
+    email: !formData.email.trim()
+      ? "Email is required."
+      : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())
+        ? ""
+        : "Enter a valid email address.",
+    phone: formData.phone.trim() ? "" : "Phone number is required.",
+    password:
+      passwordScore >= 2
+        ? ""
+        : "Use at least 8 characters with upper and lowercase letters.",
+    confirmPassword: !formData.confirmPassword
+      ? "Please confirm your password."
+      : formData.password === formData.confirmPassword
+        ? ""
+        : "Passwords do not match.",
+    terms: formData.terms ? "" : "Please accept the terms to continue.",
+  };
+}
 
 function EyeIcon({ visible }) {
   return visible ? (
@@ -53,6 +83,7 @@ function AccountCreation() {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const passwordScore = [
     formData.password.length >= 8,
@@ -61,17 +92,8 @@ function AccountCreation() {
   ].filter(Boolean).length;
   const strength =
     passwordScore < 2 ? "Weak" : passwordScore === 2 ? "Medium" : "Strong";
-  const emailIsValid =
-    !formData.email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
-  const passwordsMatch =
-    !formData.confirmPassword || formData.password === formData.confirmPassword;
-  const canSubmit =
-    formData.fullName.trim() &&
-    emailIsValid &&
-    formData.phone.trim() &&
-    passwordScore >= 2 &&
-    formData.password === formData.confirmPassword &&
-    formData.terms;
+  const validationErrors = getValidationErrors(formData);
+  const canSubmit = Object.values(validationErrors).every((error) => !error);
 
   const handleChange = (event) => {
     const { name, value, checked, type } = event.target;
@@ -80,37 +102,45 @@ function AccountCreation() {
       [name]: type === "checkbox" ? checked : value,
     }));
     setSuccess(false);
+    setFormError("");
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitted(true);
+    setFormError("");
+    setSuccess(false);
     if (!canSubmit) {
-      showWarning(
-        "Check your information",
-        "Complete the required fields and password requirements before continuing.",
-      );
+      setFormError("Please correct the highlighted fields and try again.");
       return;
     }
-    setSubmitted(false);
+
     setIsLoading(true);
-    window.setTimeout(() => {
-      try {
-        saveCustomerAccountProfile({
-          name: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-        });
-      } catch (error) {
-        setIsLoading(false);
-        showError("Account could not be saved", error.message || "Please try again.");
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+      const email = formData.email.trim();
+      if (findCustomerProfile(email)) {
+        setFormError(
+          "A profile with this email is already saved on this device. Please log in or use a different email.",
+        );
         return;
       }
-      setIsLoading(false);
+
+      saveCustomerAccountProfile({
+        name: formData.fullName,
+        email,
+        phone: formData.phone,
+      });
       setSuccess(true);
-      showSuccess("Account ready", "Your account details passed validation.");
-      window.setTimeout(() => setSuccess(false), 5000);
-    }, 800);
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Your account could not be saved. Please try again.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const inputClass =
@@ -153,16 +183,20 @@ function AccountCreation() {
               Join us and enjoy a faster, more convenient ordering experience.
             </p>
           </div>
+          {formError && (
+            <div
+              role="alert"
+              className="mb-4 rounded-xl border border-[#FF8B93]/30 bg-[#FF8B93]/10 p-3 text-sm text-[#FFB0B5]"
+            >
+              {formError}
+            </div>
+          )}
           {success && (
             <div
               role="status"
-              className="mb-4 flex items-start gap-3 rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-sm text-emerald-200"
+              className="mb-4 rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-sm text-emerald-200"
             >
-              <span className="text-lg leading-none">✓</span>
-              <span>
-                <strong className="font-extrabold">Account ready!</strong> This
-                is a frontend demo, so no account was saved.
-              </span>
+              Your profile has been saved on this device.
             </div>
           )}
           <form onSubmit={handleSubmit} noValidate className="space-y-2.5">
@@ -182,9 +216,11 @@ function AccountCreation() {
                   placeholder="Juan Dela Cruz"
                   className={inputClass}
                   autoComplete="name"
+                  required
+                  aria-invalid={submitted && Boolean(validationErrors.fullName)}
                 />
-                {submitted && !formData.fullName.trim() && (
-                  <p className={errorClass}>Please enter your full name.</p>
+                {submitted && validationErrors.fullName && (
+                  <p className={errorClass}>{validationErrors.fullName}</p>
                 )}
               </div>
               <div>
@@ -201,15 +237,13 @@ function AccountCreation() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
-                  className={`${inputClass} ${!emailIsValid ? "border-[#FF8B93]" : ""}`}
+                  className={`${inputClass} ${submitted && validationErrors.email ? "border-[#FF8B93]" : ""}`}
                   autoComplete="email"
+                  required
+                  aria-invalid={submitted && Boolean(validationErrors.email)}
                 />
-                {(!emailIsValid || (submitted && !formData.email)) && (
-                  <p className={errorClass}>
-                    {!formData.email
-                      ? "Email is required."
-                      : "Enter a valid email address."}
-                  </p>
+                {submitted && validationErrors.email && (
+                  <p className={errorClass}>{validationErrors.email}</p>
                 )}
               </div>
               <div>
@@ -228,9 +262,11 @@ function AccountCreation() {
                   placeholder="09XX XXX XXXX"
                   className={inputClass}
                   autoComplete="tel"
+                  required
+                  aria-invalid={submitted && Boolean(validationErrors.phone)}
                 />
-                {submitted && !formData.phone.trim() && (
-                  <p className={errorClass}>Phone number is required.</p>
+                {submitted && validationErrors.phone && (
+                  <p className={errorClass}>{validationErrors.phone}</p>
                 )}
               </div>
               <div>
@@ -248,8 +284,10 @@ function AccountCreation() {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="At least 8 characters"
-                    className={`${inputClass} pr-12`}
+                    className={`${inputClass} pr-12 ${submitted && validationErrors.password ? "border-[#FF8B93]" : ""}`}
                     autoComplete="new-password"
+                    required
+                    aria-invalid={submitted && Boolean(validationErrors.password)}
                   />
                   <button
                     type="button"
@@ -283,10 +321,8 @@ function AccountCreation() {
                     </p>
                   </div>
                 )}
-                {submitted && passwordScore < 2 && (
-                  <p className={errorClass}>
-                    Use at least 8 characters with upper and lowercase letters.
-                  </p>
+                {submitted && validationErrors.password && (
+                  <p className={errorClass}>{validationErrors.password}</p>
                 )}
               </div>
               <div>
@@ -304,8 +340,12 @@ function AccountCreation() {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Re-enter your password"
-                    className={`${inputClass} pr-12 ${!passwordsMatch ? "border-[#FF8B93]" : ""}`}
+                    className={`${inputClass} pr-12 ${submitted && validationErrors.confirmPassword ? "border-[#FF8B93]" : ""}`}
                     autoComplete="new-password"
+                    required
+                    aria-invalid={
+                      submitted && Boolean(validationErrors.confirmPassword)
+                    }
                   />
                   <button
                     type="button"
@@ -320,11 +360,10 @@ function AccountCreation() {
                     <EyeIcon visible={showConfirmPassword} />
                   </button>
                 </div>
-                {!passwordsMatch && (
-                  <p className={errorClass}>Passwords do not match.</p>
-                )}
-                {submitted && !formData.confirmPassword && (
-                  <p className={errorClass}>Please confirm your password.</p>
+                {submitted && validationErrors.confirmPassword && (
+                  <p className={errorClass}>
+                    {validationErrors.confirmPassword}
+                  </p>
                 )}
               </div>
             </div>
@@ -335,6 +374,8 @@ function AccountCreation() {
                 checked={formData.terms}
                 onChange={handleChange}
                 className="mt-1 h-4 w-4 shrink-0 accent-[#E63946]"
+                required
+                aria-invalid={submitted && Boolean(validationErrors.terms)}
               />
               <span>
                 I agree to the{" "}
@@ -354,18 +395,19 @@ function AccountCreation() {
                 .
               </span>
             </label>
-            {submitted && !formData.terms && (
-              <p className={errorClass}>Please accept the terms to continue.</p>
+            {submitted && validationErrors.terms && (
+              <p className={errorClass}>{validationErrors.terms}</p>
             )}
             <button
               type="submit"
               disabled={isLoading || success}
-              className="w-full rounded-xl border border-[#E63946] bg-[#E63946] py-3.5 font-extrabold text-white shadow-lg shadow-[#E63946]/20 transition duration-300 hover:-translate-y-0.5 hover:bg-[#C92D3A] hover:shadow-xl disabled:cursor-default disabled:opacity-80"
+              aria-busy={isLoading}
+              className="w-full rounded-xl border border-[#E63946] bg-[#E63946] py-3.5 font-extrabold text-white shadow-lg shadow-[#E63946]/20 transition duration-300 hover:-translate-y-0.5 hover:bg-[#C92D3A] hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-80"
             >
               {isLoading
-                ? "Creating…"
+                ? "Saving profile…"
                 : success
-                  ? "Account Created"
+                  ? "Profile Saved"
                   : "Create Account"}
             </button>
           </form>

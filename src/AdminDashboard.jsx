@@ -4,15 +4,18 @@ import { formatMoney, loadMenuCatalog, menuItems } from "./data/menuData";
 import {
   ORDERS_STORAGE_KEY,
   ORDERS_UPDATED_EVENT,
+  formatOrderId,
   readOrders,
+  recordOrderStatus,
   saveOrders,
 } from "./data/orderStorage";
 import { ImageWithSkeleton } from "./components/Skeleton";
-import { showConfirm, showSuccess } from "./utils/swal";
+import { showConfirm, showError, showSuccess } from "./utils/swal";
 import AdminMenuCatalog from "./components/AdminMenuCatalog";
 
 const orderStatuses = [
   "Pending",
+  "Pending Confirmation",
   "Preparing",
   "Ready for Pickup",
   "Completed",
@@ -137,6 +140,44 @@ function getOrderItems(order) {
   return Array.isArray(order.items) ? order.items : [];
 }
 
+function getOrderStatusHistory(order) {
+  const history = Array.isArray(order.statusHistory)
+    ? order.statusHistory.filter(
+        (entry) => entry && typeof entry.status === "string",
+      )
+    : [];
+  return history.length
+    ? history
+    : [
+        {
+          status: getOrderStatus(order),
+          timestamp: null,
+        },
+      ];
+}
+
+function getStatusChangedBy(entry) {
+      if (typeof entry.changedBy === "string" && entry.changedBy.trim()) {
+        return entry.changedBy;
+      }
+      if (typeof entry.changedBy?.name === "string" && entry.changedBy.name.trim()) {
+        return entry.changedBy.name;
+      }
+      return "Not recorded";
+}
+
+function formatStatusTimestamp(timestamp) {
+  if (!timestamp) return "";
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime())
+    ? ""
+    : date.toLocaleString("en-PH", {
+        timeZone: "Asia/Manila",
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+}
+
 function getProductPriceLabel(item) {
   const product = menuItems.find(
     (menuItem) => menuItem.id === item.productId || menuItem.name === item.name,
@@ -159,6 +200,10 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
   const [today] = useState(() => new Date());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All statuses");
+  const [statusChange, setStatusChange] = useState(null);
+  const [statusChangedBy, setStatusChangedBy] = useState("");
+  const [statusRemarks, setStatusRemarks] = useState("");
+  const [statusChangeError, setStatusChangeError] = useState("");
   const [activeSection, setActiveSection] = useState("overview");
   const mainRef = useRef(null);
 
@@ -305,7 +350,6 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
 
   const filteredOrders = orders
     .filter((order) => {
-      if (page === "order-history" && !["Completed", "Cancelled"].includes(getOrderStatus(order))) return false;
       if (page === "orders" && ["Completed", "Cancelled"].includes(getOrderStatus(order))) return false;
       const query = search.trim().toLowerCase();
       const matchesSearch =
@@ -321,21 +365,99 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
       (a, b) =>
         (getOrderDate(b)?.getTime() || 0) - (getOrderDate(a)?.getTime() || 0),
     )
-    .slice(0, 6);
+    .slice(0, page === "overview" ? 6 : undefined);
 
-  const updateOrderStatus = (orderId, status) => {
-    const updatedOrders = orders.map((order) =>
-      order.id === orderId
-        ? {
-            ...order,
-            status,
-            orderStatus: status,
-            completedAt: status === "Completed" ? new Date().toISOString() : null,
-          }
-        : order,
+  const beginStatusChange = (orderId, status) => {
+    const order = orders.find((item) => String(item.id) === String(orderId));
+    if (!order || status === getOrderStatus(order)) return;
+    setStatusChange({ orderId, status });
+    setStatusChangedBy("");
+    setStatusRemarks("");
+    setStatusChangeError("");
+  };
+
+  const resolveCancellationRequest = (orderId, approved) => {
+    setStatusChange({ orderId, cancellationDecision: approved });
+    setStatusChangedBy("");
+    setStatusRemarks("");
+    setStatusChangeError("");
+  };
+
+  const saveStatusChange = (event) => {
+    event.preventDefault();
+    const changedBy = statusChangedBy.trim();
+    if (!statusChange || !changedBy) {
+      setStatusChangeError("Enter the name of the person changing this status.");
+      return;
+    }
+
+    const currentOrders = readOrders();
+    const currentOrder = currentOrders.find(
+      (order) => String(order.id) === String(statusChange.orderId),
     );
+    if (
+      !currentOrder
+      || (
+        statusChange.cancellationDecision !== undefined
+        && getOrderStatus(currentOrder) !== "Cancellation Requested"
+      )
+      || (
+        statusChange.cancellationDecision === undefined
+        && getOrderStatus(currentOrder) === statusChange.status
+      )
+    ) {
+      setOrders(currentOrders);
+      setStatusChange(null);
+      showError(
+        "Status change unavailable",
+        "This order has already changed. Refresh the order list and review its current status.",
+      );
+      return;
+    }
+
+    const changedAt = new Date().toISOString();
+    const isCancellationDecision =
+      statusChange.cancellationDecision !== undefined;
+    const approved = statusChange.cancellationDecision;
+    const status = isCancellationDecision
+      ? approved
+        ? "Cancelled"
+        : currentOrder.cancellationPreviousStatus || "Pending"
+      : statusChange.status;
+    const updatedOrders = currentOrders.map((order) => {
+      if (String(order.id) !== String(statusChange.orderId)) return order;
+      const updated = {
+        ...recordOrderStatus(order, status, {
+          timestamp: changedAt,
+          changedBy,
+          remarks: statusRemarks,
+        }),
+        completedAt: status === "Completed" ? changedAt : null,
+        cancelledAt: status === "Cancelled" ? changedAt : null,
+      };
+      return isCancellationDecision
+        ? {
+            ...updated,
+            cancellationRequestStatus: approved ? "Approved" : "Rejected",
+            cancellationDecisionAt: changedAt,
+          }
+        : updated;
+    });
     saveOrders(updatedOrders);
-    showSuccess("Order status updated successfully");
+    setOrders(updatedOrders);
+    setStatusChange(null);
+    showSuccess(
+      isCancellationDecision
+        ? approved
+          ? "Cancellation approved"
+          : "Cancellation request declined"
+        : "Order status updated",
+      isCancellationDecision
+        ? approved
+          ? "The order has been cancelled."
+          : "The order remains active."
+        : "",
+    );
   };
 
   const logout = async (event) => {
@@ -753,7 +875,9 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
               <div>
                 {page !== "order-history" && <h2 className="m-0 text-base font-extrabold">Recent orders</h2>}
                 <p className="mb-0 mt-1 text-xs text-[#85858F]">
-                  {page === "order-history" ? "Review completed, cancelled, and historical orders." : "Review orders and update their status."}
+                  {page === "order-history"
+                    ? "All orders stay here with every status change. Completed or cancelled orders leave the active Orders queue."
+                    : "Active orders stay here until marked Completed or Cancelled."}
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -779,7 +903,7 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
                     onChange={(event) => setStatusFilter(event.target.value)}
                     className="h-10 w-full rounded-xl border border-white/[0.08] bg-[#1B1B22] px-3 text-xs font-semibold text-[#C4C4CB] outline-none focus:border-[#E63946]/60 sm:w-auto"
                   >
-                    {["All statuses", ...orderStatuses].map((status) => (
+                    {["All statuses", "Cancellation Requested", ...orderStatuses].map((status) => (
                       <option key={status}>{status}</option>
                     ))}
                   </select>
@@ -817,7 +941,9 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
             ) : (
               <>
                 <div className="hidden overflow-x-auto md:block">
-                  <table className="w-full min-w-[720px] border-collapse text-left">
+                  <table
+                    className={`w-full ${page === "order-history" ? "min-w-[900px]" : "min-w-[720px]"} border-collapse text-left`}
+                  >
                     <thead>
                       <tr className="text-[10px] font-extrabold uppercase tracking-[1px] text-[#777781]">
                         <th className="px-6 py-3.5">Order</th>
@@ -825,6 +951,9 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
                         <th className="px-4 py-3.5">Items</th>
                         <th className="px-4 py-3.5">Total</th>
                         <th className="px-4 py-3.5">Status</th>
+                        {page === "order-history" && (
+                          <th className="px-4 py-3.5">Status changes</th>
+                        )}
                         <th className="px-6 py-3.5 text-right">Update</th>
                       </tr>
                     </thead>
@@ -835,7 +964,7 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
                           className="border-t border-white/[0.05] text-xs"
                         >
                           <td className="px-6 py-4 font-extrabold">
-                            #{String(order.id).slice(-6)}
+                            #{formatOrderId(order.id)}
                           </td>
                           <td className="px-4 py-4 text-[#C5C5CC]">
                             {getCustomerName(order)}
@@ -855,27 +984,63 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
                               {getOrderStatus(order)}
                             </span>
                           </td>
+                          {page === "order-history" && (
+                            <td className="px-4 py-4">
+                              <ol className="space-y-1">
+                                {getOrderStatusHistory(order).map(
+                                  (entry, index) => (
+                                    <li
+                                      key={`${entry.status}-${entry.timestamp || index}`}
+                                      className="text-[10px] text-[#C5C5CC]"
+                                    >
+                                      <p className="m-0">
+                                        <span className="font-bold">{entry.status}</span>
+                                        <time className="ml-1 text-[#85858F]">
+                                          {formatStatusTimestamp(entry.timestamp) || "Time not recorded"}
+                                        </time>
+                                      </p>
+                                      <p className="mb-0 mt-0.5 text-[#85858F]">
+                                        By: {getStatusChangedBy(entry)}
+                                      </p>
+                                      {entry.remarks && (
+                                        <p className="mb-0 mt-0.5 whitespace-pre-wrap text-[#A1A1AA]">
+                                          Remarks: {entry.remarks}
+                                        </p>
+                                      )}
+                                    </li>
+                                  ),
+                                )}
+                              </ol>
+                            </td>
+                          )}
                           <td className="px-6 py-4 text-right">
-                            <label>
-                              <span className="sr-only">
-                                Update status for order{" "}
-                                {String(order.id).slice(-6)}
-                              </span>
-                              <select
-                                value={getOrderStatus(order)}
-                                onChange={(event) =>
-                                  updateOrderStatus(
-                                    order.id,
-                                    event.target.value,
-                                  )
-                                }
-                                className="max-w-[150px] rounded-lg border border-white/[0.08] bg-[#1B1B22] px-2 py-2 text-[10px] font-bold text-[#D1D1D6] outline-none focus:border-[#E63946]/60"
-                              >
-                                {orderStatuses.map((status) => (
-                                  <option key={status}>{status}</option>
-                                ))}
-                              </select>
-                            </label>
+                            {getOrderStatus(order) === "Cancellation Requested" ? (
+                              <div className="flex justify-end gap-2">
+                                <button type="button" onClick={() => resolveCancellationRequest(order.id, true)} className="rounded-lg bg-emerald-500/15 px-2.5 py-2 text-[10px] font-bold text-emerald-300 hover:bg-emerald-500/25">Approve</button>
+                                <button type="button" onClick={() => resolveCancellationRequest(order.id, false)} className="rounded-lg border border-white/[0.08] px-2.5 py-2 text-[10px] font-bold text-[#D1D1D6] hover:bg-[#1B1B22]">Decline</button>
+                              </div>
+                            ) : (
+                              <label>
+                                <span className="sr-only">
+                                  Update status for order{" "}
+                                  {formatOrderId(order.id)}
+                                </span>
+                                <select
+                                  value={getOrderStatus(order)}
+                                  onChange={(event) =>
+                                    beginStatusChange(
+                                      order.id,
+                                      event.target.value,
+                                    )
+                                  }
+                                  className="max-w-[150px] rounded-lg border border-white/[0.08] bg-[#1B1B22] px-2 py-2 text-[10px] font-bold text-[#D1D1D6] outline-none focus:border-[#E63946]/60"
+                                >
+                                  {orderStatuses.map((status) => (
+                                    <option key={status}>{status}</option>
+                                  ))}
+                                </select>
+                              </label>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -891,7 +1056,7 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="m-0 text-xs font-extrabold">
-                            Order #{String(order.id).slice(-6)}
+                            Order #{formatOrderId(order.id)}
                           </p>
                           <p className="mb-0 mt-1 text-[11px] text-[#85858F]">
                             {getCustomerName(order)}
@@ -906,20 +1071,59 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
                           .map((item) => `${item.name} × ${item.quantity}`)
                           .join(", ") || "No item details"}
                       </p>
-                      <label className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3 text-[10px] font-bold text-[#85858F]">
-                        Status
-                        <select
-                          value={getOrderStatus(order)}
-                          onChange={(event) =>
-                            updateOrderStatus(order.id, event.target.value)
-                          }
-                          className="rounded-lg border border-white/[0.08] bg-[#141419] px-2 py-2 text-[10px] font-bold text-[#D1D1D6] outline-none focus:border-[#E63946]/60"
-                        >
-                          {orderStatuses.map((status) => (
-                            <option key={status}>{status}</option>
-                          ))}
-                        </select>
-                      </label>
+                      <div className="mb-3 rounded-lg bg-[#141419] p-3 text-[10px]">
+                        <p className="m-0 font-bold text-[#D1D1D6]">
+                          Current status: {getOrderStatus(order)}
+                        </p>
+                        {page === "order-history" && (
+                          <ol className="mt-2 space-y-1">
+                            {getOrderStatusHistory(order).map(
+                              (entry, index) => (
+                                <li
+                                  key={`${entry.status}-${entry.timestamp || index}`}
+                                  className="text-[#C5C5CC]"
+                                >
+                                  <p className="m-0">
+                                    <span className="font-bold">{entry.status}</span>
+                                    <time className="ml-1 text-[#85858F]">
+                                      {formatStatusTimestamp(entry.timestamp) || "Time not recorded"}
+                                    </time>
+                                  </p>
+                                  <p className="mb-0 mt-0.5 text-[#85858F]">
+                                    By: {getStatusChangedBy(entry)}
+                                  </p>
+                                  {entry.remarks && (
+                                    <p className="mb-0 mt-0.5 whitespace-pre-wrap text-[#A1A1AA]">
+                                      Remarks: {entry.remarks}
+                                    </p>
+                                  )}
+                                </li>
+                              ),
+                            )}
+                          </ol>
+                        )}
+                      </div>
+                      {getOrderStatus(order) === "Cancellation Requested" ? (
+                        <div className="flex flex-wrap gap-2 border-t border-white/[0.06] pt-3">
+                          <button type="button" onClick={() => resolveCancellationRequest(order.id, true)} className="rounded-lg bg-emerald-500/15 px-3 py-2 text-[10px] font-bold text-emerald-300 hover:bg-emerald-500/25">Approve cancellation</button>
+                          <button type="button" onClick={() => resolveCancellationRequest(order.id, false)} className="rounded-lg border border-white/[0.08] px-3 py-2 text-[10px] font-bold text-[#D1D1D6] hover:bg-[#141419]">Decline request</button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3 text-[10px] font-bold text-[#85858F]">
+                          Status
+                          <select
+                            value={getOrderStatus(order)}
+                            onChange={(event) =>
+                              beginStatusChange(order.id, event.target.value)
+                            }
+                            className="rounded-lg border border-white/[0.08] bg-[#141419] px-2 py-2 text-[10px] font-bold text-[#D1D1D6] outline-none focus:border-[#E63946]/60"
+                          >
+                            {orderStatuses.map((status) => (
+                              <option key={status}>{status}</option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
                     </article>
                   ))}
                 </div>
@@ -938,6 +1142,87 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
           </footer>}
         </main>
       </div>
+      {statusChange && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setStatusChange(null);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="statusChangeTitle"
+            className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#15151C] p-5 shadow-2xl sm:p-6"
+          >
+            <h2 id="statusChangeTitle" className="m-0 text-lg font-extrabold">
+              {statusChange.cancellationDecision === true
+                ? "Approve cancellation"
+                : statusChange.cancellationDecision === false
+                  ? "Decline cancellation request"
+                  : `Change status to ${statusChange.status}`}
+            </h2>
+            <p className="mb-0 mt-2 text-sm text-[#A1A1AA]">
+              {statusChange.cancellationDecision === true
+                ? "This will cancel the order."
+                : statusChange.cancellationDecision === false
+                  ? "The order will return to its previous status."
+                  : `Order #${formatOrderId(statusChange.orderId)} will be updated.`}
+            </p>
+            <form onSubmit={saveStatusChange} className="mt-4 space-y-3">
+              <label className="block text-xs font-bold text-[#A1A1AA]">
+                Changed by
+                <input
+                  autoFocus
+                  value={statusChangedBy}
+                  onChange={(event) => setStatusChangedBy(event.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none focus:border-[#E63946]/60"
+                  maxLength="120"
+                  placeholder="Enter your name"
+                  required
+                />
+                <span className="mt-1 block font-normal text-[#777781]">
+                  Enter the name of the person making this change.
+                </span>
+              </label>
+              <label className="block text-xs font-bold text-[#A1A1AA]">
+                Remarks <span className="font-normal text-[#777781]">(optional)</span>
+                <textarea
+                  value={statusRemarks}
+                  onChange={(event) => setStatusRemarks(event.target.value)}
+                  rows="3"
+                  maxLength="500"
+                  className="mt-1 block w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none focus:border-[#E63946]/60"
+                />
+              </label>
+              {statusChangeError && (
+                <p role="alert" className="m-0 text-xs font-semibold text-rose-300">
+                  {statusChangeError}
+                </p>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStatusChange(null)}
+                  className="rounded-lg border border-white/10 px-4 py-2.5 text-sm font-bold text-[#A1A1AA]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-[#E63946] px-4 py-2.5 text-sm font-extrabold text-white"
+                >
+                  {statusChange.cancellationDecision === true
+                    ? "Approve cancellation"
+                    : statusChange.cancellationDecision === false
+                      ? "Decline request"
+                      : "Save status change"}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

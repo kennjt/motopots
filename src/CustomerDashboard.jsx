@@ -14,7 +14,10 @@ import { readStoreStatus, readSchedule } from "./data/adminSettingsStorage";
 import {
   ORDERS_STORAGE_KEY,
   ORDERS_UPDATED_EVENT,
+  createOrderId,
+  formatOrderId,
   readOrders,
+  recordOrderStatus,
   saveOrders,
 } from "./data/orderStorage";
 import inasal from "./assets/inasal_withoutbg.png";
@@ -41,18 +44,10 @@ const readFavoriteOrders = () => {
   }
 };
 
-const savedOrderSignature = (order) =>
-  JSON.stringify({
-    orderType: order.orderType,
-    items: (order.items || []).map((item) => ({
-      productId: item.productId,
-      variant: item.variant,
-      flavor: item.flavor,
-      addOns: item.addOns || [],
-      notes: item.notes || "",
-      quantity: item.quantity,
-    })),
-  });
+const savedOrderSignature = (order) => JSON.stringify({
+  orderType: order.orderType,
+  items: (order.items || []).map((item) => ({ productId: item.productId, variant: item.variant, flavor: item.flavor, addOns: item.addOns || [], notes: item.notes || "", quantity: item.quantity })),
+});
 
 const toMinutes = (time) => {
   const [hours, minutes] = String(time || "")
@@ -286,20 +281,9 @@ function CustomerDashboard() {
   };
   const resolveFavoriteItem = (savedItem) => {
     const product = menuItems.find((item) => item.id === savedItem.productId);
-    if (!product)
-      return {
-        error: `${savedItem.name || "An item"} is no longer available.`,
-      };
-    const variant =
-      product.variants.find(
-        (item) =>
-          item.label === savedItem.variant &&
-          (!savedItem.flavor || item.flavor === savedItem.flavor),
-      ) || product.variants.find((item) => item.label === savedItem.variant);
-    if (!variant)
-      return {
-        error: `${product.name} no longer has the saved size or flavor.`,
-      };
+    if (!product) return { error: `${savedItem.name || "An item"} is no longer available.` };
+    const variant = product.variants.find((item) => item.label === savedItem.variant && (!savedItem.flavor || item.flavor === savedItem.flavor)) || product.variants.find((item) => item.label === savedItem.variant);
+    if (!variant) return { error: `${product.name} no longer has the saved size or flavor.` };
     const savedAddOns = savedItem.addOns || [];
     const addOns = (product.addOns || [])
       .filter((addOn) => savedAddOns.includes(addOn.label))
@@ -371,33 +355,22 @@ function CustomerDashboard() {
       return;
     }
     setCheckoutOrderType(savedOrder.orderType || "Pickup");
-    setFavoriteToEdit(firstItem);
+    setFavoriteToEdit({ ...firstItem, favoriteId: savedOrder.id, itemIndex: 0 });
     setActiveSection("menu");
-    if (isFavoritesPage) navigate("/customer/menu");
+    navigate("/customer/menu");
   };
-  const removeFavorite = (favoriteId) =>
-    setFavoriteOrders((current) =>
-      current.filter((order) => order.id !== favoriteId),
-    );
+  const removeFavorite = (favoriteId) => setFavoriteOrders((current) => current.filter((order) => order.id !== favoriteId));
   const removeFavoriteItem = (favoriteId, itemIndex) => {
-    setFavoriteOrders((current) =>
-      current.flatMap((order) => {
-        if (order.id !== favoriteId) return [order];
-        const items = (order.items || []).filter(
-          (_, index) => index !== itemIndex,
-        );
-        if (!items.length) return [];
-        const total = items.reduce(
-          (sum, item) =>
-            sum +
-            (item.subtotal ??
-              (item.finalUnitPrice ?? item.price ?? item.savedPrice ?? 0) *
-                (item.quantity || 1)),
-          0,
-        );
-        return [{ ...order, items, total }];
-      }),
-    );
+    setFavoriteOrders((current) => current.flatMap((order) => {
+      if (order.id !== favoriteId) return [order];
+      const items = (order.items || []).filter((_, index) => index !== itemIndex);
+      if (!items.length) return [];
+      const total = items.reduce(
+        (sum, item) => sum + (item.subtotal ?? (item.finalUnitPrice ?? item.price ?? item.savedPrice ?? 0) * (item.quantity || 1)),
+        0,
+      );
+      return [{ ...order, items, total }];
+    }));
   };
   const addFavoriteItemToCart = (savedItem) => {
     if (storeStatus === "closed") {
@@ -427,7 +400,7 @@ function CustomerDashboard() {
     });
     showSuccess("Added to cart successfully", cartItem.name);
   };
-  const customizeFavoriteItem = (savedItem) => {
+  const customizeFavoriteItem = (favoriteId, itemIndex) => {
     if (storeStatus === "closed") {
       showError(
         "Store is closed",
@@ -435,21 +408,22 @@ function CustomerDashboard() {
       );
       return;
     }
+    const favorite = favoriteOrders.find((order) => order.id === favoriteId);
+    const savedItem = favorite?.items?.[itemIndex];
+    if (!savedItem) {
+      showError("Favorite item unavailable", "This saved item could not be found.");
+      return;
+    }
     const resolved = resolveFavoriteItem(savedItem);
     if (resolved.error) {
       showError("Favorite item unavailable", resolved.error);
       return;
     }
-    setFavoriteToEdit(savedItem);
+    setFavoriteToEdit({ ...savedItem, favoriteId, itemIndex });
     setActiveSection("menu");
     navigate("/customer/menu");
   };
-  const confirmationFavorite =
-    confirmationOrder &&
-    favoriteOrders.find(
-      (order) =>
-        savedOrderSignature(order) === savedOrderSignature(confirmationOrder),
-    );
+  const confirmationFavorite = confirmationOrder && favoriteOrders.find((order) => savedOrderSignature(order) === savedOrderSignature(confirmationOrder));
   const saveConfirmationAsFavorite = () => {
     if (!confirmationOrder) return;
     const snapshot = {
@@ -540,31 +514,45 @@ function CustomerDashboard() {
     }
     if (!cartItems.length || submittingOrder) return;
     setSubmittingOrder(true);
-    const order = {
-      id: Date.now(),
-      createdAt: new Date().toISOString(),
-      customer: paymentData.customer,
-      orderType: paymentData.orderType,
-      items: cartItems.map((item) => ({
-        ...item,
-        subtotal: (item.finalUnitPrice ?? item.price) * item.quantity,
-      })),
-      total: subtotal,
-      paymentMethod: paymentData.paymentMethod,
-      paymentStatus:
-        paymentData.paymentMethod === "GCash"
-          ? "Pending Verification"
-          : "Unpaid",
-      paymentReference: paymentData.referenceNumber || "",
-      paymentProof: paymentData.proof || null,
-      deliveryAddressId: paymentData.deliveryAddressId || null,
-      deliveryAddress: paymentData.deliveryAddress
-        ? { ...paymentData.deliveryAddress }
-        : null,
-      orderStatus: "Pending",
-      status: "Pending",
-    };
-    const updatedOrders = [order, ...readOrders()];
+    const createdAt = new Date().toISOString();
+    const currentOrders = readOrders();
+    const customerName =
+      typeof paymentData.customer === "string"
+        ? paymentData.customer.trim()
+        : paymentData.customer?.name?.trim();
+    const order = recordOrderStatus(
+      {
+        id: createOrderId(currentOrders, createdAt),
+        createdAt,
+        customer: paymentData.customer,
+        orderType: paymentData.orderType,
+        items: cartItems.map((item) => ({
+          ...item,
+          subtotal: (item.finalUnitPrice ?? item.price) * item.quantity,
+        })),
+        total: subtotal,
+        paymentMethod: paymentData.paymentMethod,
+        paymentStatus:
+          paymentData.paymentMethod === "GCash"
+            ? "Pending Verification"
+            : "Unpaid",
+        paymentReference: paymentData.referenceNumber || "",
+        paymentProof: paymentData.proof || null,
+        deliveryAddressId: paymentData.deliveryAddressId || null,
+        deliveryAddress: paymentData.deliveryAddress
+          ? { ...paymentData.deliveryAddress }
+          : null,
+        orderStatus: "Pending",
+        status: "Pending",
+      },
+      "Pending",
+      {
+        timestamp: createdAt,
+        changedBy: customerName || "Customer",
+        remarks: "Order placed",
+      },
+    );
+    const updatedOrders = [order, ...currentOrders];
     saveOrders(updatedOrders);
     setOrders(updatedOrders);
     setCart({});
@@ -620,8 +608,9 @@ function CustomerDashboard() {
             favoriteOrders={favoriteOrders}
             storeOpen={storeStatus === "open"}
             onAddToCart={addFavoriteItemToCart}
+            onReorder={reorderFavorite}
             onCustomize={customizeFavoriteItem}
-            onRemove={removeFavoriteItem}
+            onRemove={removeFavorite}
           />
         )}
         {isCheckoutPage && activeSection !== "confirmation" && (
@@ -698,22 +687,9 @@ function CustomerDashboard() {
               className="relative z-10 min-h-screen w-full py-12"
             >
               <div className="mx-auto w-full max-w-6xl text-center">
-                <h2 className="mb-1 font-heading text-3xl text-[#F5F5F5] sm:text-4xl">
-                  Our Menu
-                </h2>
-                <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">
-                  {isMenuPage
-                    ? "Browse products by category and compare descriptions and prices."
-                    : "Choose your favorites, customize your order, and add them to your cart."}
-                </p>
-                <Menu
-                  onAddToCart={addToCart}
-                  cart={cart}
-                  showAddToCart={!isMenuPage && storeStatus === "open"}
-                  browseMode={isMenuPage}
-                  favoriteToEdit={favoriteToEdit}
-                  onFavoriteEditHandled={() => setFavoriteToEdit(null)}
-                />
+                <h2 className="mb-1 font-heading text-3xl text-[#F5F5F5] sm:text-4xl">Our Menu</h2>
+                <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">{isMenuPage ? "Browse products by category and compare descriptions and prices." : "Choose your favorites, customize your order, and add them to your cart."}</p>
+                <Menu onAddToCart={addToCart} cart={cart} showAddToCart={!isMenuPage && storeStatus === "open"} browseMode={isMenuPage} favoriteToEdit={favoriteToEdit} onFavoriteEditHandled={() => setFavoriteToEdit(null)} />
               </div>
             </section>
           </>
@@ -776,7 +752,7 @@ function CustomerDashboard() {
                 Order Submitted
               </h1>
               <p className="mt-2 text-[#A1A1AA]">
-                Order #{String(confirmationOrder.id).slice(-6)} was received.
+                Order #{formatOrderId(confirmationOrder.id)} was received.
               </p>
             </div>
             <div className="mt-8 grid gap-4 rounded-xl bg-[#22222B]/60 p-4 text-sm sm:grid-cols-2">
@@ -975,7 +951,7 @@ function CustomerDashboard() {
                     className="rounded-lg border border-white/10 bg-[#22222B]/50 p-4"
                   >
                     <div className="flex flex-wrap justify-between gap-2 font-bold text-[#F5F5F5]">
-                      <span>Order #{String(order.id).slice(-6)}</span>
+                      <span>Order #{formatOrderId(order.id)}</span>
                       <span>{order.status}</span>
                     </div>
                     <p className="mt-2 text-[#A1A1AA]">

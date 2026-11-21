@@ -5,17 +5,20 @@ import {
   LogOut,
   Menu,
   Package,
+  ReceiptText,
   Settings,
   ShoppingBag,
   Users,
 } from "lucide-react";
 import { showSuccess } from "../utils/swal";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
+import NotificationCenter from "./NotificationCenter";
 
 const navigation = [
   { label: "Overview", path: "/staff", icon: LayoutDashboard },
   { label: "Orders", path: "/staff/orders", icon: ShoppingBag },
   { label: "Inventory", path: "/staff/inventory", icon: Package },
+  { label: "Expenses", path: "/staff/expenses", icon: ReceiptText },
   { label: "Customer", path: "/staff/customers", icon: Users },
 ];
 
@@ -89,6 +92,10 @@ export default function AdminLayout() {
         >
           <Menu aria-hidden="true" className="h-5 w-5" />
         </button>
+        <header className="flex shrink-0 items-center justify-between border-b border-white/[0.07] px-4 py-3 sm:px-7 lg:px-8">
+          <h1 className="m-0 text-sm font-bold text-[#A1A1AA]">Admin workspace</h1>
+          <NotificationCenter audience="admin" manageNotices />
+        </header>
         <div key={location.pathname} className="admin-route-content min-h-0 flex-1 px-4 py-5 pb-20 sm:px-7 lg:px-8 lg:pb-5">
           <Outlet />
         </div>

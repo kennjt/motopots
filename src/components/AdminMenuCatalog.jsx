@@ -268,11 +268,22 @@ export default function AdminMenuCatalog({ view = "catalog", showHeading = true 
           <select value={sort} onChange={(event) => setSort(event.target.value)} className="h-10 rounded-xl border border-white/[0.08] bg-[#1B1B22] px-3 text-xs text-[#C4C4CB]">
             <option value="name">Sort: Name</option><option value="category">Sort: Category</option><option value="price-low">Price: Low to High</option><option value="price-high">Price: High to Low</option>
           </select>
-          <button type="button" onClick={openAdd} className="h-10 shrink-0 rounded-xl bg-[#E63946] px-4 text-xs font-extrabold text-white hover:bg-[#C92D3A]">Add New Product</button>
+          <button type="button" onClick={openAdd} disabled={!categoryList.length} title={!categoryList.length ? "Create a category before adding a product." : undefined} className="h-10 shrink-0 rounded-xl bg-[#E63946] px-4 text-xs font-extrabold text-white hover:bg-[#C92D3A] disabled:cursor-not-allowed disabled:opacity-50">Add New Product</button>
         </div>
 
         {filteredItems.length === 0 ? (
-          <div className="px-5 py-12 text-center"><p className="m-0 font-extrabold">No products found</p><p className="mt-1 text-xs text-[#85858F]">Try changing the search or filters.</p></div>
+          <div className="px-5 py-12 text-center">
+            <p className="m-0 font-extrabold">
+              {items.length ? "No products match these filters" : "No menu items have been added"}
+            </p>
+            <p className="mt-1 text-xs text-[#85858F]">
+              {items.length
+                ? "Try changing the search or filters."
+                : categoryList.length
+                  ? "Add a product to make it available in the customer menu."
+                  : "Create a category before adding your first product."}
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] border-collapse text-left">

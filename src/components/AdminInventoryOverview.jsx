@@ -149,7 +149,44 @@ export default function AdminInventoryOverview({ view = "overview" }) {
 
   const saveState = (nextItems, nextCategories = categories) => {
     try {
-      saveInventoryState({ items: nextItems, categories: nextCategories });
+      const currentState = readInventoryState();
+      const previousItems = new Map(
+        currentState.items.map((item) => [item.id, item]),
+      );
+      const createdAt = new Date().toISOString();
+      const newMovements = nextItems.flatMap((item) => {
+        const previous = previousItems.get(item.id);
+        const beforeStock = Number(previous?.stock || 0);
+        const afterStock = Number(item.stock);
+        if (beforeStock === afterStock) return [];
+
+        return [
+          {
+            id: crypto.randomUUID(),
+            ingredientId: item.id,
+            ingredientName: item.name,
+            type: afterStock > beforeStock ? "Stock In" : "Stock Out",
+            quantity: Math.abs(afterStock - beforeStock),
+            unit: item.unit,
+            beforeStock,
+            afterStock,
+            reason: previous
+              ? "Updated from ingredient inventory"
+              : "Opening stock",
+            date: createdAt.slice(0, 10),
+            createdAt,
+          },
+        ];
+      });
+      saveInventoryState({
+        ...currentState,
+        items: nextItems,
+        categories: nextCategories,
+        stockMovements: [
+          ...newMovements,
+          ...currentState.stockMovements,
+        ],
+      });
       setItems(nextItems);
       setCategories(nextCategories);
       setStorageError("");
@@ -489,7 +526,7 @@ export default function AdminInventoryOverview({ view = "overview" }) {
                 <td colSpan="6" className="px-4 py-12 text-center">
                   <PackagePlus aria-hidden="true" className="mx-auto h-7 w-7 text-[#777781]" />
                   <p className="mb-0 mt-3 text-sm font-extrabold">{items.length ? "No inventory items match these filters" : "No inventory items yet"}</p>
-                  <p className="mb-0 mt-1 text-xs text-[#85858F]">{items.length ? "Try a different search or category." : "Add a batch to start tracking stock. No sample records are preloaded."}</p>
+                  <p className="mb-0 mt-1 text-xs text-[#85858F]">{items.length ? "Try a different search or category." : "Add your first batch to start tracking stock."}</p>
                   {!items.length && <button type="button" onClick={openNewItem} disabled={!canEdit} className="mt-4 rounded-lg bg-[#E63946] px-4 py-2 text-xs font-extrabold text-white disabled:opacity-50">Add First Batch</button>}
                 </td>
               </tr>
