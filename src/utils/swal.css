@@ -3,7 +3,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.75rem;
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
-  font-family: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 .motopots-swal-popup.swal2-toast {
@@ -101,12 +101,13 @@
   to { opacity: 0; transform: translateY(-0.25rem); }
 }
 
-.motopots-swal-title { font-family: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; }
+.motopots-swal-title { font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif; font-weight: 800; }
 .motopots-swal-content { color: #a1a1aa; }
 .motopots-swal-confirm, .motopots-swal-cancel {
   border: 0;
   border-radius: 0.75rem;
   cursor: pointer;
+  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-weight: 800;
   padding: 0.7rem 1rem;
 }

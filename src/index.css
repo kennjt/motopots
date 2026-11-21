@@ -1,32 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&family=Outfit:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "./utils/swal.css";
 @tailwind utilities;
 @source "./App.jsx";
 @source "./components";
 
-@font-face {
-  font-family: 'FoodBrand';
-  src: url('/fonts/FoodBrandDemoRegular-aY7Xo.otf') format('opentype');
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-}
-
 @theme {
-  --font-sans: 'Nunito Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'FoodBrand', system-ui, sans-serif;
-  --font-heading: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Bebas Neue', Impact, sans-serif;
+  --font-heading: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
 @layer base {
-  body { @apply font-sans font-normal; }
-  h1 { @apply font-display font-extrabold; }
-  h2, h3, h4, h5, h6 { @apply font-heading font-bold; }
+  body { @apply font-body font-normal; line-height: 1.5; }
+  h1, h2, h3, h4, h5, h6 { @apply font-heading; letter-spacing: -0.02em; }
+  h1 { @apply font-extrabold; }
+  h2, h3, h4, h5, h6 { @apply font-bold; }
   button, [role='button'] { @apply font-sans font-bold; }
   nav a, nav button, aside a, aside button { @apply font-sans font-semibold; }
-  label { @apply font-sans font-semibold; }
+  label { @apply font-sans font-medium; }
   input, textarea, select { @apply font-sans font-normal; }
+  p, li, td, th, dd, dt, caption, figcaption, blockquote {
+    font-family: var(--font-body) !important;
+  }
+  small { font-family: var(--font-body) !important; font-weight: 500; }
+  .font-display { letter-spacing: 0.015em; }
 }
 
 :root {

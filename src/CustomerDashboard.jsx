@@ -579,20 +579,22 @@ function CustomerDashboard() {
       />
       <main className="w-full py-3">
         <div className="mx-auto max-w-7xl px-5">
-        <div
-          className={`mb-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-extrabold ${storeStatus === "open" ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-[#E63946]/30 bg-[#E63946]/10 text-[#FF727D]"}`}
-        >
-          <span
-            className={`h-2.5 w-2.5 rounded-full ${storeStatus === "open" ? "bg-emerald-400" : "bg-[#E63946]"}`}
-          />
-          {storeStatus === "open" ? "OPEN NOW" : "CLOSED"}
-          {storeStatus === "closed" && (
-            <span className="ml-1 font-semibold text-[#D1D1D6]">
-              — Sorry, we're currently closed and not accepting orders.
-              {nextOpening ? ` Next opening: ${nextOpening}.` : ""}
-            </span>
-          )}
-        </div>
+        {!isCheckoutPage && (
+          <div
+            className={`mb-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-extrabold ${storeStatus === "open" ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-[#E63946]/30 bg-[#E63946]/10 text-[#FF727D]"}`}
+          >
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${storeStatus === "open" ? "bg-emerald-400" : "bg-[#E63946]"}`}
+            />
+            {storeStatus === "open" ? "OPEN NOW" : "CLOSED"}
+            {storeStatus === "closed" && (
+              <span className="ml-1 font-semibold text-[#D1D1D6]">
+                — Sorry, we're currently closed and not accepting orders.
+                {nextOpening ? ` Next opening: ${nextOpening}.` : ""}
+              </span>
+            )}
+          </div>
+        )}
         {isCartPage && (
           <CustomerCartPage
             cartItems={cartItems}

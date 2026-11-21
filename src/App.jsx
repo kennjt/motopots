@@ -33,11 +33,11 @@ function HomePage() {
                 </p>
 
                 <h1 className="mb-1 leading-[0.95]">
-                  <span className="block font-display text-[clamp(25px,7vw,60px)] font-extrabold text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                  <span className="block font-display text-[clamp(40px,10vw,100px)] font-extrabold text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
                     Motopot's
                   </span>
 
-                  <span className="mt-3 block font-display text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
+                  <span className="mt-0 block font-display text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
                     Food House
                   </span>
                 </h1>
