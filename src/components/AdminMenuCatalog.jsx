@@ -27,6 +27,13 @@ export default function AdminMenuCatalog({ view = "catalog", showHeading = true 
   const [draft, setDraft] = useState(emptyProduct);
   const [flavorText, setFlavorText] = useState("");
   const [addOnText, setAddOnText] = useState("");
+  const [imageSelection, setImageSelection] = useState(null);
+  const [imageError, setImageError] = useState("");
+  const [imageDragActive, setImageDragActive] = useState(false);
+
+  useEffect(() => () => {
+    if (imageSelection?.previewUrl) URL.revokeObjectURL(imageSelection.previewUrl);
+  }, [imageSelection]);
 
   useEffect(() => {
     const syncCatalog = () => {
@@ -65,6 +72,8 @@ export default function AdminMenuCatalog({ view = "catalog", showHeading = true 
     setDraft({ ...emptyProduct, category: categoryList[0] || "" });
     setFlavorText("");
     setAddOnText("");
+    setImageSelection(null);
+    setImageError("");
     setEditorOpen(true);
   };
 
@@ -79,7 +88,37 @@ export default function AdminMenuCatalog({ view = "catalog", showHeading = true 
     });
     setFlavorText((product.flavors || []).join(", "));
     setAddOnText((product.addOns || []).map((addOn) => `${addOn.label}:${addOn.price}`).join(", "));
+    setImageSelection(null);
+    setImageError("");
     setEditorOpen(true);
+  };
+
+  const handleImageFile = (file) => {
+    if (!file) return;
+    const supportedType = ["image/jpeg", "image/png", "image/webp"].includes(file.type)
+      || /\.(jpe?g|png|webp)$/i.test(file.name);
+    if (!supportedType) {
+      setImageError("Please choose a JPG, JPEG, PNG, or WEBP image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError("Image must be smaller than 5 MB.");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setImageSelection({ file, fileName: file.name, previewUrl });
+    setImageError("");
+
+    const reader = new FileReader();
+    reader.onload = () => setDraft((current) => ({ ...current, image: String(reader.result) }));
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setImageSelection(null);
+    setImageError("");
+    setDraft((current) => ({ ...current, image: "" }));
   };
 
   const updateVariant = (index, field, value) => {
@@ -321,7 +360,35 @@ export default function AdminMenuCatalog({ view = "catalog", showHeading = true 
               <label className="text-xs font-bold text-[#A1A1AA] sm:col-span-2">Product Description<textarea value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} required rows="3" className="mt-1 block w-full resize-none rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-white" /></label>
               <label className="text-xs font-bold text-[#A1A1AA]">Category<select value={draft.category} onChange={(event) => setDraft((current) => ({ ...current, category: event.target.value }))} className="mt-1 block w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-white"><option value="">Select category</option>{categoryList.map((category) => <option key={category}>{category}</option>)}</select></label>
               <label className="text-xs font-bold text-[#A1A1AA]">Availability<select value={draft.available ? "Available" : "Unavailable"} onChange={(event) => setDraft((current) => ({ ...current, available: event.target.value === "Available" }))} className="mt-1 block w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-white"><option>Available</option><option>Unavailable</option></select></label>
-              <label className="text-xs font-bold text-[#A1A1AA] sm:col-span-2">Product Image<input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => setDraft((current) => ({ ...current, image: String(reader.result) })); reader.readAsDataURL(file); }} className="mt-1 block w-full text-xs text-[#A1A1AA]" /></label>
+              <div className="sm:col-span-2">
+                <p className="mb-1.5 text-xs font-bold text-[#A1A1AA]">Product Image <span className="font-normal">(optional)</span></p>
+                <input id="product-image-input" type="file" accept="image/*" className="sr-only" onChange={(event) => { handleImageFile(event.target.files?.[0]); event.target.value = ""; }} />
+                {imageSelection?.previewUrl || draft.image ? (
+                  <div className="rounded-xl border border-white/10 bg-[#22222B] p-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <div className="h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-[#15151C]">
+                        <img src={imageSelection?.previewUrl || draft.image} alt="Product preview" className="h-full w-full object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-[#F5F5F5]">{imageSelection?.fileName || "Current product image"}</p>
+                        <p className="mt-1 text-xs text-[#85858F]">Square images are recommended for the best result.</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <button type="button" onClick={() => document.getElementById("product-image-input")?.click()} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-[#F5F5F5] transition hover:border-[#E63946]/50 hover:text-[#FF727D]">Change Image</button>
+                          <button type="button" onClick={removeImage} className="rounded-lg border border-[#E63946]/30 px-3 py-2 text-xs font-bold text-[#FF727D] transition hover:bg-[#E63946]/10">Remove Image</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <label htmlFor="product-image-input" onDragOver={(event) => { event.preventDefault(); setImageDragActive(true); }} onDragLeave={() => setImageDragActive(false)} onDrop={(event) => { event.preventDefault(); setImageDragActive(false); handleImageFile(event.dataTransfer.files?.[0]); }} className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 py-7 text-center transition ${imageDragActive ? "border-[#E63946] bg-[#E63946]/10" : "border-white/15 bg-[#22222B] hover:border-[#E63946]/60 hover:bg-[#E63946]/5"}`}>
+                    <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#E63946]/10 text-[#E63946]" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+                    <span className="text-sm font-extrabold text-[#F5F5F5]">Upload Product Image</span>
+                    <span className="mt-1 text-xs text-[#A1A1AA]">Drag and drop an image here or browse files.</span>
+                    <span className="mt-2 text-[11px] text-[#777781]">JPG, JPEG, PNG, or WEBP · Recommended: 1:1 square</span>
+                  </label>
+                )}
+                {imageError && <p className="mt-1.5 text-xs font-semibold text-[#FF727D]">{imageError}</p>}
+              </div>
               <div className="sm:col-span-2"><div className="mb-2 flex items-center justify-between"><p className="m-0 text-sm font-extrabold">Sizes / Variations</p><button type="button" onClick={() => setDraft((current) => ({ ...current, variants: [...current.variants, { id: crypto.randomUUID(), label: "", price: "" }] }))} className="text-xs font-bold text-[#FF727D]">+ Add Size</button></div>{draft.variants.map((variant, index) => <div key={variant.id} className="mb-2 grid grid-cols-[1fr_120px_32px] gap-2"><input value={variant.label} onChange={(event) => updateVariant(index, "label", event.target.value)} placeholder="Size / Serving" className="rounded-lg border border-white/10 bg-[#22222B] px-3 py-2 text-sm text-white" /><input type="number" min="0" step="0.01" value={variant.price} onChange={(event) => updateVariant(index, "price", event.target.value)} placeholder="Price" className="rounded-lg border border-white/10 bg-[#22222B] px-3 py-2 text-sm text-white" /><button type="button" onClick={() => setDraft((current) => ({ ...current, variants: current.variants.filter((_, variantIndex) => variantIndex !== index) }))} className="text-[#85858F] hover:text-[#FF727D]">&times;</button></div>)}</div>
               <label className="text-xs font-bold text-[#A1A1AA]">Flavors <span className="font-normal">(comma separated)</span><input value={flavorText} onChange={(event) => setFlavorText(event.target.value)} placeholder="Cheese, Barbeque" className="mt-1 block w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-white" /></label>
               <label className="text-xs font-bold text-[#A1A1AA]">Add-ons <span className="font-normal">(Name:Price, ...)</span><input value={addOnText} onChange={(event) => setAddOnText(event.target.value)} placeholder="Extra Rice:15, Egg:20" className="mt-1 block w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-white" /></label>

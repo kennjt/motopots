@@ -3,12 +3,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, UserRound, X } from "lucide-react";
 import LoginForm from "./LoginForm";
+import ForgotPasswordForm from "./ForgotPasswordForm";
 
 function AppNavbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const loginRole = new URLSearchParams(location.search).get("login");
   const [loginOpen, setLoginOpen] = useState(false);
+  const [loginView, setLoginView] = useState("login");
   const [selectedRole, setSelectedRole] = useState(loginRole === "admin" ? "staff" : "customer");
   const [expanded, setExpanded] = useState(false);
   const [loginMenuOpen, setLoginMenuOpen] = useState(false);
@@ -26,12 +28,14 @@ function AppNavbar() {
 
   const closeLogin = useCallback(() => {
     setLoginOpen(false);
+    setLoginView("login");
     if (queryLoginOpen) navigate("/");
   }, [navigate, queryLoginOpen]);
 
   const openLogin = (role) => {
     setSelectedRole(role);
     setLoginOpen(true);
+    setLoginView("login");
     setExpanded(false);
     setLoginMenuOpen(false);
     setLoginChoiceOpen(false);
@@ -421,11 +425,19 @@ function AppNavbar() {
             if (event.target === event.currentTarget) closeLogin();
           }}
         >
-          <LoginForm
-            role={selectedRole}
-            onClose={closeLogin}
-            onCreateAccount={openAccountCreation}
-          />
+          {loginView === "forgot" ? (
+            <ForgotPasswordForm
+              onClose={closeLogin}
+              onBackToLogin={() => setLoginView("login")}
+            />
+          ) : (
+            <LoginForm
+              role={selectedRole}
+              onClose={closeLogin}
+              onCreateAccount={openAccountCreation}
+              onForgotPassword={() => setLoginView("forgot")}
+            />
+          )}
         </div>
       )}
     </>

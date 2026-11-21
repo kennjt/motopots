@@ -589,7 +589,8 @@ function CustomerDashboard() {
         onEditFavorite={editFavorite}
         onRemoveFavorite={removeFavorite}
       />
-      <main className="mx-auto max-w-7xl px-5 py-3">
+      <main className="w-full py-3">
+        <div className="mx-auto max-w-7xl px-5">
         <div
           className={`mb-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-extrabold ${storeStatus === "open" ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-[#E63946]/30 bg-[#E63946]/10 text-[#FF727D]"}`}
         >
@@ -715,6 +716,11 @@ function CustomerDashboard() {
                 />
               </div>
             </section>
+          </>
+        )}
+        </div>
+        {!isDedicatedPage && activeSection === "menu" && (
+          <>
             <section
               id="customer-about"
               className="mb-10 bg-[#15151C]/60 px-4 py-10 sm:px-6 lg:px-4"
@@ -748,6 +754,7 @@ function CustomerDashboard() {
             <Footer />
           </>
         )}
+        <div className="mx-auto max-w-7xl px-5">
         {!isDedicatedPage && activeSection === "checkout" && (
           <Checkout
             cartItems={cartItems}
@@ -985,6 +992,7 @@ function CustomerDashboard() {
             )}
           </section>
         )}
+        </div>
       </main>
       {showOrders && <MyOrder modal onClose={() => setShowOrders(false)} />}
       {showProfile && (

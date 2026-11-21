@@ -8,9 +8,15 @@ import octobits from "../assets/octobits.png";
 import cheesebomb from "../assets/cheesebomb.png";
 import takocanton from "../assets/takocanton.png";
 import takofries from "../assets/takofries.png";
+import fries from "../assets/fries.png";
 import { openAdminDatabase } from "./adminDatabase";
 
-export const categories = ["All", "Bacolod Chicken Inasal", "Takoyaki", "Halo-Halo"];
+export const categories = [
+  "All",
+  "Bacolod Chicken Inasal",
+  "Takoyaki",
+  "Halo-Halo",
+];
 const CATALOG_STORAGE_KEY = "motopots-menu-catalog";
 
 export const menuItems = [
@@ -18,42 +24,150 @@ export const menuItems = [
     id: "inasal",
     name: "Bacolod Chicken Inasal",
     category: "Bacolod Chicken Inasal",
-    description: "Succulent grilled chicken with Java rice, salted egg, tomatoes, and a bold soy-vinegar dip.",
+    description:
+      "Succulent grilled chicken with Java rice, salted egg, tomatoes, and a bold soy-vinegar dip.",
     image: inasal,
     variants: [
       { id: "pecho-rice", label: "Pecho with Rice", price: 149 },
       { id: "thigh-rice", label: "Thigh with Rice", price: 139 },
-      { id: "chicken-only-119", label: "Chicken Only", price: 119, detail: "Option 1" },
-      { id: "chicken-only-129", label: "Chicken Only", price: 129, detail: "Option 2" },
+      {
+        id: "chicken-only-119",
+        label: "Chicken Only",
+        price: 119,
+        detail: "Option 1",
+      },
+      {
+        id: "chicken-only-129",
+        label: "Chicken Only",
+        price: 129,
+        detail: "Option 2",
+      },
     ],
     addOns: [{ id: "extra-rice", label: "Extra Rice", price: 15 }],
   },
   {
-    id: "inasal-platter", name: "Bacolod Chicken Inasal Platter", category: "Bacolod Chicken Inasal",
-    description: "Our signature grilled chicken platter, marinated in herbs and spices and served for sharing.", image: inasalplatter,
+    id: "inasal-platter",
+    name: "Bacolod Chicken Inasal Platter",
+    category: "Bacolod Chicken Inasal",
+    description:
+      "Our signature grilled chicken platter, marinated in herbs and spices and served for sharing.",
+    image: inasalplatter,
     variants: [{ id: "platter", label: "Platter", price: 499 }],
   },
   {
-    id: "takoyaki", name: "Takoyaki", category: "Takoyaki",
-    description: "Crisp outside, soft inside, finished with savory sauces and toppings.", image: octobits,
+    id: "takoyaki",
+    name: "Takoyaki",
+    category: "Takoyaki",
+    description:
+      "Crisp outside, soft inside, finished with savory sauces and toppings.",
+    image: octobits,
     variants: [
-      { id: "veggies-4", label: "4 pcs", price: 55, flavor: "Veggies" }, { id: "veggies-8", label: "8 pcs", price: 85, flavor: "Veggies" },
-      { id: "ham-cheese-4", label: "4 pcs", price: 60, flavor: "Ham & Cheese" }, { id: "ham-cheese-8", label: "8 pcs", price: 95, flavor: "Ham & Cheese" },
-      { id: "crab-4", label: "4 pcs", price: 60, flavor: "Crab" }, { id: "crab-8", label: "8 pcs", price: 95, flavor: "Crab" },
-      { id: "octobits-4", label: "4 pcs", price: 70, flavor: "Octobits" }, { id: "octobits-8", label: "8 pcs", price: 100, flavor: "Octobits" },
+      { id: "veggies-4", label: "4 pcs", price: 55, flavor: "Veggies" },
+      { id: "veggies-8", label: "8 pcs", price: 85, flavor: "Veggies" },
+      { id: "ham-cheese-4", label: "4 pcs", price: 60, flavor: "Ham & Cheese" },
+      { id: "ham-cheese-8", label: "8 pcs", price: 95, flavor: "Ham & Cheese" },
+      { id: "crab-4", label: "4 pcs", price: 60, flavor: "Crab" },
+      { id: "crab-8", label: "8 pcs", price: 95, flavor: "Crab" },
+      { id: "octobits-4", label: "4 pcs", price: 70, flavor: "Octobits" },
+      { id: "octobits-8", label: "8 pcs", price: 100, flavor: "Octobits" },
     ],
     flavors: ["Veggies", "Ham & Cheese", "Crab", "Octobits"],
     quantities: ["4 pcs", "8 pcs"],
-    addOns: ["Bonito Flakes", "Extra Mayonnaise", "Pork Floss", "Takoyaki Sauce"].map((label) => ({ id: label.toLowerCase().replaceAll(" ", "-"), label, price: 10 })),
+    addOns: [
+      "Bonito Flakes",
+      "Extra Mayonnaise",
+      "Pork Floss",
+      "Takoyaki Sauce",
+    ].map((label) => ({
+      id: label.toLowerCase().replaceAll(" ", "-"),
+      label,
+      price: 10,
+    })),
   },
-  { id: "cheese-bomb", name: "Cheese Bomb", category: "Takoyaki", description: "Crispy, cheesy bites made for sharing.", image: cheesebomb, variants: [{ id: "4-pcs", label: "4 pcs", price: 70 }, { id: "8-pcs", label: "8 pcs", price: 110 }] },
-  { id: "tako-canton", name: "Tako Canton", category: "Takoyaki", description: "Savory tako canton bites.", image: takocanton, variants: [{ id: "6-pcs", label: "6 pcs", price: 130 }] },
-  { id: "tako-fries", name: "Tako Fries", category: "Takoyaki", description: "Crispy fries topped with takoyaki flavors.", image: takofries, variants: [{ id: "6-pcs", label: "6 pcs", price: 140 }] },
-  { id: "special-halo-halo", name: "Special Halo-Halo", category: "Halo-Halo", description: "Crushed ice, sweetened fruits, milk, and creamy toppings.", image: halohalo, variants: [{ id: "12-oz", label: "12 oz", price: 60 }, { id: "16-oz", label: "16 oz", price: 75 }, { id: "22-oz", label: "22 oz", price: 95 }] },
-  { id: "saging-con-yelo", name: "Saging Con Yelo", category: "Halo-Halo", description: "A refreshing banana and milk dessert with crushed ice.", image: sagingConYelo, variants: [{ id: "12-oz", label: "12 oz", price: 50 }, { id: "16-oz", label: "16 oz", price: 60 }, { id: "22-oz", label: "22 oz", price: 80 }] },
-  { id: "cheesy-halo-halo", name: "Cheesy Halo-Halo", category: "Halo-Halo", description: "Creamy halo-halo finished with a cheesy topping.", image: cheesyHaloHalo, variants: [{ id: "16-oz", label: "16 oz", price: 100 }, { id: "22-oz", label: "22 oz", price: 120 }] },
-  { id: "mais-con-yelo", name: "Mais Con Yelo", category: "Halo-Halo", description: "Sweet corn, milk, and crushed ice in a classic Filipino dessert.", image: maisConYelo, variants: [{ id: "12-oz", label: "12 oz", price: 50 }, { id: "16-oz", label: "16 oz", price: 60 }, { id: "22-oz", label: "22 oz", price: 80 }] },
-  { id: "regular-fries", name: "Regular Fries", category: "Takoyaki", description: "Crispy fries tossed in your choice of flavor.", image: takofries, variants: [{ id: "regular", label: "Regular", price: 55 }], flavors: ["Barbeque", "Cheese"] },
+  {
+    id: "cheese-bomb",
+    name: "Cheese Bomb",
+    category: "Takoyaki",
+    description: "Crispy, cheesy bites made for sharing.",
+    image: cheesebomb,
+    variants: [
+      { id: "4-pcs", label: "4 pcs", price: 70 },
+      { id: "8-pcs", label: "8 pcs", price: 110 },
+    ],
+  },
+  {
+    id: "tako-canton",
+    name: "Tako Canton",
+    category: "Takoyaki",
+    description: "Savory tako canton bites.",
+    image: takocanton,
+    variants: [{ id: "6-pcs", label: "6 pcs", price: 130 }],
+  },
+  {
+    id: "tako-fries",
+    name: "Tako Fries",
+    category: "Takoyaki",
+    description: "Crispy fries topped with takoyaki flavors.",
+    image: takofries,
+    variants: [{ id: "6-pcs", label: "6 pcs", price: 140 }],
+  },
+  {
+    id: "special-halo-halo",
+    name: "Special Halo-Halo",
+    category: "Halo-Halo",
+    description: "Crushed ice, sweetened fruits, milk, and creamy toppings.",
+    image: halohalo,
+    variants: [
+      { id: "12-oz", label: "12 oz", price: 60 },
+      { id: "16-oz", label: "16 oz", price: 75 },
+      { id: "22-oz", label: "22 oz", price: 95 },
+    ],
+  },
+  {
+    id: "saging-con-yelo",
+    name: "Saging Con Yelo",
+    category: "Halo-Halo",
+    description: "A refreshing banana and milk dessert with crushed ice.",
+    image: sagingConYelo,
+    variants: [
+      { id: "12-oz", label: "12 oz", price: 50 },
+      { id: "16-oz", label: "16 oz", price: 60 },
+      { id: "22-oz", label: "22 oz", price: 80 },
+    ],
+  },
+  {
+    id: "cheesy-halo-halo",
+    name: "Cheesy Halo-Halo",
+    category: "Halo-Halo",
+    description: "Creamy halo-halo finished with a cheesy topping.",
+    image: cheesyHaloHalo,
+    variants: [
+      { id: "16-oz", label: "16 oz", price: 100 },
+      { id: "22-oz", label: "22 oz", price: 120 },
+    ],
+  },
+  {
+    id: "mais-con-yelo",
+    name: "Mais Con Yelo",
+    category: "Halo-Halo",
+    description:
+      "Sweet corn, milk, and crushed ice in a classic Filipino dessert.",
+    image: maisConYelo,
+    variants: [
+      { id: "12-oz", label: "12 oz", price: 50 },
+      { id: "16-oz", label: "16 oz", price: 60 },
+      { id: "22-oz", label: "22 oz", price: 80 },
+    ],
+  },
+  {
+    id: "regular-fries",
+    name: "Regular Fries",
+    category: "Takoyaki",
+    description: "Crispy fries tossed in your choice of flavor.",
+    image: fries,
+    variants: [{ id: "regular", label: "Regular", price: 55 }],
+    flavors: ["Barbeque", "Cheese"],
+  },
 ];
 
 const hasStoredCatalog = () => {
@@ -66,14 +180,19 @@ const hasStoredCatalog = () => {
 
 const storedCatalog = hasStoredCatalog();
 if (storedCatalog?.items?.length) {
-  const storedById = new Map(storedCatalog.items.map((item) => [item.id, item]));
+  const storedById = new Map(
+    storedCatalog.items.map((item) => [item.id, item]),
+  );
   menuItems.forEach((item, index) => {
     if (storedById.has(item.id)) menuItems[index] = storedById.get(item.id);
   });
   storedCatalog.items.forEach((item) => {
-    if (!menuItems.some((existing) => existing.id === item.id)) menuItems.push(item);
+    if (!menuItems.some((existing) => existing.id === item.id))
+      menuItems.push(item);
   });
-  const storedCategories = storedCatalog.categories?.filter((category) => category !== "All");
+  const storedCategories = storedCatalog.categories?.filter(
+    (category) => category !== "All",
+  );
   if (Array.isArray(storedCategories)) {
     categories.splice(1, categories.length - 1, ...storedCategories);
   }
@@ -96,10 +215,18 @@ export function saveMenuCatalog(nextItems, nextCategories) {
         transaction.oncomplete = () => database.close();
         transaction.onerror = () => {
           database.close();
-          console.error("Unable to persist the menu catalog to IndexedDB.", transaction.error);
+          console.error(
+            "Unable to persist the menu catalog to IndexedDB.",
+            transaction.error,
+          );
         };
       })
-      .catch((error) => console.error("Unable to open the admin database for the menu catalog.", error));
+      .catch((error) =>
+        console.error(
+          "Unable to open the admin database for the menu catalog.",
+          error,
+        ),
+      );
   }
 
   menuItems.splice(0, menuItems.length, ...nextItems);
@@ -121,7 +248,12 @@ export async function loadMenuCatalog() {
         menuItems.forEach((item) => {
           if (item.available === undefined) item.available = true;
         });
-        categories.splice(1, categories.length - 1, ...(catalog.categories?.filter((category) => category !== "All") || []));
+        categories.splice(
+          1,
+          categories.length - 1,
+          ...(catalog.categories?.filter((category) => category !== "All") ||
+            []),
+        );
         localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(catalog));
         window.dispatchEvent(new CustomEvent("motopots-menu-updated"));
       }
@@ -135,23 +267,49 @@ export async function loadMenuCatalog() {
 export const formatMoney = (value) => `₱${Number(value || 0).toFixed(2)}`;
 
 export function getVariant(product, { variantId, flavor, quantity } = {}) {
-  if (product.id === "takoyaki") return product.variants.find((variant) => variant.flavor === flavor && variant.label === quantity);
-  return product.variants.find((variant) => variant.id === variantId) || product.variants[0];
+  if (product.id === "takoyaki")
+    return product.variants.find(
+      (variant) => variant.flavor === flavor && variant.label === quantity,
+    );
+  return (
+    product.variants.find((variant) => variant.id === variantId) ||
+    product.variants[0]
+  );
 }
 
 export function makeCartItem(product, selection) {
   const variant = getVariant(product, selection);
-  const selectedAddOns = (selection.addOns || []).map((id) => product.addOns?.find((addOn) => addOn.id === id)).filter(Boolean);
-  const addOnTotal = selectedAddOns.reduce((sum, addOn) => sum + addOn.price, 0);
+  const selectedAddOns = (selection.addOns || [])
+    .map((id) => product.addOns?.find((addOn) => addOn.id === id))
+    .filter(Boolean);
+  const addOnTotal = selectedAddOns.reduce(
+    (sum, addOn) => sum + addOn.price,
+    0,
+  );
   const basePrice = variant.price;
   const finalUnitPrice = basePrice + addOnTotal;
   const variantLabel = selection.quantity || variant.label;
-  const details = [variant.flavor || selection.flavor, variantLabel, ...selectedAddOns.map((addOn) => addOn.label)].filter(Boolean);
+  const details = [
+    variant.flavor || selection.flavor,
+    variantLabel,
+    ...selectedAddOns.map((addOn) => addOn.label),
+  ].filter(Boolean);
   const notes = selection.notes?.trim() || "";
   return {
     id: `${product.id}:${variant.id}:${selection.flavor || ""}:${(selection.addOns || []).slice().sort().join(",")}:${notes}`,
-    productId: product.id, name: product.name, image: product.image, variant: variantLabel,
-    flavor: variant.flavor || selection.flavor || "", addOns: selectedAddOns.map((addOn) => addOn.label),
-    details, notes, quantity: 1, basePrice, addOnTotal, finalUnitPrice, price: finalUnitPrice, subtotal: finalUnitPrice,
+    productId: product.id,
+    name: product.name,
+    image: product.image,
+    variant: variantLabel,
+    flavor: variant.flavor || selection.flavor || "",
+    addOns: selectedAddOns.map((addOn) => addOn.label),
+    details,
+    notes,
+    quantity: 1,
+    basePrice,
+    addOnTotal,
+    finalUnitPrice,
+    price: finalUnitPrice,
+    subtotal: finalUnitPrice,
   };
 }

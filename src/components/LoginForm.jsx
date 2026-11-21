@@ -7,7 +7,7 @@ import {
   setActiveCustomerProfile,
 } from "../data/customerProfileStorage";
 
-function LoginForm({ role, onClose, onCreateAccount }) {
+function LoginForm({ role, onClose, onCreateAccount, onForgotPassword }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -130,12 +130,13 @@ function LoginForm({ role, onClose, onCreateAccount }) {
       </div>
 
       <div className="flex justify-end">
-        <a
-          href="#forgot-password"
+        <button
+          type="button"
+          onClick={onForgotPassword}
           className="text-sm font-semibold text-[#E63946] no-underline hover:underline"
         >
           Forgot Password?
-        </a>
+        </button>
       </div>
 
       <button

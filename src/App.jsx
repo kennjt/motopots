@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import AdminRoutes from "./AdminRoutes";
 
 import AppNavbar from "./components/navbar";
 import Menu from "./components/menu";
@@ -7,22 +8,15 @@ import Footer from "./components/footer";
 import CustomerDashboard from "./CustomerDashboard";
 import ProfileSettings from "./components/profile";
 import MyOrder from "./components/MyOrder";
-import AdminDashboard from "./AdminDashboard";
-import AdminOverview from "./components/AdminOverview";
 import AccountCreation from "./components/AccountCreation";
-import AdminSettings from "./components/AdminSettings";
-import AdminLayout from "./components/AdminLayout";
-import AdminSectionPage from "./components/AdminSectionPage";
-import AdminCustomerPages from "./components/AdminCustomerPages";
-import AdminMenuCatalog from "./components/AdminMenuCatalog";
-import AdminWorkspace from "./components/AdminWorkspace";
-import AdminInventoryOverview from "./components/AdminInventoryOverview";
 
 import inasal from "./assets/inasal_withoutbg.png";
 import { ImageWithSkeleton } from "./components/Skeleton";
 import "./App.css";
 
 function HomePage() {
+  const navigate = useNavigate();
+
   return (
     <>
       <div>
@@ -66,6 +60,27 @@ function HomePage() {
                     ),
                   )}
                 </ul>
+
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/?login=user")}
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#E63946] bg-[#E63946] px-6 py-3 font-sans font-bold text-white shadow-lg shadow-[#E63946]/20 transition-all duration-200 hover:bg-[#C92D3A] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
+                  >
+                    Order Now
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      document
+                        .getElementById("menu")
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#E63946] bg-transparent px-6 py-3 font-sans font-bold text-[#F5F5F5] transition-all duration-200 hover:bg-[#E63946]/10 focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
+                  >
+                    View Menu
+                  </button>
+                </div>
               </div>
               <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
                 <div className="w-full max-w-[580px] overflow-hidden">
@@ -144,197 +159,7 @@ function App() {
       <Route path="/customer/cart" element={<CustomerDashboard />} />
       <Route path="/customer/favorites" element={<CustomerDashboard />} />
       <Route path="/customer/checkout" element={<CustomerDashboard />} />
-      <Route path="/staff" element={<AdminLayout />}>
-        <Route index element={<AdminOverview />} />
-        <Route
-          path="orders"
-          element={
-            <AdminWorkspace
-              title="Orders"
-              tabs={[
-                { label: "Orders", to: "/staff/orders" },
-                { label: "Menu Catalog", to: "/staff/orders/menu" },
-                { label: "Categories", to: "/staff/orders/categories" },
-                { label: "Customizations", to: "/staff/orders/customizations" },
-                { label: "Order History", to: "/staff/orders/history" },
-              ]}
-            />
-          }
-        >
-          <Route
-            index
-            element={
-              <AdminDashboard embedded page="orders" showPageHeading={false} />
-            }
-          />
-          <Route
-            path="menu"
-            element={<AdminMenuCatalog view="catalog" showHeading={false} />}
-          />
-          <Route
-            path="categories"
-            element={<AdminMenuCatalog view="categories" showHeading={false} />}
-          />
-          <Route
-            path="customizations"
-            element={
-              <AdminMenuCatalog view="customizations" showHeading={false} />
-            }
-          />
-          <Route
-            path="history"
-            element={
-              <AdminDashboard
-                embedded
-                page="order-history"
-                showPageHeading={false}
-              />
-            }
-          />
-        </Route>
-        <Route
-          path="inventory"
-          element={
-            <AdminWorkspace
-              title="Inventory"
-              tabs={[
-                { label: "Overview", to: "/staff/inventory" },
-                { label: "Ingredients", to: "/staff/inventory/ingredients" },
-                { label: "Recipes", to: "/staff/inventory/recipes" },
-                {
-                  label: "Stock Movements",
-                  to: "/staff/inventory/stock-movements",
-                },
-                { label: "Suppliers", to: "/staff/inventory/suppliers" },
-              ]}
-            />
-          }
-        >
-          <Route index element={<AdminInventoryOverview />} />
-          <Route
-            path="ingredients"
-            element={<AdminInventoryOverview view="ingredients" />}
-          />
-          <Route
-            path="recipes"
-            element={<AdminSectionPage title="Recipes" showHeading={false} />}
-          />
-          <Route
-            path="stock-movements"
-            element={
-              <AdminSectionPage title="Stock Movements" showHeading={false} />
-            }
-          />
-          <Route
-            path="suppliers"
-            element={<AdminSectionPage title="Suppliers" showHeading={false} />}
-          />
-        </Route>
-        <Route
-          path="customers"
-          element={
-            <AdminWorkspace
-              title="Customer"
-              tabs={[
-                { label: "Customers", to: "/staff/customers" },
-                { label: "Favorite Orders", to: "/staff/customers/favorites" },
-              ]}
-            />
-          }
-        >
-          <Route index element={<AdminCustomerPages showHeading={false} />} />
-          <Route
-            path="favorites"
-            element={<AdminCustomerPages favorites showHeading={false} />}
-          />
-        </Route>
-        <Route
-          path="order-history"
-          element={<Navigate to="/staff/orders/history" replace />}
-        />
-        <Route
-          path="menu"
-          element={<Navigate to="/staff/orders/menu" replace />}
-        />
-        <Route
-          path="menu/categories"
-          element={<Navigate to="/staff/orders/categories" replace />}
-        />
-        <Route
-          path="menu/customizations"
-          element={<Navigate to="/staff/orders/customizations" replace />}
-        />
-        <Route
-          path="recipes"
-          element={<Navigate to="/staff/inventory/recipes" replace />}
-        />
-        <Route
-          path="stock-movements"
-          element={<Navigate to="/staff/inventory/stock-movements" replace />}
-        />
-        <Route
-          path="suppliers"
-          element={<Navigate to="/staff/inventory/suppliers" replace />}
-        />
-        <Route
-          path="favorite-orders"
-          element={<Navigate to="/staff/customers/favorites" replace />}
-        />
-        <Route
-          path="performance"
-          element={<AdminDashboard embedded page="performance" />}
-        />
-        <Route
-          path="operating-hours"
-          element={
-            <AdminSettings
-              key="operating-hours"
-              embedded
-              initialTab="schedule"
-            />
-          }
-        />
-        <Route
-          path="store-availability"
-          element={
-            <AdminSettings
-              key="store-availability"
-              embedded
-              initialTab="availability"
-            />
-          }
-        />
-        <Route
-          path="settings"
-          element={
-            <AdminSettings key="settings" embedded initialTab="schedule" />
-          }
-        />
-        <Route
-          path="shifts"
-          element={<AdminSettings key="shifts" embedded initialTab="shifts" />}
-        />
-        <Route
-          path="employees"
-          element={
-            <AdminSettings key="employees" embedded initialTab="shifts" />
-          }
-        />
-        <Route
-          path="expenses"
-          element={<AdminSectionPage title="Expenses" />}
-        />
-        <Route
-          path="sales-reports"
-          element={<AdminDashboard embedded page="sales-reports" />}
-        />
-        <Route
-          path="store-information"
-          element={<AdminSectionPage title="Store Information" />}
-        />
-        <Route path="profile" element={<AdminSectionPage title="Profile" />} />
-        <Route path="*" element={<AdminSectionPage title="Page not found" />} />
-      </Route>
+      <Route path="/staff/*" element={<AdminRoutes />} />
       <Route path="/customer/profile" element={<ProfileSettings />} />
       <Route path="/customer/orders" element={<MyOrder />} />
       <Route
