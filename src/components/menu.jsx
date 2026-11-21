@@ -8,6 +8,7 @@ import {
   menuItems,
 } from "../data/menuData";
 import { ImageWithSkeleton } from "./Skeleton";
+import Reveal from "./Reveal";
 
 function Menu({
   onAddToCart,
@@ -121,7 +122,7 @@ function Menu({
       ) || [];
 
   return (
-    <section className="min-h-screen bg-transparent px-0 py-5 sm:px-2">
+    <section className="min-h-screen bg-transparent px-0 py-5 mb-20 sm:px-2">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
@@ -149,11 +150,9 @@ function Menu({
         </div>
         {filteredItems.length ? (
           <div className="grid grid-cols-2 gap-x-3 gap-y-10 pt-12 sm:gap-x-6 sm:gap-y-16 sm:pt-16 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20 xl:grid-cols-4">
-            {filteredItems.map((item) => (
-              <article
-                key={item.id}
-                className="group relative flex min-h-[220px] flex-col overflow-visible rounded-2xl border border-white/10 bg-[#15151C] px-3 pb-3 pt-[5rem] shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-2 hover:border-[#E63946]/40 hover:shadow-xl hover:shadow-black/30 sm:min-h-[250px] sm:px-5 sm:pb-5 sm:pt-28"
-              >
+            {filteredItems.map((item, index) => (
+              <Reveal key={item.id} className="h-full" delay={(index % 4) * 70} scale>
+                <article className="group relative flex h-full min-h-[220px] flex-col overflow-visible rounded-2xl border border-white/10 bg-[#15151C] px-3 pb-3 pt-[5rem] shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-2 hover:border-[#E63946]/40 hover:shadow-xl hover:shadow-black/30 sm:min-h-[250px] sm:px-5 sm:pb-5 sm:pt-28">
                 <div className="absolute -top-8 left-1/2 z-10 flex h-24 w-24 -translate-x-1/2 items-center justify-center sm:-top-16 sm:h-36 sm:w-36 lg:-top-20 lg:h-[190px] lg:w-[190px]">
                   <ImageWithSkeleton
                     src={item.image}
@@ -165,7 +164,7 @@ function Menu({
                 <div
                   className={`mt-auto flex flex-col gap-2 transition-all duration-300 sm:gap-3 ${browseMode ? "" : "lg:group-hover:opacity-0"}`}
                 >
-                  <h3 className="text-center text-base font-extrabold leading-tight text-[#F5F5F5] sm:text-lg">
+                  <h3 className="display-heading text-center text-base leading-tight text-[#F5F5F5] sm:text-lg">
                     {item.name}
                   </h3>
                   <span className="mx-auto w-fit rounded-full border border-white/10 px-2.5 py-1 text-center text-[10px] font-medium text-[#A1A1AA] sm:px-3 sm:text-xs">
@@ -214,12 +213,13 @@ function Menu({
                     )}
                   </div>
                 )}
-              </article>
+                </article>
+              </Reveal>
             ))}
           </div>
         ) : (
           <div className="py-20 text-center">
-            <h3 className="text-2xl font-bold text-[#F5F5F5]">
+            <h3 className="display-heading text-2xl text-[#F5F5F5]">
               No menu items found
             </h3>
             <p className="mt-2 text-[#A1A1AA]">
@@ -252,7 +252,7 @@ function Menu({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-extrabold text-[#F5F5F5]">
+                <h2 className="display-heading text-2xl text-[#F5F5F5]">
                   {selectedProduct.name}
                 </h2>
                 <p className="mt-1 text-sm text-[#A1A1AA]">

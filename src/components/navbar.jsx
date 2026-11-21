@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShieldCheck, UserRound, X } from "lucide-react";
@@ -11,7 +10,9 @@ function AppNavbar() {
   const loginRole = new URLSearchParams(location.search).get("login");
   const [loginOpen, setLoginOpen] = useState(false);
   const [loginView, setLoginView] = useState("login");
-  const [selectedRole, setSelectedRole] = useState(loginRole === "admin" ? "staff" : "customer");
+  const [selectedRole, setSelectedRole] = useState(
+    loginRole === "admin" ? "staff" : "customer",
+  );
   const [expanded, setExpanded] = useState(false);
   const [loginMenuOpen, setLoginMenuOpen] = useState(false);
   const [loginChoiceOpen, setLoginChoiceOpen] = useState(false);
@@ -23,8 +24,54 @@ function AppNavbar() {
   const loginButtonRef = useRef(null);
   const loginChoiceRef = useRef(null);
   const loginChoiceTimerRef = useRef(null);
+  const sectionVisibilityRef = useRef(new Map());
   const queryLoginOpen = loginRole === "user" || loginRole === "admin";
   const showLogin = loginOpen || queryLoginOpen;
+
+  useEffect(() => {
+    const sectionLabels = ["Home", "Menu", "About"];
+    const sections = sectionLabels
+      .map((label) => ({
+        label,
+        element: document.getElementById(label.toLowerCase()),
+      }))
+      .filter(({ element }) => element);
+
+    if (!sections.length || !("IntersectionObserver" in window))
+      return undefined;
+
+    const visibility = sectionVisibilityRef.current;
+    visibility.clear();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const section = sections.find(
+            ({ element }) => element === entry.target,
+          );
+          if (section) visibility.set(section.label, entry);
+        });
+
+        const visibleSection = [...visibility.values()]
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visibleSection) {
+          const section = sections.find(
+            ({ element }) => element === visibleSection.target,
+          );
+          if (section) setActiveNav(section.label);
+        }
+      },
+      { rootMargin: "-15% 0px -55% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] },
+    );
+
+    sections.forEach(({ element }) => observer.observe(element));
+    return () => {
+      observer.disconnect();
+      visibility.clear();
+    };
+  }, [location.pathname]);
 
   const closeLogin = useCallback(() => {
     setLoginOpen(false);
@@ -165,10 +212,7 @@ function AppNavbar() {
   }, [expanded, loginMenuOpen]);
 
   useEffect(() => {
-    if (
-      !expanded ||
-      !window.matchMedia("(max-width: 1023px)").matches
-    ) {
+    if (!expanded || !window.matchMedia("(max-width: 1023px)").matches) {
       return undefined;
     }
 
@@ -270,7 +314,7 @@ function AppNavbar() {
             role={expanded ? "dialog" : undefined}
             aria-label="Main navigation"
             aria-modal={expanded ? "true" : undefined}
-            className={`fixed right-0 top-0 z-[61] flex h-[100dvh] w-[82vw] max-w-[24rem] flex-col overflow-y-auto border-l border-white/10 bg-[#111116]/95 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] shadow-2xl shadow-black/40 backdrop-blur-xl transition-[transform,visibility] duration-300 ease-out lg:visible lg:static lg:z-auto lg:h-auto lg:w-full lg:max-w-none lg:translate-x-0 lg:flex-1 lg:flex-row lg:items-center lg:justify-between lg:gap-0 lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none ${
+            className={`fixed right-0 top-0 z-[61] flex h-[100dvh] w-[82vw] max-w-[24rem] flex-col overflow-y-auto border-l border-white/10 bg-[#111116]/95 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] shadow-2xl shadow-black/40 lg:visible lg:static lg:z-auto lg:h-auto lg:w-full lg:max-w-none lg:translate-x-0 lg:flex-1 lg:flex-row lg:items-center lg:justify-between lg:gap-0 lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none lg:backdrop-blur-none ${
               expanded
                 ? "visible translate-x-0"
                 : "pointer-events-none invisible translate-x-full"
@@ -297,7 +341,7 @@ function AppNavbar() {
                   href={`#${label.toLowerCase()}`}
                   onClick={(event) => navigateToSection(event, label)}
                   aria-current={activeNav === label ? "page" : undefined}
-                  className={`flex min-h-12 items-center border-b border-white/10 px-2 py-3 text-left no-underline transition-colors hover:text-[#E63946] active:bg-white/5 lg:min-h-0 lg:rounded-3xl lg:border-0 lg:px-[13px] lg:py-0 lg:hover:bg-transparent ${
+                  className={`flex min-h-12 items-center border-b border-white/10 px-2 py-3 text-left no-underline transition-[color,background-color,box-shadow] duration-300 hover:text-[#E63946] active:bg-white/5 lg:min-h-0 lg:rounded-3xl lg:border-0 lg:px-[13px] lg:py-0 lg:hover:bg-transparent ${
                     activeNav === label
                       ? "font-bold text-[#E63946] lg:bg-transparent"
                       : "font-medium text-[#F5F5F5]"

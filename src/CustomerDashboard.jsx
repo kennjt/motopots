@@ -22,6 +22,7 @@ import {
 } from "./data/orderStorage";
 import homeHeroImage from "./assets/home-heroimg.png";
 import { ImageWithSkeleton } from "./components/Skeleton";
+import Reveal from "./components/Reveal";
 import {
   showClosedStore,
   showConfirm,
@@ -44,10 +45,18 @@ const readFavoriteOrders = () => {
   }
 };
 
-const savedOrderSignature = (order) => JSON.stringify({
-  orderType: order.orderType,
-  items: (order.items || []).map((item) => ({ productId: item.productId, variant: item.variant, flavor: item.flavor, addOns: item.addOns || [], notes: item.notes || "", quantity: item.quantity })),
-});
+const savedOrderSignature = (order) =>
+  JSON.stringify({
+    orderType: order.orderType,
+    items: (order.items || []).map((item) => ({
+      productId: item.productId,
+      variant: item.variant,
+      flavor: item.flavor,
+      addOns: item.addOns || [],
+      notes: item.notes || "",
+      quantity: item.quantity,
+    })),
+  });
 
 const toMinutes = (time) => {
   const [hours, minutes] = String(time || "")
@@ -281,9 +290,20 @@ function CustomerDashboard() {
   };
   const resolveFavoriteItem = (savedItem) => {
     const product = menuItems.find((item) => item.id === savedItem.productId);
-    if (!product) return { error: `${savedItem.name || "An item"} is no longer available.` };
-    const variant = product.variants.find((item) => item.label === savedItem.variant && (!savedItem.flavor || item.flavor === savedItem.flavor)) || product.variants.find((item) => item.label === savedItem.variant);
-    if (!variant) return { error: `${product.name} no longer has the saved size or flavor.` };
+    if (!product)
+      return {
+        error: `${savedItem.name || "An item"} is no longer available.`,
+      };
+    const variant =
+      product.variants.find(
+        (item) =>
+          item.label === savedItem.variant &&
+          (!savedItem.flavor || item.flavor === savedItem.flavor),
+      ) || product.variants.find((item) => item.label === savedItem.variant);
+    if (!variant)
+      return {
+        error: `${product.name} no longer has the saved size or flavor.`,
+      };
     const savedAddOns = savedItem.addOns || [];
     const addOns = (product.addOns || [])
       .filter((addOn) => savedAddOns.includes(addOn.label))
@@ -355,22 +375,37 @@ function CustomerDashboard() {
       return;
     }
     setCheckoutOrderType(savedOrder.orderType || "Pickup");
-    setFavoriteToEdit({ ...firstItem, favoriteId: savedOrder.id, itemIndex: 0 });
+    setFavoriteToEdit({
+      ...firstItem,
+      favoriteId: savedOrder.id,
+      itemIndex: 0,
+    });
     setActiveSection("menu");
     navigate("/customer/menu");
   };
-  const removeFavorite = (favoriteId) => setFavoriteOrders((current) => current.filter((order) => order.id !== favoriteId));
+  const removeFavorite = (favoriteId) =>
+    setFavoriteOrders((current) =>
+      current.filter((order) => order.id !== favoriteId),
+    );
   const removeFavoriteItem = (favoriteId, itemIndex) => {
-    setFavoriteOrders((current) => current.flatMap((order) => {
-      if (order.id !== favoriteId) return [order];
-      const items = (order.items || []).filter((_, index) => index !== itemIndex);
-      if (!items.length) return [];
-      const total = items.reduce(
-        (sum, item) => sum + (item.subtotal ?? (item.finalUnitPrice ?? item.price ?? item.savedPrice ?? 0) * (item.quantity || 1)),
-        0,
-      );
-      return [{ ...order, items, total }];
-    }));
+    setFavoriteOrders((current) =>
+      current.flatMap((order) => {
+        if (order.id !== favoriteId) return [order];
+        const items = (order.items || []).filter(
+          (_, index) => index !== itemIndex,
+        );
+        if (!items.length) return [];
+        const total = items.reduce(
+          (sum, item) =>
+            sum +
+            (item.subtotal ??
+              (item.finalUnitPrice ?? item.price ?? item.savedPrice ?? 0) *
+                (item.quantity || 1)),
+          0,
+        );
+        return [{ ...order, items, total }];
+      }),
+    );
   };
   const addFavoriteItemToCart = (savedItem) => {
     if (storeStatus === "closed") {
@@ -411,7 +446,10 @@ function CustomerDashboard() {
     const favorite = favoriteOrders.find((order) => order.id === favoriteId);
     const savedItem = favorite?.items?.[itemIndex];
     if (!savedItem) {
-      showError("Favorite item unavailable", "This saved item could not be found.");
+      showError(
+        "Favorite item unavailable",
+        "This saved item could not be found.",
+      );
       return;
     }
     const resolved = resolveFavoriteItem(savedItem);
@@ -423,7 +461,12 @@ function CustomerDashboard() {
     setActiveSection("menu");
     navigate("/customer/menu");
   };
-  const confirmationFavorite = confirmationOrder && favoriteOrders.find((order) => savedOrderSignature(order) === savedOrderSignature(confirmationOrder));
+  const confirmationFavorite =
+    confirmationOrder &&
+    favoriteOrders.find(
+      (order) =>
+        savedOrderSignature(order) === savedOrderSignature(confirmationOrder),
+    );
   const saveConfirmationAsFavorite = () => {
     if (!confirmationOrder) return;
     const snapshot = {
@@ -577,125 +620,144 @@ function CustomerDashboard() {
         onEditFavorite={editFavorite}
         onRemoveFavorite={removeFavorite}
       />
-      <main className="w-full py-3">
-        <div className="mx-auto max-w-7xl px-5">
-        {!isCheckoutPage && (
-          <div
-            className={`mb-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-extrabold ${storeStatus === "open" ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-[#E63946]/30 bg-[#E63946]/10 text-[#FF727D]"}`}
-          >
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${storeStatus === "open" ? "bg-emerald-400" : "bg-[#E63946]"}`}
+      <main className="customer-dashboard w-full py-0">
+        <div className="w-full">
+          {isCartPage && (
+            <CustomerCartPage
+              cartItems={cartItems}
+              subtotal={subtotal}
+              storeOpen={storeStatus === "open"}
+              onQuantityChange={changeQuantity}
+              onRemove={removeFromCart}
+              onCheckout={beginCheckout}
             />
-            {storeStatus === "open" ? "OPEN NOW" : "CLOSED"}
-            {storeStatus === "closed" && (
-              <span className="ml-1 font-semibold text-[#D1D1D6]">
-                — Sorry, we're currently closed and not accepting orders.
-                {nextOpening ? ` Next opening: ${nextOpening}.` : ""}
-              </span>
-            )}
-          </div>
-        )}
-        {isCartPage && (
-          <CustomerCartPage
-            cartItems={cartItems}
-            subtotal={subtotal}
-            storeOpen={storeStatus === "open"}
-            onQuantityChange={changeQuantity}
-            onRemove={removeFromCart}
-            onCheckout={beginCheckout}
-          />
-        )}
-        {isFavoritesPage && (
-          <CustomerFavoritesPage
-            favoriteOrders={favoriteOrders}
-            storeOpen={storeStatus === "open"}
-            onAddToCart={addFavoriteItemToCart}
-            onReorder={reorderFavorite}
-            onCustomize={customizeFavoriteItem}
-            onRemove={removeFavorite}
-          />
-        )}
-        {isCheckoutPage && activeSection !== "confirmation" && (
-          <Checkout
-            cartItems={cartItems}
-            subtotal={subtotal}
-            initialOrderType={checkoutOrderType}
-            onBack={() => navigate("/customer/cart")}
-            onSubmit={placeOrder}
-            submitting={submittingOrder || storeStatus === "closed"}
-            storeOpen={storeStatus === "open"}
-          />
-        )}
-        {!isDedicatedPage && activeSection === "menu" && (
-          <>
-            <section
-              id="home"
-              className="mp-hero relative isolate flex min-h-[calc(100svh-76px)] items-center overflow-hidden py-8 sm:py-5"
-            >
-              <div className="mx-auto w-full max-w-6xl px-1 sm:px-2">
-                <div className="grid grid-cols-1 items-center gap-8 sm:gap-8 lg:grid-cols-12">
-                  <div className="order-2 min-w-0 lg:order-1 lg:col-span-6">
-                    <p className="mb-2 text-sm font-extrabold uppercase tracking-[3px] text-[#E63946]">
-                      Welcome to
-                    </p>
-                    <h1 className="mb-1 leading-[0.95]">
-                      <span className="block font-display text-[clamp(25px,7vw,60px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
-                        Motopot&apos;s
-                      </span>
-                      <span className="mt-3 block font-display text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
-                        Food House
-                      </span>
-                    </h1>
-                    <p className="mb-3 mt-3 max-w-[780px] text-lg leading-[1.55] text-[#A1A1AA] sm:text-xl">
-                      Grilled, sizzling and sweet, all in one place. Order your
-                      favorites online and we&apos;ll get them ready for you.
-                    </p>
-                    <ul className="mb-0 flex list-none flex-wrap gap-2 p-0">
-                      {["Bacolod Chicken Inasal", "Takoyaki", "Halo-Halo"].map(
-                        (item) => (
+          )}
+          {isFavoritesPage && (
+            <CustomerFavoritesPage
+              favoriteOrders={favoriteOrders}
+              storeOpen={storeStatus === "open"}
+              onAddToCart={addFavoriteItemToCart}
+              onReorder={reorderFavorite}
+              onCustomize={customizeFavoriteItem}
+              onRemove={removeFavorite}
+            />
+          )}
+          {isCheckoutPage && activeSection !== "confirmation" && (
+            <Checkout
+              cartItems={cartItems}
+              subtotal={subtotal}
+              initialOrderType={checkoutOrderType}
+              onBack={() => navigate("/customer/cart")}
+              onSubmit={placeOrder}
+              submitting={submittingOrder || storeStatus === "closed"}
+              storeOpen={storeStatus === "open"}
+            />
+          )}
+          {!isDedicatedPage && activeSection === "menu" && (
+            <>
+              <section
+                id="home"
+                className="customer-hero mp-hero relative isolate flex min-h-[calc(100svh-76px)] items-center overflow-hidden py-8 sm:py-5"
+              >
+                <div className="mx-auto w-full pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-0">
+                  <div className="grid grid-cols-1 items-center gap-10 sm:gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-6">
+                    <Reveal className="order-2 min-w-0 max-w-4xl lg:order-1 lg:-translate-y-3" delay={80}>
+                      <div
+                        className={`store-status-badge mb-5 flex w-fit max-w-full items-start gap-2.5 rounded-full border px-3.5 py-2 text-xs font-extrabold tracking-[0.08em] sm:text-sm ${storeStatus === "open" ? "store-status-open" : "store-status-closed"}`}
+                      >
+                        <span
+                          className={`mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full ${storeStatus === "open" ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" : "bg-[#E63946] shadow-[0_0_10px_rgba(230,57,70,0.8)]"}`}
+                        />
+                        <span>{storeStatus === "open" ? "OPEN NOW" : "CLOSED"}</span>
+                        {storeStatus === "closed" && (
+                          <span className="font-medium tracking-normal text-[#D1D1D6]">
+                            — Sorry, we're currently closed and not accepting
+                            orders.
+                            {nextOpening
+                              ? ` Next opening: ${nextOpening}.`
+                              : ""}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mb-2 font-sans text-sm font-extrabold uppercase tracking-[3px] text-[#E63946]">
+                        Welcome to
+                      </p>
+
+                      <h1 className="hero-heading mb-1 italic">
+                        <span className="hero-brand block text-[clamp(40px,10vw,90px)] text-[#F5F5F5] ">
+                          Motopot's
+                        </span>
+
+                        <span className="mt-0 block text-[clamp(25px,5vw,30px)] text-[#F5F5F5]">
+                          <span className="hero-accent">Food House</span>
+                        </span>
+                      </h1>
+                      <p className="mb-3 mt-3 max-w-[780px] text-lg leading-[1.55] text-[#A1A1AA] sm:text-xl">
+                        Grilled, sizzling and sweet, all in one place. Order
+                        your favorites online and we&apos;ll get them ready for
+                        you.
+                      </p>
+                      <ul className="mb-0 flex list-none flex-wrap gap-2 p-0">
+                        {[
+                          "Bacolod Chicken Inasal",
+                          "Takoyaki",
+                          "Halo-Halo",
+                        ].map((item) => (
                           <li
                             key={item}
-                            className="rounded-full border border-white/10 bg-[#22222B] px-3 py-1 text-sm font-extrabold text-[#F5F5F5]"
+                            className="rounded-full border border-white/10 bg-[#22222B] px-3 py-1 text-sm font-extrabold text-[#F5F5F5] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#E63946]/40 hover:bg-[#2b2025]"
                           >
                             {item}
                           </li>
-                        ),
-                      )}
-                    </ul>
-                    <div className="mt-4">
-                      <Link
-                        to="/customer/order"
-                        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#E63946] bg-[#E63946] px-4 py-2 text-base font-extrabold text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#C92D3A] sm:text-lg"
-                      >
-                        Order Now
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="order-1 flex min-w-0 items-center justify-center lg:order-2 lg:col-span-6 lg:justify-end">
-                    <div className="w-full max-w-[900px] lg:w-[75vw] lg:max-w-none lg:translate-x-2 lg:translate-y-6 xl:translate-x-[calc((100vw-72rem)/2)]">
-                      <ImageWithSkeleton
-                        src={homeHeroImage}
-                        alt="Bacolod chicken inasal served with rice"
-                        className="block h-auto w-full object-contain drop-shadow-[0_1.5rem_1.75rem_rgba(0,0,0,0.42)]"
-                      />
-                    </div>
+                        ))}
+                      </ul>
+                      <div className="mt-4">
+                        <Link
+                          to="/customer/order"
+                          className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#E63946] bg-[#E63946] px-6 py-3 font-sans font-bold text-white shadow-lg shadow-[#E63946]/20 transition-all duration-200 hover:bg-[#C92D3A] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
+                        >
+                          Order Now
+                        </Link>
+                      </div>
+                    </Reveal>
+                    <Reveal className="order-1 hidden min-w-0 items-center justify-end sm:flex lg:order-2" delay={180} scale>
+                      <div className="w-full max-w-[1000px] transition-transform duration-700 ease-out hover:scale-[1.02] lg:w-[90%] lg:max-w-none lg:-translate-y-1">
+                        <ImageWithSkeleton
+                          src={homeHeroImage}
+                          alt="Bacolod chicken inasal served with rice"
+                          className="block h-auto w-full object-contain drop-shadow-[0_1.5rem_1.75rem_rgba(0,0,0,0.42)] [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]"
+                        />
+                      </div>
+                    </Reveal>
                   </div>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            <section
-              id="customer-menu"
-              className="relative z-10 min-h-screen w-full py-12"
-            >
-              <div className="mx-auto w-full max-w-6xl text-center">
-                <h2 className="mb-1 font-heading text-3xl text-[#F5F5F5] sm:text-4xl">Our Menu</h2>
-                <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">{isMenuPage ? "Browse products by category and compare descriptions and prices." : "Choose your favorites, customize your order, and add them to your cart."}</p>
-                <Menu onAddToCart={addToCart} cart={cart} showAddToCart={!isMenuPage && storeStatus === "open"} browseMode={isMenuPage} favoriteToEdit={favoriteToEdit} onFavoriteEditHandled={() => setFavoriteToEdit(null)} />
-              </div>
-            </section>
-          </>
-        )}
+              <section
+                id="customer-menu"
+                className="relative z-10 min-h-screen w-full py-3"
+              >
+                <div className="mx-auto w-full max-w-6xl px-4 text-center sm:px-6 lg:px-4">
+                  <h2 className="display-heading mb-1 text-3xl text-[#F5F5F5] sm:text-4xl">
+                    Our Menu
+                  </h2>
+                  <p className="mb-3 text-base leading-[1.55] text-[#A1A1AA]">
+                    {isMenuPage
+                      ? "Browse products by category and compare descriptions and prices."
+                      : "Choose your favorites, customize your order, and add them to your cart."}
+                  </p>
+                  <Menu
+                    onAddToCart={addToCart}
+                    cart={cart}
+                    showAddToCart={!isMenuPage && storeStatus === "open"}
+                    browseMode={isMenuPage}
+                    favoriteToEdit={favoriteToEdit}
+                    onFavoriteEditHandled={() => setFavoriteToEdit(null)}
+                  />
+                </div>
+              </section>
+            </>
+          )}
         </div>
         {!isDedicatedPage && activeSection === "menu" && (
           <>
@@ -703,18 +765,18 @@ function CustomerDashboard() {
               id="customer-about"
               className="mb-10 bg-[#15151C]/60 px-4 py-10 sm:px-6 lg:px-4"
             >
-              <h2 className="mb-8 text-center font-heading text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">
+              <h2 className="display-heading mb-8 text-center text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">
                 About Us
               </h2>
               <div className="mx-auto w-full max-w-6xl">
                 <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
                   <div className="min-w-0 lg:col-span-7">
-                    <h2 className="mb-1 leading-[0.95]">
-                      <span className="block font-display text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                    <h2 className="hero-heading mb-1 italic">
+                      <span className="hero-brand block text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
                         Motopot&apos;s
                       </span>
-                      <span className="mt-3 block font-display text-[clamp(25px,5vw,30px)] italic text-[#F5F5F5]">
-                        Food House
+                      <span className="mt-3 block text-[clamp(25px,5vw,30px)] text-[#F5F5F5]">
+                        <span className="hero-accent">Food House</span>
                       </span>
                     </h2>
                     <p className="mb-3 mt-3 max-w-[780px] text-lg leading-[1.55] text-[#A1A1AA]">
@@ -733,243 +795,244 @@ function CustomerDashboard() {
           </>
         )}
         <div className="mx-auto max-w-7xl px-5">
-        {!isDedicatedPage && activeSection === "checkout" && (
-          <Checkout
-            cartItems={cartItems}
-            subtotal={subtotal}
-            initialOrderType={checkoutOrderType}
-            onBack={() => setActiveSection("menu")}
-            onSubmit={placeOrder}
-            submitting={submittingOrder || storeStatus === "closed"}
-            storeOpen={storeStatus === "open"}
-          />
-        )}
-        {activeSection === "confirmation" && confirmationOrder && (
-          <section className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20 sm:p-10">
-            <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15 text-3xl text-green-300">
-                ✓
-              </div>
-              <h1 className="mt-4 text-3xl font-extrabold text-[#F5F5F5]">
-                Order Submitted
-              </h1>
-              <p className="mt-2 text-[#A1A1AA]">
-                Order #{formatOrderId(confirmationOrder.id)} was received.
-              </p>
-            </div>
-            <div className="mt-8 grid gap-4 rounded-xl bg-[#22222B]/60 p-4 text-sm sm:grid-cols-2">
-              <p>
-                <span className="text-[#A1A1AA]">Customer</span>
-                <br />
-                <strong>{confirmationOrder.customer.name}</strong>
-              </p>
-              <p>
-                <span className="text-[#A1A1AA]">Order date</span>
-                <br />
-                <strong>
-                  {new Date(confirmationOrder.createdAt).toLocaleString()}
-                </strong>
-              </p>
-              <p>
-                <span className="text-[#A1A1AA]">Payment</span>
-                <br />
-                <strong>{confirmationOrder.paymentMethod}</strong>
-              </p>
-              <p>
-                <span className="text-[#A1A1AA]">Payment status</span>
-                <br />
-                <strong className="text-[#E63946]">
-                  {confirmationOrder.paymentStatus}
-                </strong>
-              </p>
-              <p>
-                <span className="text-[#A1A1AA]">Order status</span>
-                <br />
-                <strong>{confirmationOrder.orderStatus}</strong>
-              </p>
-              <p>
-                <span className="text-[#A1A1AA]">Total</span>
-                <br />
-                <strong className="text-[#E63946]">
-                  {money(confirmationOrder.total)}
-                </strong>
-              </p>
-            </div>
-            {confirmationOrder.orderType === "Delivery" &&
-              confirmationOrder.deliveryAddress && (
-                <div className="mt-4 rounded-xl border border-[#E63946]/25 bg-[#E63946]/5 p-4 text-sm">
-                  <p className="font-extrabold text-[#F5F5F5]">
-                    Delivery address · {confirmationOrder.deliveryAddress.label}
-                  </p>
-                  <p className="mt-1 text-[#A1A1AA]">
-                    {[
-                      confirmationOrder.deliveryAddress.houseNumber,
-                      confirmationOrder.deliveryAddress.street,
-                      confirmationOrder.deliveryAddress.subdivision,
-                      confirmationOrder.deliveryAddress.barangay,
-                      confirmationOrder.deliveryAddress.city,
-                      confirmationOrder.deliveryAddress.province,
-                      confirmationOrder.deliveryAddress.region,
-                      confirmationOrder.deliveryAddress.postalCode,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </p>
-                  {confirmationOrder.deliveryAddress.landmark && (
-                    <p className="mt-1 text-[#A1A1AA]">
-                      Landmark: {confirmationOrder.deliveryAddress.landmark}
-                    </p>
-                  )}
+          {!isDedicatedPage && activeSection === "checkout" && (
+            <Checkout
+              cartItems={cartItems}
+              subtotal={subtotal}
+              initialOrderType={checkoutOrderType}
+              onBack={() => setActiveSection("menu")}
+              onSubmit={placeOrder}
+              submitting={submittingOrder || storeStatus === "closed"}
+              storeOpen={storeStatus === "open"}
+            />
+          )}
+          {activeSection === "confirmation" && confirmationOrder && (
+            <section className="mx-auto max-w-3xl rounded-2xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20 sm:p-10">
+              <div className="text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15 text-3xl text-green-300">
+                  ✓
                 </div>
-              )}
-            {confirmationOrder.paymentMethod === "GCash" && (
-              <p className="mt-5 rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">
-                Your GCash payment is pending verification. It will not be
-                marked as paid until authorized staff confirms it.
-              </p>
-            )}
-            <div className="mt-6 space-y-3">
-              {confirmationOrder.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex justify-between gap-4 border-b border-white/10 pb-3 text-sm"
-                >
-                  <div>
-                    <p className="font-bold text-[#F5F5F5]">
-                      {item.name} × {item.quantity}
+                <h1 className="mt-4 text-3xl font-extrabold text-[#F5F5F5]">
+                  Order Submitted
+                </h1>
+                <p className="mt-2 text-[#A1A1AA]">
+                  Order #{formatOrderId(confirmationOrder.id)} was received.
+                </p>
+              </div>
+              <div className="mt-8 grid gap-4 rounded-xl bg-[#22222B]/60 p-4 text-sm sm:grid-cols-2">
+                <p>
+                  <span className="text-[#A1A1AA]">Customer</span>
+                  <br />
+                  <strong>{confirmationOrder.customer.name}</strong>
+                </p>
+                <p>
+                  <span className="text-[#A1A1AA]">Order date</span>
+                  <br />
+                  <strong>
+                    {new Date(confirmationOrder.createdAt).toLocaleString()}
+                  </strong>
+                </p>
+                <p>
+                  <span className="text-[#A1A1AA]">Payment</span>
+                  <br />
+                  <strong>{confirmationOrder.paymentMethod}</strong>
+                </p>
+                <p>
+                  <span className="text-[#A1A1AA]">Payment status</span>
+                  <br />
+                  <strong className="text-[#E63946]">
+                    {confirmationOrder.paymentStatus}
+                  </strong>
+                </p>
+                <p>
+                  <span className="text-[#A1A1AA]">Order status</span>
+                  <br />
+                  <strong>{confirmationOrder.orderStatus}</strong>
+                </p>
+                <p>
+                  <span className="text-[#A1A1AA]">Total</span>
+                  <br />
+                  <strong className="text-[#E63946]">
+                    {money(confirmationOrder.total)}
+                  </strong>
+                </p>
+              </div>
+              {confirmationOrder.orderType === "Delivery" &&
+                confirmationOrder.deliveryAddress && (
+                  <div className="mt-4 rounded-xl border border-[#E63946]/25 bg-[#E63946]/5 p-4 text-sm">
+                    <p className="font-extrabold text-[#F5F5F5]">
+                      Delivery address ·{" "}
+                      {confirmationOrder.deliveryAddress.label}
                     </p>
-                    <p className="text-[#A1A1AA]">
-                      {item.details?.join(" · ")}
+                    <p className="mt-1 text-[#A1A1AA]">
+                      {[
+                        confirmationOrder.deliveryAddress.houseNumber,
+                        confirmationOrder.deliveryAddress.street,
+                        confirmationOrder.deliveryAddress.subdivision,
+                        confirmationOrder.deliveryAddress.barangay,
+                        confirmationOrder.deliveryAddress.city,
+                        confirmationOrder.deliveryAddress.province,
+                        confirmationOrder.deliveryAddress.region,
+                        confirmationOrder.deliveryAddress.postalCode,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}
                     </p>
-                    {item.notes && (
-                      <p className="mt-1 italic text-[#D8A6AA]">
-                        Note: {item.notes}
+                    {confirmationOrder.deliveryAddress.landmark && (
+                      <p className="mt-1 text-[#A1A1AA]">
+                        Landmark: {confirmationOrder.deliveryAddress.landmark}
                       </p>
                     )}
                   </div>
-                  <span className="font-bold text-[#E63946]">
-                    {money(item.subtotal)}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <button
-                type="button"
-                onClick={() => setShowOrders(true)}
-                className="rounded-xl bg-[#E63946] px-5 py-3 font-bold text-white hover:bg-[#C92D3A]"
-              >
-                View My Orders
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  isCheckoutPage
-                    ? navigate("/customer/menu")
-                    : setActiveSection("menu")
-                }
-                className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]"
-              >
-                Back to Menu
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  isCheckoutPage
-                    ? navigate("/customer")
-                    : setActiveSection("menu")
-                }
-                className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]"
-              >
-                Back to Home
-              </button>
-            </div>
-          </section>
-        )}
-        {activeSection === "confirmation" && confirmationOrder && (
-          <section className="mx-auto mt-5 max-w-3xl rounded-2xl border border-[#E63946]/25 bg-gradient-to-br from-[#E63946]/10 to-[#22222B]/70 p-5 text-center shadow-lg shadow-black/20">
-            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#E63946]/15 text-[#FF8B93]">
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
-                <path
-                  d="M20.8 8.6c0 5.5-8.8 10.2-8.8 10.2S3.2 14.1 3.2 8.6A4.6 4.6 0 0112 6.3a4.6 4.6 0 018.8 2.3z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="1.8"
-                />
-              </svg>
-            </div>
-            <h2 className="mt-3 text-lg font-extrabold text-[#F5F5F5]">
-              Enjoy this order? Save it to Favorites!
-            </h2>
-            <p className="mt-1 text-sm text-[#A1A1AA]">
-              Save your customized order and easily order it again next time.
-            </p>
-            <div className="mx-auto mt-4 flex max-w-md flex-col gap-2 sm:flex-row">
-              <input
-                value={favoriteName}
-                onChange={(event) => setFavoriteName(event.target.value)}
-                disabled={Boolean(confirmationFavorite)}
-                placeholder="Name this order (optional)"
-                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#15151C] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none placeholder:text-[#71717A] focus:border-[#E63946] disabled:cursor-not-allowed disabled:opacity-60"
-              />
-              <button
-                type="button"
-                onClick={
-                  confirmationFavorite
-                    ? removeConfirmationFavorite
-                    : saveConfirmationAsFavorite
-                }
-                aria-pressed={Boolean(confirmationFavorite)}
-                className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition ${confirmationFavorite ? "border border-[#E63946]/40 bg-[#E63946]/15 text-[#FF8B93] hover:bg-[#E63946]/25" : "bg-[#E63946] hover:bg-[#C92D3A]"}`}
-              >
-                <FavoriteHeart filled={Boolean(confirmationFavorite)} />
-                {confirmationFavorite
-                  ? "Saved to Favorites"
-                  : "Add to Favorite Orders"}
-              </button>
-            </div>
-            {favoriteNotice && (
-              <p
-                role="status"
-                className="mt-3 text-sm font-bold text-emerald-300"
-              >
-                {favoriteNotice}
-              </p>
-            )}
-          </section>
-        )}
-        {activeSection === "orders" && (
-          <section className="rounded-xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20">
-            <h3 className="text-xl font-bold text-[#E63946]">My Orders</h3>
-            {!orders.length ? (
-              <p className="mt-3 text-[#A1A1AA]">You have no orders yet.</p>
-            ) : (
-              <div className="mt-4 space-y-4">
-                {orders.map((order) => (
-                  <article
-                    key={order.id}
-                    className="rounded-lg border border-white/10 bg-[#22222B]/50 p-4"
+                )}
+              {confirmationOrder.paymentMethod === "GCash" && (
+                <p className="mt-5 rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-200">
+                  Your GCash payment is pending verification. It will not be
+                  marked as paid until authorized staff confirms it.
+                </p>
+              )}
+              <div className="mt-6 space-y-3">
+                {confirmationOrder.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex justify-between gap-4 border-b border-white/10 pb-3 text-sm"
                   >
-                    <div className="flex flex-wrap justify-between gap-2 font-bold text-[#F5F5F5]">
-                      <span>Order #{formatOrderId(order.id)}</span>
-                      <span>{order.status}</span>
+                    <div>
+                      <p className="font-bold text-[#F5F5F5]">
+                        {item.name} × {item.quantity}
+                      </p>
+                      <p className="text-[#A1A1AA]">
+                        {item.details?.join(" · ")}
+                      </p>
+                      {item.notes && (
+                        <p className="mt-1 italic text-[#D8A6AA]">
+                          Note: {item.notes}
+                        </p>
+                      )}
                     </div>
-                    <p className="mt-2 text-[#A1A1AA]">
-                      {order.items
-                        .map((item) => `${item.name} × ${item.quantity}`)
-                        .join(", ")}
-                    </p>
-                    <p className="mt-2 font-extrabold text-[#E63946]">
-                      Total: {money(order.total)}
-                    </p>
-                  </article>
+                    <span className="font-bold text-[#E63946]">
+                      {money(item.subtotal)}
+                    </span>
+                  </div>
                 ))}
               </div>
-            )}
-          </section>
-        )}
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  onClick={() => setShowOrders(true)}
+                  className="rounded-xl bg-[#E63946] px-5 py-3 font-bold text-white hover:bg-[#C92D3A]"
+                >
+                  View My Orders
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    isCheckoutPage
+                      ? navigate("/customer/menu")
+                      : setActiveSection("menu")
+                  }
+                  className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]"
+                >
+                  Back to Menu
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    isCheckoutPage
+                      ? navigate("/customer")
+                      : setActiveSection("menu")
+                  }
+                  className="rounded-xl border border-white/10 px-5 py-3 font-bold text-[#F5F5F5] hover:bg-[#22222B]"
+                >
+                  Back to Home
+                </button>
+              </div>
+            </section>
+          )}
+          {activeSection === "confirmation" && confirmationOrder && (
+            <section className="mx-auto mt-5 max-w-3xl rounded-2xl border border-[#E63946]/25 bg-gradient-to-br from-[#E63946]/10 to-[#22222B]/70 p-5 text-center shadow-lg shadow-black/20">
+              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#E63946]/15 text-[#FF8B93]">
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6">
+                  <path
+                    d="M20.8 8.6c0 5.5-8.8 10.2-8.8 10.2S3.2 14.1 3.2 8.6A4.6 4.6 0 0112 6.3a4.6 4.6 0 018.8 2.3z"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.8"
+                  />
+                </svg>
+              </div>
+              <h2 className="mt-3 text-lg font-extrabold text-[#F5F5F5]">
+                Enjoy this order? Save it to Favorites!
+              </h2>
+              <p className="mt-1 text-sm text-[#A1A1AA]">
+                Save your customized order and easily order it again next time.
+              </p>
+              <div className="mx-auto mt-4 flex max-w-md flex-col gap-2 sm:flex-row">
+                <input
+                  value={favoriteName}
+                  onChange={(event) => setFavoriteName(event.target.value)}
+                  disabled={Boolean(confirmationFavorite)}
+                  placeholder="Name this order (optional)"
+                  className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#15151C] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none placeholder:text-[#71717A] focus:border-[#E63946] disabled:cursor-not-allowed disabled:opacity-60"
+                />
+                <button
+                  type="button"
+                  onClick={
+                    confirmationFavorite
+                      ? removeConfirmationFavorite
+                      : saveConfirmationAsFavorite
+                  }
+                  aria-pressed={Boolean(confirmationFavorite)}
+                  className={`flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold text-white transition ${confirmationFavorite ? "border border-[#E63946]/40 bg-[#E63946]/15 text-[#FF8B93] hover:bg-[#E63946]/25" : "bg-[#E63946] hover:bg-[#C92D3A]"}`}
+                >
+                  <FavoriteHeart filled={Boolean(confirmationFavorite)} />
+                  {confirmationFavorite
+                    ? "Saved to Favorites"
+                    : "Add to Favorite Orders"}
+                </button>
+              </div>
+              {favoriteNotice && (
+                <p
+                  role="status"
+                  className="mt-3 text-sm font-bold text-emerald-300"
+                >
+                  {favoriteNotice}
+                </p>
+              )}
+            </section>
+          )}
+          {activeSection === "orders" && (
+            <section className="rounded-xl border border-white/10 bg-[#15151C] p-6 shadow-lg shadow-black/20">
+              <h3 className="text-xl font-bold text-[#E63946]">My Orders</h3>
+              {!orders.length ? (
+                <p className="mt-3 text-[#A1A1AA]">You have no orders yet.</p>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  {orders.map((order) => (
+                    <article
+                      key={order.id}
+                      className="rounded-lg border border-white/10 bg-[#22222B]/50 p-4"
+                    >
+                      <div className="flex flex-wrap justify-between gap-2 font-bold text-[#F5F5F5]">
+                        <span>Order #{formatOrderId(order.id)}</span>
+                        <span>{order.status}</span>
+                      </div>
+                      <p className="mt-2 text-[#A1A1AA]">
+                        {order.items
+                          .map((item) => `${item.name} × ${item.quantity}`)
+                          .join(", ")}
+                      </p>
+                      <p className="mt-2 font-extrabold text-[#E63946]">
+                        Total: {money(order.total)}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </main>
       {showOrders && <MyOrder modal onClose={() => setShowOrders(false)} />}

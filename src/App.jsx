@@ -12,6 +12,7 @@ import AccountCreation from "./components/AccountCreation";
 
 import homeHeroImage from "./assets/home-heroimg.png";
 import { ImageWithSkeleton } from "./components/Skeleton";
+import Reveal from "./components/Reveal";
 import "./App.css";
 
 function HomePage() {
@@ -19,26 +20,25 @@ function HomePage() {
 
   return (
     <>
-      <div>
-        <AppNavbar />
+      <AppNavbar />
         <section
           id="home"
           className="mp-hero relative isolate flex min-h-[calc(100svh-76px)] items-center overflow-hidden py-8 sm:py-5"
         >
           <div className="mx-auto w-full pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-0">
             <div className="grid grid-cols-1 items-center gap-10 sm:gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-6">
-              <div className="order-2 min-w-0 max-w-4xl lg:order-1">
+              <Reveal className="order-2 min-w-0 max-w-4xl lg:order-1" delay={80}>
                 <p className="mb-2 font-sans text-sm font-extrabold uppercase tracking-[3px] text-[#E63946]">
                   Welcome to
                 </p>
 
-                <h1 className="mb-1 leading-[0.95]">
-                  <span className="block font-display text-[clamp(40px,10vw,100px)] font-extrabold text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                <h1 className="hero-heading mb-1 italic">
+                  <span className="hero-brand block text-[clamp(40px,10vw,100px)] text-[#F5F5F5] ">
                     Motopot's
                   </span>
 
-                  <span className="mt-0 block font-display text-[clamp(25px,5vw,40px)] italic text-[#F5F5F5]">
-                    Food House
+                  <span className="mt-0 block text-[clamp(25px,5vw,40px)] text-[#F5F5F5]">
+                    <span className="hero-accent">Food House</span>
                   </span>
                 </h1>
 
@@ -81,8 +81,8 @@ function HomePage() {
                     View Menu
                   </button>
                 </div>
-              </div>
-              <div className="order-1 hidden min-w-0 items-center justify-end sm:flex lg:order-2">
+              </Reveal>
+              <Reveal className="order-1 hidden min-w-0 items-center justify-end sm:flex lg:order-2" delay={180} scale>
                 <div className="w-full max-w-[1000px] lg:w-[90%] lg:max-w-none lg:-translate-y-1">
                   <ImageWithSkeleton
                     src={homeHeroImage}
@@ -90,21 +90,20 @@ function HomePage() {
                     className="block h-auto w-full object-contain drop-shadow-[0_1.5rem_1.75rem_rgba(0,0,0,0.42)] [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]"
                   />
                 </div>
-              </div>
+              </Reveal>
             </div>
           </div>
         </section>
-      </div>
 
       <main>
-        <section id="menu" className="relative z-10 min-h-screen w-full py-16">
+        <section id="menu" className="relative z-5 min-h-screen w-full py-3">
           <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-4 text-center">
-            <h2 className="mb-1 font-heading text-3xl text-[#F5F5F5] sm:text-4xl">
-              Our Menu
-            </h2>
-            <p className="mb-3 font-sans text-base leading-[1.55] text-[#A1A1AA]">
-              Pick a category or search for your favorite dish.
-            </p>
+            <Reveal>
+              <h2 className="display-heading mb-1 text-3xl text-[#F5F5F5] sm:text-4xl">Our Menu</h2>
+            </Reveal>
+            <Reveal delay={80}>
+              <p className="mb-3 font-sans text-base leading-[1.55] text-[#A1A1AA]">Pick a category or search for your favorite dish.</p>
+            </Reveal>
             <Menu />
           </div>
         </section>
@@ -113,20 +112,20 @@ function HomePage() {
           id="about"
           className="mb-10 bg-[#15151C]/60 px-4 py-10 sm:px-6 lg:px-4"
         >
-          <h2 className="mb-8 font-heading text-center text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">
-            About Us
-          </h2>
+          <Reveal>
+            <h2 className="display-heading mb-8 text-center text-3xl text-[#F5F5F5] sm:mb-12 sm:text-4xl">About Us</h2>
+          </Reveal>
 
           <div className="mx-auto w-full max-w-6xl">
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-              <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
-                <h1 className="mb-1 leading-[0.95]">
-                  <span className="block font-display text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
-                    Motopot's
+              <Reveal className="order-2 min-w-0 lg:order-1 lg:col-span-7" delay={80}>
+                <h1 className="hero-heading mb-1 italic">
+                  <span className="hero-brand block text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                    MOTOPOT'S
                   </span>
 
-                  <span className="mt-3 block font-display text-[clamp(25px,5vw,30px)] italic text-[#F5F5F5]">
-                    Food House
+                  <span className="mt-3 block text-[clamp(25px,5vw,30px)] text-[#F5F5F5]">
+                    <span className="hero-accent">Food House</span>
                   </span>
                 </h1>
 
@@ -136,10 +135,10 @@ function HomePage() {
                   Ut enim ad minim veniam, quis nostrud exercitation ullamco
                   laboris nisi ut aliquip ex ea commodo consequat.
                 </p>
-              </div>
-              <div className="order-1 min-w-0 lg:order-2 lg:col-span-5">
+              </Reveal>
+              <Reveal className="order-1 min-w-0 lg:order-2 lg:col-span-5" delay={180}>
                 <FAQ />
-              </div>
+              </Reveal>
             </div>
           </div>
         </section>

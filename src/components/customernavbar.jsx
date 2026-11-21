@@ -182,7 +182,7 @@ function CustomerNavbar({
             to="/customer"
             className="mr-1 inline-flex min-w-0 shrink flex-col leading-none no-underline sm:mr-6"
           >
-            <span className="font-display text-[1.15rem] tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000] sm:text-[1.4rem]">
+            <span className="font-sans text-[1.15rem] font-extrabold tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000] sm:text-[1.4rem]">
               MOTOPOT&apos;S
             </span>
             <span className="mt-1 self-start bg-[#22222B] px-2 py-0.5 font-display text-[0.65rem] italic text-[#F5F5F5]">

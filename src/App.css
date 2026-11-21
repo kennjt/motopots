@@ -3,6 +3,92 @@
   max-width: min(100%, 420px);
 }
 
+/* Display typography is intentionally scoped so navigation, controls, and body copy
+   retain their existing Poppins and Inter roles. */
+.hero-heading,
+.display-heading {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+}
+
+.hero-heading {
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+
+.hero-heading .hero-brand {
+  font-weight: 900;
+}
+
+.hero-heading .hero-accent {
+  background: linear-gradient(135deg, #ff6040 0%, #e63946 58%, #c92d3a 100%);
+  background-clip: text;
+  font-weight: 900;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 5px rgba(230, 57, 70, 0.2);
+}
+
+.customer-hero {
+  background: radial-gradient(ellipse 42% 55% at 78% 45%, rgba(230, 57, 70, 0.12), transparent 72%);
+}
+
+.store-status-badge {
+  line-height: 1.45;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.16);
+}
+
+.store-status-open {
+  border-color: rgba(52, 211, 153, 0.28);
+  background: rgba(52, 211, 153, 0.09);
+  color: #86efac;
+}
+
+.store-status-closed {
+  border-color: rgba(230, 57, 70, 0.3);
+  background: rgba(230, 57, 70, 0.1);
+  color: #ff727d;
+}
+
+@media (max-width: 639px) {
+  .store-status-badge {
+    width: 100%;
+    border-radius: 1rem;
+  }
+}
+
+.display-heading {
+  font-weight: 800;
+}
+
+.mp-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 600ms cubic-bezier(0.2, 0.75, 0.25, 1), transform 600ms cubic-bezier(0.2, 0.75, 0.25, 1);
+  transition-delay: var(--mp-reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.mp-reveal-scale {
+  transform: translateY(30px) scale(0.96);
+}
+
+.mp-reveal-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-reveal,
+  .mp-reveal-scale,
+  .mp-reveal-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+}
+
 .logout-modal-overlay {
   animation: logout-overlay-in 180ms ease-out both;
 }
