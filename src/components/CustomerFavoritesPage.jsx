@@ -7,21 +7,10 @@ export default function CustomerFavoritesPage({
   favoriteOrders,
   storeOpen,
   onAddToCart,
+  onReorder,
   onCustomize,
   onRemove,
 }) {
-  const favorites = favoriteOrders.flatMap((order) => (order.items || []).map((item, itemIndex) => {
-    const product = menuItems.find((menuItem) => menuItem.id === item.productId);
-    return {
-      ...item,
-      favoriteId: order.id,
-      itemIndex,
-      category: product?.category || "",
-      description: product?.description || item.description || "",
-      price: item.savedPrice ?? item.finalUnitPrice ?? item.price ?? item.basePrice ?? 0,
-    };
-  }));
-
   return (
     <section className="mx-auto max-w-4xl pb-6">
       <Link to="/customer/menu" className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm font-bold text-[#A1A1AA] no-underline transition hover:text-white">
@@ -38,46 +27,83 @@ export default function CustomerFavoritesPage({
         </div>
       </div>
 
-      {!favorites.length ? (
+      {!favoriteOrders.length ? (
         <div className="rounded-2xl border border-white/[0.08] bg-[#15151C] px-5 py-10 text-center">
           <p className="m-0 text-base font-bold text-white">No favorites yet</p>
-          <p className="mb-4 mt-2 text-sm text-[#A1A1AA]">Save an order to find your favorite foods here.</p>
+          <p className="mb-4 mt-2 text-sm text-[#A1A1AA]">After checkout, save a customized order to find it here.</p>
           <Link to="/customer/menu" className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#E63946] px-4 text-sm font-extrabold text-white no-underline transition hover:bg-[#C92D3A]">
             Browse Menu
           </Link>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {favorites.map((item) => (
-            <article key={`${item.favoriteId}-${item.itemIndex}`} className="rounded-2xl border border-white/[0.08] bg-[#15151C] p-3 sm:p-4">
-              <div className="flex gap-3">
-                <div className="h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-xl bg-[#22222B]">
-                  <ImageWithSkeleton src={item.image} alt={item.name} className="h-full w-full object-contain" />
+        <div className="space-y-4">
+          {favoriteOrders.map((order) => {
+            const items = order.items || [];
+            const total = order.total ?? items.reduce(
+              (sum, item) => sum + (item.finalUnitPrice ?? item.price ?? item.savedPrice ?? 0) * (item.quantity || 1),
+              0,
+            );
+            return (
+              <article key={order.id} className="rounded-2xl border border-white/[0.08] bg-[#15151C] p-4 sm:p-5">
+                <header className="flex flex-wrap items-start justify-between gap-3 border-b border-white/[0.07] pb-3">
+                  <div>
+                    <h2 className="m-0 text-base font-extrabold text-white">{order.name || items[0]?.name || "Favorite order"}</h2>
+                    <p className="mb-0 mt-1 text-xs text-[#A1A1AA]">{order.orderType || "Pickup"}{order.savedAt ? ` · Saved ${new Date(order.savedAt).toLocaleDateString()}` : ""}</p>
+                  </div>
+                  <button type="button" onClick={() => onRemove(order.id)} className="rounded-lg border border-red-400/20 px-3 py-2 text-xs font-bold text-red-300 transition hover:bg-red-500/10">
+                    Remove Favorite
+                  </button>
+                </header>
+
+                <div className="divide-y divide-white/[0.07]">
+                  {items.map((item, itemIndex) => {
+                    const product = menuItems.find((menuItem) => menuItem.id === item.productId);
+                    const unitPrice = item.finalUnitPrice ?? item.price ?? item.savedPrice ?? 0;
+                    const quantity = item.quantity || 1;
+                    const options = [
+                      item.flavor,
+                      item.variant,
+                      item.variantDetail,
+                      ...(item.addOns || []),
+                    ].filter(Boolean);
+                    return (
+                      <div key={`${order.id}-${itemIndex}`} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
+                        <div className="flex min-w-0 flex-1 gap-3">
+                          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#22222B]">
+                            <ImageWithSkeleton src={item.image || product?.image} alt={item.name} className="h-full w-full object-contain" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="m-0 text-sm font-extrabold text-white">{item.name}</h3>
+                            {options.length > 0 && <p className="mb-0 mt-1 text-xs text-[#A1A1AA]">{options.join(" · ")}</p>}
+                            {item.notes && <p className="mb-0 mt-1 text-xs italic text-[#A1A1AA]">Note: {item.notes}</p>}
+                            <p className="mb-0 mt-1 text-xs font-semibold text-[#FF929A]">Quantity: {quantity} · {formatMoney(unitPrice)} each</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-3 sm:justify-end">
+                          <span className="text-sm font-extrabold text-[#FF727D]">{formatMoney(unitPrice * quantity)}</span>
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => onAddToCart(item)} disabled={!storeOpen} className="min-h-9 rounded-lg bg-[#E63946] px-3 text-xs font-extrabold text-white transition hover:bg-[#C92D3A] disabled:cursor-not-allowed disabled:opacity-50">
+                              Add Item
+                            </button>
+                            <button type="button" onClick={() => onCustomize(order.id, itemIndex)} className="min-h-9 rounded-lg border border-white/10 bg-[#22222B] px-3 text-xs font-bold text-[#F5F5F5] transition hover:border-[#E63946]/40 hover:bg-[#292930]">
+                              Edit Options
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h2 className="m-0 text-sm font-extrabold text-white sm:text-base">{item.name}</h2>
-                  {item.category && <p className="mb-0 mt-1 text-[11px] font-semibold text-[#FF929A]">{item.category}</p>}
-                  {item.description && <p className="mb-0 mt-1 line-clamp-2 text-xs leading-5 text-[#A1A1AA]">{item.description}</p>}
-                  {item.details?.length > 0 && <p className="mb-0 mt-1 text-xs text-[#A1A1AA]">{item.details.join(" · ")}</p>}
-                </div>
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/[0.07] pt-3">
-                <span className="text-xs text-[#A1A1AA]">Saved price</span>
-                <span className="text-sm font-extrabold text-[#FF727D]">{formatMoney(item.price)}</span>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => onAddToCart(item)} disabled={!storeOpen} className="min-h-10 rounded-lg bg-[#E63946] px-2 text-xs font-extrabold text-white transition hover:bg-[#C92D3A] disabled:cursor-not-allowed disabled:opacity-50">
-                  Add to Cart
-                </button>
-                <button type="button" onClick={() => onCustomize(item)} className="min-h-10 rounded-lg border border-white/10 bg-[#22222B] px-2 text-xs font-bold text-[#F5F5F5] transition hover:border-[#E63946]/40 hover:bg-[#292930]">
-                  Customize &amp; Add
-                </button>
-              </div>
-              <button type="button" onClick={() => onRemove(item.favoriteId, item.itemIndex)} className="mt-2 min-h-9 w-full rounded-lg text-xs font-bold text-[#A1A1AA] transition hover:bg-white/[0.04] hover:text-[#FF727D]">
-                Remove from Favorites
-              </button>
-            </article>
-          ))}
+
+                <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.07] pt-3">
+                  <p className="m-0 font-extrabold text-white">Total <span className="ml-2 text-[#FF727D]">{formatMoney(total)}</span></p>
+                  <button type="button" onClick={() => onReorder(order)} disabled={!storeOpen} className="min-h-10 rounded-xl bg-[#E63946] px-4 text-sm font-extrabold text-white transition hover:bg-[#C92D3A] disabled:cursor-not-allowed disabled:opacity-50">
+                    Reorder Favorite
+                  </button>
+                </footer>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

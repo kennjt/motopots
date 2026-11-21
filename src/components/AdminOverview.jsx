@@ -15,6 +15,7 @@ import { formatMoney, menuItems } from "../data/menuData";
 import {
   ORDERS_STORAGE_KEY,
   ORDERS_UPDATED_EVENT,
+  formatOrderId,
   readOrders,
 } from "../data/orderStorage";
 import { readSchedule, readStoreStatus } from "../data/adminSettingsStorage";
@@ -102,7 +103,7 @@ function getCustomerName(order) {
 }
 
 function getOrderId(order) {
-  return `#${String(order.id ?? "").slice(-6) || "—"}`;
+  return `#${order.id === undefined || order.id === null ? "—" : formatOrderId(order.id)}`;
 }
 
 function getItemRevenue(item) {

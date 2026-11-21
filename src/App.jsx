@@ -17,6 +17,10 @@ import AdminCustomerPages from "./components/AdminCustomerPages";
 import AdminMenuCatalog from "./components/AdminMenuCatalog";
 import AdminWorkspace from "./components/AdminWorkspace";
 import AdminInventoryOverview from "./components/AdminInventoryOverview";
+import AdminInventoryManagement from "./components/AdminInventoryManagement";
+import AdminSalesReports from "./components/AdminSalesReports";
+import AdminExpenses from "./components/AdminExpenses";
+import AdminNotifications from "./components/AdminNotifications";
 
 import inasal from "./assets/inasal_withoutbg.png";
 import { ImageWithSkeleton } from "./components/Skeleton";
@@ -116,10 +120,9 @@ function HomePage() {
                 </h1>
 
                 <p className="mt-3 mb-3 max-w-[780px] font-sans text-lg leading-[1.55] text-[#A1A1AA] sm:text-md">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris nisi ut aliquip ex ea commodo consequat.
+                  Motopot&apos;s Food House brings together grilled favorites,
+                  savory snacks, and refreshing desserts. Browse the menu and
+                  order the dishes you love.
                 </p>
               </div>
               <div className="order-1 min-w-0 lg:order-2 lg:col-span-5">
@@ -217,17 +220,15 @@ function App() {
           />
           <Route
             path="recipes"
-            element={<AdminSectionPage title="Recipes" showHeading={false} />}
+            element={<AdminInventoryManagement view="recipes" />}
           />
           <Route
             path="stock-movements"
-            element={
-              <AdminSectionPage title="Stock Movements" showHeading={false} />
-            }
+            element={<AdminInventoryManagement view="stock-movements" />}
           />
           <Route
             path="suppliers"
-            element={<AdminSectionPage title="Suppliers" showHeading={false} />}
+            element={<AdminInventoryManagement view="suppliers" />}
           />
         </Route>
         <Route
@@ -322,11 +323,15 @@ function App() {
         />
         <Route
           path="expenses"
-          element={<AdminSectionPage title="Expenses" />}
+          element={<AdminExpenses />}
         />
         <Route
           path="sales-reports"
-          element={<AdminDashboard embedded page="sales-reports" />}
+          element={<AdminSalesReports />}
+        />
+        <Route
+          path="notifications"
+          element={<AdminNotifications />}
         />
         <Route
           path="store-information"

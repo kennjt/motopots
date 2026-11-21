@@ -65,18 +65,12 @@ const hasStoredCatalog = () => {
 };
 
 const storedCatalog = hasStoredCatalog();
-if (storedCatalog?.items?.length) {
-  const storedById = new Map(storedCatalog.items.map((item) => [item.id, item]));
-  menuItems.forEach((item, index) => {
-    if (storedById.has(item.id)) menuItems[index] = storedById.get(item.id);
-  });
-  storedCatalog.items.forEach((item) => {
-    if (!menuItems.some((existing) => existing.id === item.id)) menuItems.push(item);
-  });
-  const storedCategories = storedCatalog.categories?.filter((category) => category !== "All");
-  if (Array.isArray(storedCategories)) {
-    categories.splice(1, categories.length - 1, ...storedCategories);
-  }
+if (Array.isArray(storedCatalog?.items)) {
+  menuItems.splice(0, menuItems.length, ...storedCatalog.items);
+  const storedCategories = Array.isArray(storedCatalog.categories)
+    ? storedCatalog.categories.filter((category) => category !== "All")
+    : [];
+  categories.splice(1, categories.length - 1, ...storedCategories);
 }
 menuItems.forEach((item) => {
   if (item.available === undefined) item.available = true;
@@ -116,12 +110,15 @@ export async function loadMenuCatalog() {
     const getRequest = store.get("catalog");
     getRequest.onsuccess = () => {
       const catalog = getRequest.result?.value;
-      if (catalog?.items?.length) {
+      if (Array.isArray(catalog?.items)) {
         menuItems.splice(0, menuItems.length, ...catalog.items);
         menuItems.forEach((item) => {
           if (item.available === undefined) item.available = true;
         });
-        categories.splice(1, categories.length - 1, ...(catalog.categories?.filter((category) => category !== "All") || []));
+        const storedCategories = Array.isArray(catalog.categories)
+          ? catalog.categories.filter((category) => category !== "All")
+          : [];
+        categories.splice(1, categories.length - 1, ...storedCategories);
         localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(catalog));
         window.dispatchEvent(new CustomEvent("motopots-menu-updated"));
       }
@@ -150,7 +147,7 @@ export function makeCartItem(product, selection) {
   const notes = selection.notes?.trim() || "";
   return {
     id: `${product.id}:${variant.id}:${selection.flavor || ""}:${(selection.addOns || []).slice().sort().join(",")}:${notes}`,
-    productId: product.id, name: product.name, image: product.image, variant: variantLabel,
+    productId: product.id, variantId: variant.id, variantDetail: variant.detail || "", name: product.name, image: product.image, variant: variantLabel,
     flavor: variant.flavor || selection.flavor || "", addOns: selectedAddOns.map((addOn) => addOn.label),
     details, notes, quantity: 1, basePrice, addOnTotal, finalUnitPrice, price: finalUnitPrice, subtotal: finalUnitPrice,
   };

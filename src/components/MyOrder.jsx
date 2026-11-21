@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import CustomerNavbar from "./customernavbar";
 import { formatMoney } from "../data/menuData";
-import { ORDERS_UPDATED_EVENT, readOrders, saveOrders } from "../data/orderStorage";
+import {
+  ORDERS_UPDATED_EVENT,
+  formatOrderId,
+  readOrders,
+  recordOrderStatus,
+  saveOrders,
+} from "../data/orderStorage";
 import { showConfirm, showError, showSuccess } from "../utils/swal";
 
 const money = formatMoney;
@@ -10,6 +16,7 @@ const money = formatMoney;
 const statusStyles = {
   Pending: "bg-[#22222B] text-[#F5F5F5]",
   "Pending Confirmation": "bg-[#22222B] text-[#F5F5F5]",
+  "Cancellation Requested": "bg-amber-500/15 text-amber-200",
   Preparing: "bg-[#E63946]/20 text-[#F5F5F5]",
   "Ready for Pickup": "bg-[#22222B] text-[#F5F5F5]",
   Completed: "bg-green-500/20 text-green-300",
@@ -30,7 +37,8 @@ const isCancellableStatus = (status) => ["pending", "pending confirmation"].incl
 function MyOrder({ modal = false, onClose }) {
   const [orders, setOrders] = useState(readOrders);
   const [cancelTarget, setCancelTarget] = useState(null);
-  const [cancellingOrderId, setCancellingOrderId] = useState(null);
+  const [cancellationRemarks, setCancellationRemarks] = useState("");
+  const [requestingCancellationOrderId, setRequestingCancellationOrderId] = useState(null);
 
   useEffect(() => {
     const syncOrders = () => setOrders(readOrders());
@@ -47,36 +55,62 @@ function MyOrder({ modal = false, onClose }) {
   const canCancel = (order) => isCancellableStatus(getOrderStatus(order));
 
   const cancelOrder = async () => {
-    if (!cancelTarget || cancellingOrderId) return;
-    const confirmation = await showConfirm({ title: "Cancel this order?", text: "Are you sure you want to cancel this order?", confirmText: "Yes, cancel order", cancelText: "Keep order" });
+    if (!cancelTarget || requestingCancellationOrderId) return;
+    const confirmation = await showConfirm({ title: "Request order cancellation?", text: "Your order will not be cancelled until an admin reviews and approves your request.", confirmText: "Send request", cancelText: "Keep order" });
     if (!confirmation.isConfirmed) return;
     const currentOrders = readOrders();
     const currentOrder = currentOrders.find((order) => String(order.id) === String(cancelTarget.id));
-    // Re-check against the latest stored status so a stale page cannot cancel a progressed order.
     if (!currentOrder || !canCancel(currentOrder)) {
       setOrders(currentOrders);
       setCancelTarget(null);
+      setCancellationRemarks("");
       showError("Order cannot be cancelled", "This order can no longer be cancelled.");
       return;
     }
-    setCancellingOrderId(currentOrder.id);
-    const cancelledOrder = { ...currentOrder, status: "Cancelled", orderStatus: "Cancelled", cancelledAt: new Date().toISOString() };
-    const updatedOrders = currentOrders.map((order) => String(order.id) === String(currentOrder.id) ? cancelledOrder : order);
+    setRequestingCancellationOrderId(currentOrder.id);
+    const requestedAt = new Date().toISOString();
+    const updatedOrders = currentOrders.map((order) => String(order.id) === String(currentOrder.id)
+      ? {
+          ...recordOrderStatus(order, "Cancellation Requested", {
+            timestamp: requestedAt,
+            changedBy:
+              typeof currentOrder.customer === "string"
+                ? currentOrder.customer
+                : currentOrder.customer?.name || "Customer",
+            remarks: cancellationRemarks,
+          }),
+          cancellationRequestStatus: "Pending",
+          cancellationRequestedAt: requestedAt,
+          cancellationPreviousStatus: getOrderStatus(currentOrder),
+          cancellationDecisionAt: null,
+        }
+      : order);
     saveOrders(updatedOrders);
     setOrders(updatedOrders);
-    setCancellingOrderId(null);
+    setRequestingCancellationOrderId(null);
     setCancelTarget(null);
-    showSuccess("Order cancelled successfully", `Order #${String(currentOrder.id).slice(-6)} was cancelled.`);
+    setCancellationRemarks("");
+    showSuccess("Cancellation request submitted", "An admin must approve the request before this order is cancelled.");
   };
 
   const cancelDialog = cancelTarget && (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" role="presentation">
       <section role="alertdialog" aria-modal="true" aria-labelledby="cancel-order-title" className="w-full max-w-md rounded-2xl border border-white/10 bg-[#15151C] p-6 shadow-2xl shadow-black/40">
-        <h2 id="cancel-order-title" className="text-xl font-extrabold text-[#F5F5F5]">Cancel Order?</h2>
-        <p className="mt-2 text-sm leading-relaxed text-[#A1A1AA]">Are you sure you want to cancel this order? This action cannot be undone.</p>
+        <h2 id="cancel-order-title" className="text-xl font-extrabold text-[#F5F5F5]">Request Cancellation?</h2>
+        <p className="mt-2 text-sm leading-relaxed text-[#A1A1AA]">Your order will remain active unless an admin approves your cancellation request.</p>
+        <label className="mt-4 block text-xs font-bold text-[#A1A1AA]">
+          Remarks <span className="font-normal text-[#777781]">(optional)</span>
+          <textarea
+            value={cancellationRemarks}
+            onChange={(event) => setCancellationRemarks(event.target.value)}
+            rows="3"
+            maxLength="500"
+            className="mt-1 block w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none focus:border-[#E63946]/60"
+          />
+        </label>
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button type="button" onClick={() => setCancelTarget(null)} className="rounded-xl border border-white/10 px-4 py-2.5 text-sm font-bold text-[#F5F5F5] transition hover:bg-[#22222B]">Keep Order</button>
-          <button type="button" onClick={cancelOrder} disabled={Boolean(cancellingOrderId)} className="rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-[#C92D3A] disabled:cursor-not-allowed disabled:opacity-60">{cancellingOrderId ? "Cancelling…" : "Yes, Cancel Order"}</button>
+          <button type="button" onClick={() => { setCancelTarget(null); setCancellationRemarks(""); }} className="rounded-xl border border-white/10 px-4 py-2.5 text-sm font-bold text-[#F5F5F5] transition hover:bg-[#22222B]">Keep Order</button>
+          <button type="button" onClick={cancelOrder} disabled={Boolean(requestingCancellationOrderId)} className="rounded-xl bg-[#E63946] px-4 py-2.5 text-sm font-extrabold text-white transition hover:bg-[#C92D3A] disabled:cursor-not-allowed disabled:opacity-60">{requestingCancellationOrderId ? "Sending request…" : "Send Request"}</button>
         </div>
       </section>
     </div>
@@ -109,14 +143,16 @@ function MyOrder({ modal = false, onClose }) {
                 <article key={order.id} className="rounded-xl border border-white/10 bg-[#15151C] p-5 shadow-lg shadow-black/20 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
                     <div>
-                      <h2 className="text-lg font-extrabold text-[#F5F5F5]">Order #{String(order.id).slice(-6)}</h2>
+                      <h2 className="text-lg font-extrabold text-[#F5F5F5]">Order #{formatOrderId(order.id)}</h2>
                       <p className="mt-1 text-sm text-[#A1A1AA]">{new Date(orderDate).toLocaleString()}</p>
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2">
                       <span className={`rounded-full px-3 py-1 text-sm font-bold ${statusStyles[status] || statusStyles.Pending}`}>{status}</span>
-                      {canCancel(order) && <button type="button" onClick={() => setCancelTarget(order)} disabled={cancellingOrderId === order.id} className="rounded-lg border border-red-400/30 px-3 py-1.5 text-xs font-extrabold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50">{cancellingOrderId === order.id ? "Cancelling…" : "Cancel Order"}</button>}
+                      {canCancel(order) && <button type="button" onClick={() => { setCancellationRemarks(""); setCancelTarget(order); }} disabled={requestingCancellationOrderId === order.id} className="rounded-lg border border-red-400/30 px-3 py-1.5 text-xs font-extrabold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50">{requestingCancellationOrderId === order.id ? "Sending request…" : "Request Cancellation"}</button>}
                     </div>
                   </div>
+                  {status === "Cancellation Requested" && <p className="mt-3 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-200">Cancellation requested. Waiting for admin approval.</p>}
+                  {order.cancellationRequestStatus === "Rejected" && <p className="mt-3 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-200">Your cancellation request was declined. The order remains active.</p>}
                   <div className="mt-3 flex flex-wrap gap-2 text-xs font-bold">
                     <span className={`rounded-full px-3 py-1 ${paymentStyles[order.paymentStatus] || paymentStyles.Unpaid}`}>Payment: {order.paymentStatus || "Unpaid"}</span>
                     {order.paymentMethod && <span className="rounded-full bg-[#22222B] px-3 py-1 text-[#A1A1AA]">{order.paymentMethod}</span>}

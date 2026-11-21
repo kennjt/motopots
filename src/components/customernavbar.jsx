@@ -4,6 +4,7 @@ import { formatMoney } from "../data/menuData";
 import carticon from "../assets/cart_icon.svg";
 import { showSuccess } from "../utils/swal";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
+import NotificationCenter from "./NotificationCenter";
 
 function MenuIcon({ open }) {
   return (
@@ -143,6 +144,7 @@ function CustomerNavbar({
         </Link>
 
         <div className="ml-auto flex min-w-0 items-center gap-1 sm:gap-2 lg:order-3">
+          <NotificationCenter audience="customer" />
           <div
             aria-label={`Customer: ${customerName || "Customer"}`}
             className="inline-flex min-w-0 max-w-[42vw] shrink items-center gap-1.5 px-1.5 py-2 text-sm font-semibold text-[#F5F5F5] sm:max-w-40 sm:gap-2"
