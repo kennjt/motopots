@@ -286,7 +286,7 @@ function AppNavbar() {
               </button>
             </div>
 
-            <div className="flex min-w-0 flex-col gap-1 lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:flex-row lg:gap-0">
+            <div className="flex min-w-0 flex-col gap-1 rounded-3xl border border-white/10 bg-[#15151C]/80 p-2 shadow-lg shadow-black/20 backdrop-blur-xl lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:flex-row lg:gap-0">
               {["Home", "Menu", "About"].map((label) => (
                 <a
                   key={label}
