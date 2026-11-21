@@ -10,7 +10,7 @@ import ProfileSettings from "./components/profile";
 import MyOrder from "./components/MyOrder";
 import AccountCreation from "./components/AccountCreation";
 
-import inasal from "./assets/inasal_withoutbg.png";
+import homeHeroImage from "./assets/home-heroimg.png";
 import { ImageWithSkeleton } from "./components/Skeleton";
 import "./App.css";
 
@@ -25,9 +25,9 @@ function HomePage() {
           id="home"
           className="mp-hero relative isolate flex min-h-[calc(100svh-76px)] items-center overflow-hidden py-8 sm:py-5"
         >
-          <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-4">
-            <div className="grid grid-cols-1 items-center gap-10 sm:gap-8 lg:grid-cols-12">
-              <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
+          <div className="mx-auto w-full pl-4 pr-4 sm:pl-6 sm:pr-6 lg:pl-8 lg:pr-0">
+            <div className="grid grid-cols-1 items-center gap-10 sm:gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-6">
+              <div className="order-2 min-w-0 max-w-4xl lg:order-1">
                 <p className="mb-2 font-sans text-sm font-extrabold uppercase tracking-[3px] text-[#E63946]">
                   Welcome to
                 </p>
@@ -82,12 +82,12 @@ function HomePage() {
                   </button>
                 </div>
               </div>
-              <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
-                <div className="w-full max-w-[580px] overflow-hidden">
+              <div className="order-1 hidden min-w-0 items-center justify-end sm:flex lg:order-2">
+                <div className="w-full max-w-[1000px] lg:w-[90%] lg:max-w-none lg:-translate-y-1">
                   <ImageWithSkeleton
-                    src={inasal}
+                    src={homeHeroImage}
                     alt="Motopot's Food House: Bacolod Chicken Inasal, Takoyaki and Halo-Halo"
-                    className="block h-auto w-full object-contain"
+                    className="block h-auto w-full object-contain drop-shadow-[0_1.5rem_1.75rem_rgba(0,0,0,0.42)] [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]"
                   />
                 </div>
               </div>

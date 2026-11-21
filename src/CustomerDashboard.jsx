@@ -20,7 +20,7 @@ import {
   recordOrderStatus,
   saveOrders,
 } from "./data/orderStorage";
-import inasal from "./assets/inasal_withoutbg.png";
+import homeHeroImage from "./assets/home-heroimg.png";
 import { ImageWithSkeleton } from "./components/Skeleton";
 import {
   showClosedStore,
@@ -634,7 +634,7 @@ function CustomerDashboard() {
             >
               <div className="mx-auto w-full max-w-6xl px-1 sm:px-2">
                 <div className="grid grid-cols-1 items-center gap-8 sm:gap-8 lg:grid-cols-12">
-                  <div className="order-2 min-w-0 lg:order-1 lg:col-span-7">
+                  <div className="order-2 min-w-0 lg:order-1 lg:col-span-6">
                     <p className="mb-2 text-sm font-extrabold uppercase tracking-[3px] text-[#E63946]">
                       Welcome to
                     </p>
@@ -671,12 +671,12 @@ function CustomerDashboard() {
                       </Link>
                     </div>
                   </div>
-                  <div className="order-1 flex min-w-0 justify-center lg:order-2 lg:col-span-5 lg:justify-end">
-                    <div className="w-full max-w-[500px] overflow-hidden">
+                  <div className="order-1 flex min-w-0 items-center justify-center lg:order-2 lg:col-span-6 lg:justify-end">
+                    <div className="w-full max-w-[900px] lg:w-[75vw] lg:max-w-none lg:translate-x-2 lg:translate-y-6 xl:translate-x-[calc((100vw-72rem)/2)]">
                       <ImageWithSkeleton
-                        src={inasal}
+                        src={homeHeroImage}
                         alt="Bacolod chicken inasal served with rice"
-                        className="block h-auto w-full object-contain"
+                        className="block h-auto w-full object-contain drop-shadow-[0_1.5rem_1.75rem_rgba(0,0,0,0.42)]"
                       />
                     </div>
                   </div>
