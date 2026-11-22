@@ -94,7 +94,7 @@ function MyOrder({ modal = false, onClose }) {
   };
 
   const cancelDialog = cancelTarget && (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" role="presentation">
+    <div className="mobile-modal-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" role="presentation">
       <section role="alertdialog" aria-modal="true" aria-labelledby="cancel-order-title" className="w-full max-w-md rounded-2xl border border-white/10 bg-[#15151C] p-6 shadow-2xl shadow-black/40">
         <h2 id="cancel-order-title" className="text-xl font-extrabold text-[#F5F5F5]">Request Cancellation?</h2>
         <p className="mt-2 text-sm leading-relaxed text-[#A1A1AA]">Your order will remain active unless an admin approves your cancellation request.</p>
@@ -186,7 +186,7 @@ function MyOrder({ modal = false, onClose }) {
   if (modal) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        className="mobile-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
         onMouseDown={(event) => {
           if (event.target === event.currentTarget) onClose();
         }}

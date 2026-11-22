@@ -149,7 +149,7 @@ function AccountCreation() {
 
   return (
     <main
-      className="auth-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto px-3 py-3 sm:px-6 sm:py-4"
+      className="auth-modal-backdrop mobile-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto px-3 py-3 sm:px-6 sm:py-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) navigate("/");
       }}

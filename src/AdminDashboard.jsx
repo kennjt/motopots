@@ -1144,7 +1144,7 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
       </div>
       {statusChange && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4"
+          className="mobile-modal-backdrop fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setStatusChange(null);
           }}

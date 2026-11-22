@@ -92,7 +92,7 @@ function StatCard({ label, value, icon: Icon, tone }) {
 function InventoryModal({ title, children, onClose, maxWidth = "max-w-xl" }) {
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4"
+          className="mobile-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4"
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
     >
       <section className={`max-h-[92vh] w-full ${maxWidth} overflow-y-auto rounded-2xl border border-white/10 bg-[#15151C] p-5 shadow-2xl sm:p-6`}>

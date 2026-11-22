@@ -240,7 +240,7 @@ function Menu({
       </div>
       {selectedProduct && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="mobile-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           onMouseDown={(event) =>
             event.target === event.currentTarget && setSelectedProduct(null)
           }

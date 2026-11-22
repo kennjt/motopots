@@ -35,7 +35,7 @@ export default function LogoutConfirmationModal({ onCancel, onConfirm }) {
 
   return (
     <div
-      className={`logout-modal-overlay fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-black/65 p-4 backdrop-blur-[2px] sm:p-6 ${closing ? "is-closing pointer-events-none" : ""}`}
+      className={`logout-modal-overlay mobile-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-black/65 p-4 backdrop-blur-[2px] sm:p-6 ${closing ? "is-closing pointer-events-none" : ""}`}
       onAnimationEnd={finishAnimation}
     >
       <section

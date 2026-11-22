@@ -384,7 +384,7 @@ export default function AdminExpenses() {
 
       {editorOpen && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4"
+          className="mobile-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget && !saving) setEditorOpen(false);
           }}

@@ -408,7 +408,7 @@ function AppNavbar() {
 
       {loginChoiceOpen && (
         <div
-          className={`login-choice-overlay fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 sm:p-6 ${
+          className={`login-choice-overlay mobile-modal-backdrop fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 sm:p-6 ${
             loginChoiceClosing ? "is-closing" : ""
           }`}
           onClick={(event) => {
@@ -477,7 +477,7 @@ function AppNavbar() {
 
       {showLogin && (
         <div
-          className="auth-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4"
+          className="auth-modal-backdrop mobile-modal-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-3 sm:p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) closeLogin();
           }}

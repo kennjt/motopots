@@ -684,7 +684,7 @@ function CustomerDashboard() {
                       </p>
 
                       <h1 className="hero-heading mb-1 italic">
-                        <span className="hero-brand block text-[clamp(36px,9vw,80px)] text-[#F5F5F5] ">
+                        <span className="hero-brand block text-[clamp(42px,10vw,80px)] text-[#F5F5F5] ">
                           Motopot's
                         </span>
 
@@ -772,7 +772,7 @@ function CustomerDashboard() {
                 <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
                   <div className="min-w-0 lg:col-span-7">
                     <h1 className="hero-heading mb-1 italic">
-                      <span className="hero-brand block text-[clamp(36px,9vw,80px)] text-[#F5F5F5]">
+                      <span className="hero-brand block text-[clamp(42px,10vw,80px)] text-[#F5F5F5]">
                         Motopot&apos;s
                       </span>
                       <span className="mt-0 block text-[clamp(24px,4.5vw,28px)] text-[#F5F5F5]">

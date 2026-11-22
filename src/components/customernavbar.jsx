@@ -4,6 +4,7 @@ import { formatMoney } from "../data/menuData";
 import carticon from "../assets/cart_icon.svg";
 import { showSuccess } from "../utils/swal";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
+import { ClipboardList, X } from "lucide-react";
 
 function MenuIcon({ open }) {
   return (
@@ -166,11 +167,7 @@ function CustomerNavbar({
 
   const toggleFavorites = () => {
     setCartOpen(false);
-    if (window.matchMedia?.("(max-width: 639px)").matches) {
-      setFavoritesOpen(false);
-      navigate("/customer/favorites");
-      return;
-    }
+    setSettingsMenuOpen(false);
     setFavoritesOpen((value) => !value);
   };
 
@@ -182,11 +179,11 @@ function CustomerNavbar({
             to="/customer"
             className="mr-1 inline-flex min-w-0 shrink flex-col leading-none no-underline sm:mr-6"
           >
-            <span className="font-sans text-[1.15rem] font-extrabold tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000] sm:text-[1.4rem]">
-              MOTOPOT&apos;S
+            <span className="hero-brand italic font-sans text-[1.15rem] font-extrabold sm:text-[1.4rem]">
+              Motopot's
             </span>
-            <span className="mt-1 self-start bg-[#22222B] px-2 py-0.5 font-display text-[0.65rem] italic text-[#F5F5F5]">
-              FOOD HOUSE
+            <span className="italic hero-accent text-[0.15rem] font-sans font-extrabold text-[#E63946] sm:text-[0.60rem]">
+              Food House
             </span>
           </Link>
 
@@ -354,14 +351,20 @@ function CustomerNavbar({
                 </div>
               )}
             </div>
-            <div ref={favoritesRef} className="relative">
+            <div
+              ref={favoritesRef}
+              className={favoritesOpen ? "mobile-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4" : "hidden"}
+              onClick={(event) => {
+                if (event.target === event.currentTarget) setFavoritesOpen(false);
+              }}
+            >
               <button
                 type="button"
                 onClick={toggleFavorites}
                 aria-expanded={favoritesOpen}
                 aria-controls="customer-favorites-panel"
                 aria-label={`Favorite orders, ${favoriteCount} saved`}
-                className="relative flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/10 bg-[#15151C]/80 px-3 text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:text-[#FF8B93] hover:shadow-xl"
+                className="hidden"
               >
                 <HeartIcon filled={favoritesOpen || favoriteCount > 0} />
                 {favoriteCount > 0 && (
@@ -373,15 +376,25 @@ function CustomerNavbar({
               {favoritesOpen && (
                 <div
                   id="customer-favorites-panel"
-                  className="absolute right-0 z-50 mt-2 w-[min(25rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#15151C]/95 shadow-2xl shadow-black/40 backdrop-blur-xl"
+                  className="relative z-50 mt-0 w-[min(25rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#15151C]/95 shadow-2xl shadow-black/40 backdrop-blur-xl"
                 >
                   <div className="flex items-center justify-between border-b border-white/10 bg-[#22222B]/70 px-4 py-3">
-                    <h2 className="font-extrabold text-[#F5F5F5]">
-                      Favorite Orders
-                    </h2>
-                    <span className="text-xs text-[#A1A1AA]">
-                      {favoriteCount} saved
-                    </span>
+                    <div>
+                      <h2 className="font-extrabold text-[#F5F5F5]">
+                        Favorite Orders
+                      </h2>
+                      <span className="text-xs text-[#A1A1AA]">
+                        {favoriteCount} saved
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label="Close favorites"
+                      onClick={() => setFavoritesOpen(false)}
+                      className="flex h-9 w-9 items-center justify-center rounded-full text-[#A1A1AA] transition hover:bg-white/5 hover:text-white focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
+                    >
+                      <X size={18} aria-hidden="true" />
+                    </button>
                   </div>
                   <div className="max-h-[min(60vh,30rem)] overflow-y-auto p-4">
                     {!favoriteOrders.length ? (
@@ -463,20 +476,6 @@ function CustomerNavbar({
                 </div>
               )}
             </div>
-            <Link
-              to="/customer/orders"
-              onClick={
-                onOrdersClick
-                  ? (event) => {
-                      event.preventDefault();
-                      onOrdersClick();
-                    }
-                  : undefined
-              }
-              className="hidden min-h-11 rounded-full border border-white/10 bg-[#15151C]/80 px-4 py-2 text-sm font-medium text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-xl transition-all duration-300 hover:border-[#E63946]/50 hover:bg-[#22222B] sm:inline-flex sm:items-center"
-            >
-              My Orders
-            </Link>
             <div ref={settingsRef} className="relative">
               <button
                 type="button"
@@ -500,6 +499,35 @@ function CustomerNavbar({
                 aria-hidden={!settingsMenuOpen}
                 className={`absolute right-0 z-50 mt-2 w-[min(13rem,calc(100vw-2rem))] origin-top-right rounded-2xl border border-white/10 bg-[#22222B]/95 p-1.5 shadow-2xl shadow-black/40 backdrop-blur-xl transition duration-200 ${settingsMenuOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"}`}
               >
+                <button
+                  type="button"
+                  onClick={toggleFavorites}
+                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-bold text-[#F5F5F5] transition hover:bg-[#15151C] hover:text-[#E63946]"
+                >
+                  <span className="relative flex h-5 w-5 items-center justify-center">
+                    <HeartIcon filled={favoriteCount > 0} />
+                    {favoriteCount > 0 && (
+                      <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#E63946] px-1 text-[9px] font-extrabold text-white">
+                        {favoriteCount}
+                      </span>
+                    )}
+                  </span>
+                  Favorites
+                </button>
+                <Link
+                  to="/customer/orders"
+                  onClick={(event) => {
+                    setSettingsMenuOpen(false);
+                    if (onOrdersClick) {
+                      event.preventDefault();
+                      onOrdersClick();
+                    }
+                  }}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-[#F5F5F5] no-underline transition hover:bg-[#15151C] hover:text-[#E63946]"
+                >
+                  <ClipboardList aria-hidden="true" className="h-5 w-5" />
+                  My Orders
+                </Link>
                 <Link
                   to="/customer/profile"
                   onClick={(event) => {

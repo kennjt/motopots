@@ -468,7 +468,7 @@ function ScheduleTimeField({
       )}
       {open && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-3 backdrop-blur-[2px]"
+          className="mobile-modal-backdrop fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-3 backdrop-blur-[2px]"
           onClick={(event) => {
             if (event.target === event.currentTarget) closePicker();
           }}

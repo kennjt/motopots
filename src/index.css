@@ -114,6 +114,23 @@ body {
   -webkit-backdrop-filter: blur(2px);
 }
 
+.mobile-modal-backdrop {
+  transition: opacity 180ms ease, backdrop-filter 180ms ease;
+  -webkit-transition: opacity 180ms ease, -webkit-backdrop-filter 180ms ease;
+}
+
+@media (max-width: 1023px) {
+  body:has(.mobile-modal-backdrop) {
+    overflow: hidden;
+  }
+
+  .mobile-modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.65) !important;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+}
+
 .admin-main-content {
   height: 100vh;
   margin-left: 0;

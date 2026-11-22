@@ -363,7 +363,7 @@ export default function AdminMenuCatalog({ view = "catalog", showHeading = true 
       )}
 
       {editorOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" onMouseDown={(event) => event.target === event.currentTarget && setEditorOpen(false)}>
+        <div className="mobile-modal-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" onMouseDown={(event) => event.target === event.currentTarget && setEditorOpen(false)}>
           <form onSubmit={saveProduct} className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#15151C] p-5 shadow-2xl sm:p-6">
             <div className="mb-5 flex items-start justify-between"><div><h3 className="m-0 text-xl font-extrabold">{editingId ? "Edit Product" : "Add New Product"}</h3></div><button type="button" onClick={() => setEditorOpen(false)} className="text-2xl text-[#A1A1AA]">&times;</button></div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -410,7 +410,7 @@ export default function AdminMenuCatalog({ view = "catalog", showHeading = true 
       )}
 
       {detailsProduct && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" onMouseDown={(event) => event.target === event.currentTarget && setDetailsProduct(null)}>
+        <div className="mobile-modal-backdrop fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" onMouseDown={(event) => event.target === event.currentTarget && setDetailsProduct(null)}>
           <section className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#15151C] p-5 shadow-2xl sm:p-6">
             <div className="flex justify-between gap-4"><h3 className="m-0 text-xl font-extrabold">{detailsProduct.name}</h3><button type="button" onClick={() => setDetailsProduct(null)} className="text-2xl text-[#A1A1AA]">&times;</button></div>
             <p className="mt-3 text-sm text-[#A1A1AA]">{detailsProduct.description}</p>
