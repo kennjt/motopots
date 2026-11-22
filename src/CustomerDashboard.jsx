@@ -7,6 +7,7 @@ import CustomerFavoritesPage from "./components/CustomerFavoritesPage";
 import MyOrder from "./components/MyOrder";
 import ProfileSettings from "./components/profile";
 import Checkout from "./components/Checkout";
+import CustomerLoyaltyPage from "./components/CustomerLoyaltyPage";
 import FAQ from "./components/faq";
 import Footer from "./components/footer";
 import { formatMoney, makeCartItem, menuItems } from "./data/menuData";
@@ -160,7 +161,8 @@ function CustomerDashboard() {
   const isCartPage = location.pathname === "/customer/cart";
   const isFavoritesPage = location.pathname === "/customer/favorites";
   const isCheckoutPage = location.pathname === "/customer/checkout";
-  const isDedicatedPage = isCartPage || isFavoritesPage || isCheckoutPage;
+  const isLoyaltyPage = location.pathname === "/customer/loyalty";
+  const isDedicatedPage = isCartPage || isFavoritesPage || isCheckoutPage || isLoyaltyPage;
   const [activeSection, setActiveSection] = useState("menu");
   const [showOrders, setShowOrders] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -653,6 +655,7 @@ function CustomerDashboard() {
               storeOpen={storeStatus === "open"}
             />
           )}
+          {isLoyaltyPage && <CustomerLoyaltyPage />}
           {!isDedicatedPage && activeSection === "menu" && (
             <>
               <section

@@ -13,6 +13,7 @@ import { openAdminDatabase } from "./adminDatabase";
 
 export const categories = [
   "All",
+  "Promos",
   "Bacolod Chicken Inasal",
   "Takoyaki",
   "Halo-Halo",

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { formatMoney } from "../data/menuData";
 import carticon from "../assets/cart_icon.svg";
 import { showSuccess } from "../utils/swal";
+import { Gift } from "lucide-react";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
 
 function MenuIcon({ open }) {
@@ -500,6 +501,14 @@ function CustomerNavbar({
                 aria-hidden={!settingsMenuOpen}
                 className={`absolute right-0 z-50 mt-2 w-[min(13rem,calc(100vw-2rem))] origin-top-right rounded-2xl border border-white/10 bg-[#22222B]/95 p-1.5 shadow-2xl shadow-black/40 backdrop-blur-xl transition duration-200 ${settingsMenuOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-2 opacity-0"}`}
               >
+                <Link
+                  to="/customer/loyalty"
+                  onClick={() => setSettingsMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-[#F5F5F5] no-underline transition hover:bg-[#15151C] hover:text-[#FFB1B7]"
+                >
+                  <Gift aria-hidden="true" className="h-5 w-5" />
+                  Loyalty Points
+                </Link>
                 <Link
                   to="/customer/profile"
                   onClick={(event) => {

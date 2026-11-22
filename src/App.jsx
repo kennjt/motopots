@@ -120,7 +120,7 @@ function HomePage() {
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <Reveal className="order-2 min-w-0 lg:order-1 lg:col-span-7" delay={80}>
                 <h1 className="hero-heading mb-1 italic">
-                  <span className="hero-brand block text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                  <span className="hero-brand block text-[clamp(10px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
                     MOTOPOT'S
                   </span>
 
@@ -157,6 +157,7 @@ function App() {
       <Route path="/customer/menu" element={<CustomerDashboard />} />
       <Route path="/customer/cart" element={<CustomerDashboard />} />
       <Route path="/customer/favorites" element={<CustomerDashboard />} />
+      <Route path="/customer/loyalty" element={<CustomerDashboard />} />
       <Route path="/customer/checkout" element={<CustomerDashboard />} />
       <Route path="/staff/*" element={<AdminRoutes />} />
       <Route path="/customer/profile" element={<ProfileSettings />} />
