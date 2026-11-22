@@ -7,7 +7,6 @@ import CustomerFavoritesPage from "./components/CustomerFavoritesPage";
 import MyOrder from "./components/MyOrder";
 import ProfileSettings from "./components/profile";
 import Checkout from "./components/Checkout";
-import CustomerLoyaltyPage from "./components/CustomerLoyaltyPage";
 import FAQ from "./components/faq";
 import Footer from "./components/footer";
 import { formatMoney, makeCartItem, menuItems } from "./data/menuData";
@@ -161,8 +160,7 @@ function CustomerDashboard() {
   const isCartPage = location.pathname === "/customer/cart";
   const isFavoritesPage = location.pathname === "/customer/favorites";
   const isCheckoutPage = location.pathname === "/customer/checkout";
-  const isLoyaltyPage = location.pathname === "/customer/loyalty";
-  const isDedicatedPage = isCartPage || isFavoritesPage || isCheckoutPage || isLoyaltyPage;
+  const isDedicatedPage = isCartPage || isFavoritesPage || isCheckoutPage;
   const [activeSection, setActiveSection] = useState("menu");
   const [showOrders, setShowOrders] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -655,7 +653,6 @@ function CustomerDashboard() {
               storeOpen={storeStatus === "open"}
             />
           )}
-          {isLoyaltyPage && <CustomerLoyaltyPage />}
           {!isDedicatedPage && activeSection === "menu" && (
             <>
               <section
@@ -687,11 +684,11 @@ function CustomerDashboard() {
                       </p>
 
                       <h1 className="hero-heading mb-1 italic">
-                        <span className="hero-brand block text-[clamp(40px,10vw,90px)] text-[#F5F5F5] ">
+                        <span className="hero-brand block text-[clamp(36px,9vw,80px)] text-[#F5F5F5] ">
                           Motopot's
                         </span>
 
-                        <span className="mt-0 block text-[clamp(25px,5vw,30px)] text-[#F5F5F5]">
+                        <span className="mt-0 block text-[clamp(24px,4.5vw,28px)] text-[#F5F5F5]">
                           <span className="hero-accent">Food House</span>
                         </span>
                       </h1>
@@ -717,7 +714,7 @@ function CustomerDashboard() {
                       <div className="mt-4">
                         <Link
                           to="/customer/order"
-                          className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#E63946] bg-[#E63946] px-6 py-3 font-sans font-bold text-white shadow-lg shadow-[#E63946]/20 transition-all duration-200 hover:bg-[#C92D3A] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
+                          className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#E63946] bg-[#E63946] px-6 py-3 font-sans font-medium text-white shadow-lg shadow-[#E63946]/20 transition-all duration-200 hover:bg-[#C92D3A] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
                         >
                           Order Now
                         </Link>
@@ -774,14 +771,14 @@ function CustomerDashboard() {
               <div className="mx-auto w-full max-w-6xl">
                 <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
                   <div className="min-w-0 lg:col-span-7">
-                    <h2 className="hero-heading mb-1 italic">
-                      <span className="hero-brand block text-[clamp(25px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
+                    <h1 className="hero-heading mb-1 italic">
+                      <span className="hero-brand block text-[clamp(36px,9vw,80px)] text-[#F5F5F5]">
                         Motopot&apos;s
                       </span>
-                      <span className="mt-3 block text-[clamp(25px,5vw,30px)] text-[#F5F5F5]">
+                      <span className="mt-0 block text-[clamp(24px,4.5vw,28px)] text-[#F5F5F5]">
                         <span className="hero-accent">Food House</span>
                       </span>
-                    </h2>
+                    </h1>
                     <p className="mb-3 mt-3 max-w-[780px] text-lg leading-[1.55] text-[#A1A1AA]">
                       Enjoy Bacolod Chicken Inasal, freshly made Takoyaki, and
                       sweet Halo-Halo. Browse our menu and place your order

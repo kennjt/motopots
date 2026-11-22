@@ -260,16 +260,29 @@ function AppNavbar() {
 
   const navigateToSection = (event, label) => {
     event.preventDefault();
-    const section = document.getElementById(label.toLowerCase());
-    section?.scrollIntoView({ behavior: "smooth", block: "start" });
     setActiveNav(label);
     closeMobileNav();
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(label.toLowerCase())
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   return (
     <>
       <nav ref={navRef} className="sticky top-0 z-40 bg-transparent py-2.5">
         <div className="relative mx-auto flex w-full max-w-7xl flex-wrap items-center justify-end gap-x-3 px-5 sm:px-6 lg:px-5">
+          <button
+            type="button"
+            aria-expanded={loginChoiceOpen}
+            aria-haspopup="dialog"
+            onClick={handleLoginButtonClick}
+            className="mr-1 min-h-11 w-auto rounded-full border border-white/10 bg-[#15151C]/80 px-4 py-2 text-left text-sm font-medium text-[#F5F5F5] shadow-lg shadow-black/20 backdrop-blur-[2px] transition-all duration-200 hover:border-[#E63946]/50 hover:bg-[#22222B] hover:shadow-xl active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25 sm:mr-0 lg:hidden"
+          >
+            Login
+          </button>
+
           <button
             ref={hamburgerRef}
             type="button"
@@ -334,7 +347,7 @@ function AppNavbar() {
               </button>
             </div>
 
-            <div className="flex min-w-0 flex-col gap-1 rounded-3xl border border-white/10 bg-[#15151C]/80 p-2 shadow-lg shadow-black/20 backdrop-blur-xl lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:flex-row lg:gap-0">
+            <div className="flex min-w-0 flex-col gap-1 lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:flex-row lg:gap-0 lg:rounded-3xl lg:border lg:border-white/10 lg:bg-[#15151C]/80 lg:p-2 lg:shadow-lg lg:shadow-black/20 lg:backdrop-blur-xl">
               {["Home", "Menu", "About"].map((label) => (
                 <a
                   key={label}
@@ -352,7 +365,7 @@ function AppNavbar() {
               ))}
             </div>
 
-            <div className="mt-auto flex min-w-0 flex-col gap-2 border-t border-white/10 pt-5 lg:mt-0 lg:ml-auto lg:flex-row lg:items-center lg:border-0 lg:pt-0">
+            <div className="mt-auto hidden min-w-0 flex-col gap-2 border-t border-white/10 pt-5 lg:mt-0 lg:ml-auto lg:flex lg:flex-row lg:items-center lg:border-0 lg:pt-0">
               <div className="relative w-full lg:w-auto">
                 <button
                   ref={loginButtonRef}

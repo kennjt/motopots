@@ -17,8 +17,12 @@
   h1, h2, h3, h4, h5, h6 { @apply font-heading; letter-spacing: -0.02em; }
   h1 { @apply font-extrabold; }
   h2, h3, h4, h5, h6 { @apply font-bold; }
-  button, [role='button'] { @apply font-sans font-bold; }
-  nav a, nav button, aside a, aside button { @apply font-sans font-semibold; }
+  button, [role='button'] {
+    @apply font-sans font-medium;
+    font-weight: var(--font-weight-medium) !important;
+  }
+  nav a, aside a { @apply font-sans font-semibold; }
+  nav button, aside button { @apply font-sans font-medium; }
   label { @apply font-sans font-medium; }
   input, textarea, select { @apply font-sans font-normal; }
   p, li, td, th, dd, dt, caption, figcaption, blockquote {

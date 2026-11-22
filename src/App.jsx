@@ -33,11 +33,11 @@ function HomePage() {
                 </p>
 
                 <h1 className="hero-heading mb-1 italic">
-                  <span className="hero-brand block text-[clamp(40px,10vw,100px)] text-[#F5F5F5] ">
+                  <span className="hero-brand block text-[clamp(36px,9vw,80px)] text-[#F5F5F5] ">
                     Motopot's
                   </span>
 
-                  <span className="mt-0 block text-[clamp(25px,5vw,40px)] text-[#F5F5F5]">
+                  <span className="mt-0 block text-[clamp(24px,4.5vw,28px)] text-[#F5F5F5]">
                     <span className="hero-accent">Food House</span>
                   </span>
                 </h1>
@@ -65,7 +65,7 @@ function HomePage() {
                   <button
                     type="button"
                     onClick={() => navigate("/?login=user")}
-                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#E63946] bg-[#E63946] px-6 py-3 font-sans font-bold text-white shadow-lg shadow-[#E63946]/20 transition-all duration-200 hover:bg-[#C92D3A] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
+                    className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#E63946] bg-[#E63946] px-6 py-3 font-sans font-medium text-white shadow-lg shadow-[#E63946]/20 transition-all duration-200 hover:bg-[#C92D3A] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
                   >
                     Order Now
                   </button>
@@ -120,11 +120,11 @@ function HomePage() {
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <Reveal className="order-2 min-w-0 lg:order-1 lg:col-span-7" delay={80}>
                 <h1 className="hero-heading mb-1 italic">
-                  <span className="hero-brand block text-[clamp(10px,7vw,50px)] text-[#F5F5F5] [text-shadow:3px_3px_0_#E63946]">
-                    MOTOPOT'S
+                  <span className="hero-brand block text-[clamp(36px,9vw,80px)] text-[#F5F5F5]">
+                    Motopot&apos;s
                   </span>
 
-                  <span className="mt-3 block text-[clamp(25px,5vw,30px)] text-[#F5F5F5]">
+                  <span className="mt-0 block text-[clamp(24px,4.5vw,28px)] text-[#F5F5F5]">
                     <span className="hero-accent">Food House</span>
                   </span>
                 </h1>
@@ -157,7 +157,6 @@ function App() {
       <Route path="/customer/menu" element={<CustomerDashboard />} />
       <Route path="/customer/cart" element={<CustomerDashboard />} />
       <Route path="/customer/favorites" element={<CustomerDashboard />} />
-      <Route path="/customer/loyalty" element={<CustomerDashboard />} />
       <Route path="/customer/checkout" element={<CustomerDashboard />} />
       <Route path="/staff/*" element={<AdminRoutes />} />
       <Route path="/customer/profile" element={<ProfileSettings />} />
