@@ -279,7 +279,7 @@ function AppNavbar() {
               <button
                 type="button"
                 onClick={openAccountCreation}
-                className="min-h-11 rounded-full border border-[#E63946] px-4 py-2 text-sm font-bold text-[#FF929A] transition hover:bg-[#E63946]/10 focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
+                className="inline-flex h-10 w-28 items-center justify-center rounded-full border border-[#E63946] px-0 py-0 text-sm font-bold text-[#FF929A] transition hover:bg-[#E63946]/10 focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
               >
                 Sign Up
               </button>
@@ -288,7 +288,7 @@ function AppNavbar() {
                 aria-expanded={showLogin}
                 aria-haspopup="dialog"
                 onClick={() => openLogin("customer")}
-                className="min-h-12 w-full rounded-xl bg-[#E63946] px-4 py-2 text-left text-sm font-bold text-white shadow-lg shadow-[#E63946]/20 transition-all duration-200 hover:bg-[#C92D3A] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25 lg:min-h-0 lg:w-auto lg:rounded-full lg:border lg:border-white/10 lg:bg-[#15151C]/80 lg:font-medium lg:text-[#F5F5F5] lg:shadow-black/20 lg:backdrop-blur-[2px] lg:hover:border-[#E63946]/50 lg:hover:bg-[#22222B] lg:hover:shadow-xl"
+                className="min-h-12 w-full rounded-xl bg-[#E63946] px-4 py-2 text-left text-sm font-bold text-white shadow-lg shadow-[#E63946]/20 transition-all duration-200 hover:bg-[#C92D3A] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-[#E63946]/25 lg:inline-flex lg:h-10 lg:w-28 lg:min-h-10 lg:items-center lg:justify-center lg:rounded-full lg:border lg:border-white/10 lg:bg-[#15151C]/80 lg:px-0 lg:py-0 lg:text-center lg:font-medium lg:text-[#F5F5F5] lg:shadow-black/20 lg:backdrop-blur-[2px] lg:hover:border-[#E63946]/50 lg:hover:bg-[#22222B] lg:hover:shadow-xl"
               >
                 Login
               </button>
