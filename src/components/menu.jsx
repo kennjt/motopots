@@ -17,9 +17,13 @@ function Menu({
   browseMode = false,
   favoriteToEdit,
   onFavoriteEditHandled,
+  search: externalSearch,
+  onSearchChange,
 }) {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [search, setSearch] = useState("");
+  const [internalSearch, setInternalSearch] = useState("");
+  const search = externalSearch ?? internalSearch;
+  const updateSearch = onSearchChange || setInternalSearch;
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selection, setSelection] = useState({});
   const [catalogItems, setCatalogItems] = useState(() => [...menuItems]);
@@ -142,7 +146,7 @@ function Menu({
               type="text"
               placeholder="Search the menu..."
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => updateSearch(event.target.value)}
               aria-label="Search menu items"
               className="w-full rounded-xl border border-white/10 bg-[#15151C] px-5 py-3 text-sm text-[#F5F5F5] outline-none transition-all placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
             />
@@ -228,7 +232,7 @@ function Menu({
             <button
               type="button"
               onClick={() => {
-                setSearch("");
+                updateSearch("");
                 setActiveCategory("All");
               }}
               className="mt-5 rounded-xl bg-[#E63946] px-5 py-2.5 font-bold text-white hover:bg-[#C92D3A]"

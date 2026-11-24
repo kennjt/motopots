@@ -376,7 +376,7 @@ function CustomerNavbar({
               {favoritesOpen && (
                 <div
                   id="customer-favorites-panel"
-                  className="relative z-50 mt-0 w-[min(25rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-white/10 bg-[#15151C]/95 shadow-2xl shadow-black/40 backdrop-blur-xl"
+                  className="relative z-50 flex h-[36rem] max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#15151C]/95 shadow-2xl shadow-black/40 backdrop-blur-xl"
                 >
                   <div className="flex items-center justify-between border-b border-white/10 bg-[#22222B]/70 px-4 py-3">
                     <div>
@@ -396,7 +396,7 @@ function CustomerNavbar({
                       <X size={18} aria-hidden="true" />
                     </button>
                   </div>
-                  <div className="max-h-[min(60vh,30rem)] overflow-y-auto p-4">
+                  <div className="min-h-0 flex-1 overflow-y-auto p-4">
                     {!favoriteOrders.length ? (
                       <div className="py-7 text-center">
                         <HeartIcon />

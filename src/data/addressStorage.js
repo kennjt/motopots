@@ -21,12 +21,13 @@ function readAddressBook() {
 
 export function readSavedAddresses(owner = readProfileOwner()) {
   const addresses = readAddressBook()[owner];
-  return Array.isArray(addresses) ? addresses.map(normalizeAddress) : [];
+  if (!Array.isArray(addresses)) return [];
+  return ensureSingleDefault(addresses.map(normalizeAddress));
 }
 
 export function saveSavedAddresses(addresses, owner = readProfileOwner()) {
   const addressBook = readAddressBook();
-  addressBook[owner] = addresses;
+  addressBook[owner] = ensureSingleDefault(addresses.map(normalizeAddress));
   localStorage.setItem(ADDRESSES_STORAGE_KEY, JSON.stringify(addressBook));
   window.dispatchEvent(new Event(ADDRESSES_UPDATED_EVENT));
 }
@@ -59,6 +60,17 @@ function normalizeAddress(address) {
   delete location.fullName;
   delete location.phone;
   return { ...emptyAddress, ...location };
+}
+
+function ensureSingleDefault(addresses) {
+  const defaultIndex = Math.max(
+    0,
+    addresses.findIndex((address) => address.isDefault),
+  );
+  return addresses.map((address, index) => ({
+    ...address,
+    isDefault: index === defaultIndex,
+  }));
 }
 
 export function formatAddress(address) {

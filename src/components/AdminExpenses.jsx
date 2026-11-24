@@ -271,8 +271,8 @@ export default function AdminExpenses() {
         <h2 className="m-0 text-2xl font-extrabold text-[#F5F5F5]">Expenses</h2>
         <p className="mb-0 mt-1 text-sm text-[#A1A1AA]">
           Record business expenses with a category, date, responsible employee,
-          and optional receipt. Saved expenses are included in estimated net
-          income in Sales Reports.
+          and optional receipt. Supplier purchases are recorded automatically
+          with received stock. Expenses are included in Sales Reports.
         </p>
       </header>
 
@@ -358,22 +358,28 @@ export default function AdminExpenses() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => openEditExpense(expense)}
-                        className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-[#D1D1D6] hover:bg-white/[0.05]"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => removeExpense(expense)}
-                        className="rounded-lg border border-rose-400/20 px-3 py-2 text-xs font-bold text-rose-300 hover:bg-rose-400/10"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    {expense.purchaseId ? (
+                      <span className="block text-right text-[11px] text-[#777781]">
+                        Supplier purchase
+                      </span>
+                    ) : (
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openEditExpense(expense)}
+                          className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-[#D1D1D6] hover:bg-white/[0.05]"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeExpense(expense)}
+                          className="rounded-lg border border-rose-400/20 px-3 py-2 text-xs font-bold text-rose-300 hover:bg-rose-400/10"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

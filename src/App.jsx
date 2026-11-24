@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import AdminRoutes from "./AdminRoutes";
 
@@ -17,6 +18,7 @@ import "./App.css";
 
 function HomePage() {
   const navigate = useNavigate();
+  const [menuSearch, setMenuSearch] = useState("");
 
   return (
     <>
@@ -104,7 +106,7 @@ function HomePage() {
             <Reveal delay={80}>
               <p className="mb-3 font-sans text-base leading-[1.55] text-[#A1A1AA]">Pick a category or search for your favorite dish.</p>
             </Reveal>
-            <Menu />
+            <Menu search={menuSearch} onSearchChange={setMenuSearch} />
           </div>
         </section>
 

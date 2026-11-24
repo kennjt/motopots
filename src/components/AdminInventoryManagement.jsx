@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { menuItems } from "../data/menuData";
+import { formatMoney, menuItems } from "../data/menuData";
 import {
   INVENTORY_STORAGE_KEY,
   readInventoryState,
   saveInventoryState,
 } from "../data/inventoryStorage";
 import { readEmployees } from "../data/adminSettingsStorage";
+import { deleteExpense, saveExpense } from "../data/expensesStorage";
 import { showConfirm, showSuccess } from "../utils/swal";
 
 const inputClass =
@@ -126,6 +127,199 @@ function EditorModal({ title, onClose, children }) {
   );
 }
 
+function QuickAddIngredientModal({ state, onClose }) {
+  const [draft, setDraft] = useState({
+    name: "",
+    sku: "",
+    category: state.data.categories[0] || "",
+    stock: "0",
+    capacity: "100",
+    unit: "pcs",
+    unitCost: "0",
+    threshold: "0",
+    expiresAt: "",
+  });
+  const [error, setError] = useState("");
+
+  const submit = (event) => {
+    event.preventDefault();
+    const name = draft.name.trim();
+    const category = draft.category.trim();
+    const unit = draft.unit.trim();
+    const stock = Number(draft.stock);
+    const capacity = Number(draft.capacity);
+    const unitCost = Number(draft.unitCost);
+    const threshold = Number(draft.threshold);
+    if (!name || !category || !unit) {
+      setError("Enter an ingredient name, category, and unit.");
+      return;
+    }
+    if (
+      !Number.isFinite(stock)
+      || !Number.isFinite(capacity)
+      || !Number.isFinite(unitCost)
+      || !Number.isFinite(threshold)
+      || stock < 0
+      || capacity <= 0
+      || stock > capacity
+      || unitCost < 0
+      || threshold < 0
+    ) {
+      setError("Enter valid stock, capacity, unit cost, and low-stock threshold values.");
+      return;
+    }
+    const sku = draft.sku.trim()
+      || `ING-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+    if (state.data.items.some(
+      (item) => item.sku?.toLowerCase() === sku.toLowerCase(),
+    )) {
+      setError("That ingredient code is already in use.");
+      return;
+    }
+
+    const createdAt = new Date().toISOString();
+    const ingredient = {
+      id: crypto.randomUUID(),
+      name,
+      sku,
+      category,
+      stock,
+      capacity,
+      unit,
+      unitCost,
+      threshold,
+      expiresAt: draft.expiresAt,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    const openingMovement = stock > 0
+      ? {
+          id: crypto.randomUUID(),
+          ingredientId: ingredient.id,
+          ingredientName: ingredient.name,
+          type: "Stock In",
+          direction: "in",
+          quantity: stock,
+          unit,
+          beforeStock: 0,
+          afterStock: stock,
+          reason: "Opening stock",
+          date: createdAt.slice(0, 10),
+          createdAt,
+        }
+      : null;
+    const nextData = {
+      ...state.data,
+      items: [ingredient, ...state.data.items],
+      stockMovements: openingMovement
+        ? [openingMovement, ...state.data.stockMovements]
+        : state.data.stockMovements,
+    };
+    if (!state.save(nextData)) {
+      setError(state.saveError || "The ingredient could not be saved.");
+      return;
+    }
+    showSuccess("Ingredient added");
+    onClose();
+  };
+
+  return (
+    <EditorModal title="Add ingredient" onClose={onClose}>
+      <form onSubmit={submit} className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            ["name", "Ingredient name", true],
+            ["sku", "Ingredient code (optional)", false],
+          ].map(([name, label, required]) => (
+            <label key={name} className="block text-xs font-bold text-[#A1A1AA]">
+              {label}
+              <input
+                value={draft[name]}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, [name]: event.target.value }))
+                }
+                className={inputClass}
+                maxLength="120"
+                required={required}
+              />
+            </label>
+          ))}
+          <label className="block text-xs font-bold text-[#A1A1AA]">
+            Category
+            <select
+              value={draft.category}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, category: event.target.value }))
+              }
+              className={inputClass}
+              required
+            >
+              {state.data.categories.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-xs font-bold text-[#A1A1AA]">
+            Unit
+            <input
+              value={draft.unit}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, unit: event.target.value }))
+              }
+              className={inputClass}
+              maxLength="30"
+              required
+            />
+          </label>
+          {[
+            ["stock", "Opening stock", "0"],
+            ["capacity", "Capacity", "0.001"],
+            ["unitCost", "Unit cost (₱)", "0"],
+            ["threshold", "Low-stock threshold", "0"],
+          ].map(([name, label, min]) => (
+            <label key={name} className="block text-xs font-bold text-[#A1A1AA]">
+              {label}
+              <input
+                type="number"
+                min={min}
+                step="any"
+                value={draft[name]}
+                onChange={(event) =>
+                  setDraft((current) => ({ ...current, [name]: event.target.value }))
+                }
+                className={inputClass}
+                required
+              />
+            </label>
+          ))}
+          <label className="block text-xs font-bold text-[#A1A1AA]">
+            Expiration date (optional)
+            <input
+              type="date"
+              value={draft.expiresAt}
+              onChange={(event) =>
+                setDraft((current) => ({ ...current, expiresAt: event.target.value }))
+              }
+              className={inputClass}
+            />
+          </label>
+        </div>
+        {error && (
+          <p role="alert" className="m-0 text-xs font-semibold text-rose-300">{error}</p>
+        )}
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={secondaryButtonClass}>
+            Cancel
+          </button>
+          <button type="submit" className={primaryButtonClass}>
+            Save ingredient
+          </button>
+        </div>
+      </form>
+    </EditorModal>
+  );
+}
+
 function EmptyState({ children }) {
   return (
     <div className="rounded-xl border border-white/[0.08] bg-[#111116] px-5 py-10 text-center">
@@ -181,6 +375,7 @@ function getQuantityPerServing(recipe, ingredient) {
 
 function RecipesPage({ state }) {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
   const [draft, setDraft] = useState({
@@ -312,10 +507,17 @@ function RecipesPage({ state }) {
   return (
     <PageFrame
       title="Recipes"
-      description="Define the inventory ingredients and quantities consumed for one serving of each menu item. Batch yield is kept for reference; recipes do not automatically deduct stock from orders."
+      description="Define ingredient quantities per serving. Completing an order deducts its recipe quantities from stock and is blocked when a recipe is missing or stock is insufficient."
       state={state}
     >
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setQuickAddOpen(true)}
+          className={secondaryButtonClass}
+        >
+          Add ingredient
+        </button>
         <button
           type="button"
           onClick={openNewRecipe}
@@ -327,13 +529,7 @@ function RecipesPage({ state }) {
       </div>
       {!data.items.length ? (
         <EmptyState>
-          Add ingredients before configuring recipes.{" "}
-          <Link
-            to="/staff/inventory/ingredients"
-            className="text-[#FF727D] underline"
-          >
-            Manage ingredients
-          </Link>
+          Add an ingredient above before configuring recipes.
         </EmptyState>
       ) : data.recipes.length === 0 ? (
         <EmptyState>No recipes yet. Add a recipe to get started.</EmptyState>
@@ -558,12 +754,19 @@ function RecipesPage({ state }) {
           </form>
         </EditorModal>
       )}
+      {quickAddOpen && (
+        <QuickAddIngredientModal
+          state={state}
+          onClose={() => setQuickAddOpen(false)}
+        />
+      )}
     </PageFrame>
   );
 }
 
 function StockMovementsPage({ state }) {
   const [editorOpen, setEditorOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [error, setError] = useState("");
   const [employees, setEmployees] = useState([]);
   const [employeeLoadError, setEmployeeLoadError] = useState("");
@@ -719,7 +922,14 @@ function StockMovementsPage({ state }) {
       description="Record stock-in, stock-out, adjustments, waste, returns, and purchase receipts with quantity, reason, date, and responsible employee."
       state={state}
     >
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setQuickAddOpen(true)}
+          className={secondaryButtonClass}
+        >
+          Add ingredient
+        </button>
         <button
           type="button"
           onClick={openMovement}
@@ -731,13 +941,7 @@ function StockMovementsPage({ state }) {
       </div>
       {!data.items.length ? (
         <EmptyState>
-          Add ingredients before recording stock movements.{" "}
-          <Link
-            to="/staff/inventory/ingredients"
-            className="text-[#FF727D] underline"
-          >
-            Manage ingredients
-          </Link>
+          Add an ingredient above before recording stock movements.
         </EmptyState>
       ) : movements.length === 0 ? (
         <EmptyState>No stock movements recorded yet.</EmptyState>
@@ -999,6 +1203,12 @@ function StockMovementsPage({ state }) {
           </form>
         </EditorModal>
       )}
+      {quickAddOpen && (
+        <QuickAddIngredientModal
+          state={state}
+          onClose={() => setQuickAddOpen(false)}
+        />
+      )}
     </PageFrame>
   );
 }
@@ -1017,6 +1227,10 @@ function SuppliersPage({ state }) {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
   const [draft, setDraft] = useState(emptySupplier);
+  const [purchaseSupplier, setPurchaseSupplier] = useState(null);
+  const [purchaseDraft, setPurchaseDraft] = useState(null);
+  const [purchaseError, setPurchaseError] = useState("");
+  const [savingPurchase, setSavingPurchase] = useState(false);
   const { data, save } = state;
 
   const openNewSupplier = () => {
@@ -1042,6 +1256,223 @@ function SuppliersPage({ state }) {
     });
     setError("");
     setEditorOpen(true);
+  };
+
+  const openSupplierPurchase = (supplier) => {
+    const linkedItems = data.items.filter((item) =>
+      (supplier.inventoryItemIds || []).includes(item.id),
+    );
+    if (!linkedItems.length) {
+      setError("Link at least one inventory item to this supplier before recording a purchase.");
+      return;
+    }
+    setPurchaseSupplier(supplier);
+    setPurchaseDraft({
+      date: getLocalDateInputValue(),
+      reference: "",
+      receivedBy: "",
+      items: [{
+        ingredientId: linkedItems[0].id,
+        quantity: "",
+        unitCost: String(linkedItems[0].unitCost),
+      }],
+    });
+    setPurchaseError("");
+  };
+
+  const submitSupplierPurchase = async (event) => {
+    event.preventDefault();
+    if (!purchaseSupplier || !purchaseDraft || savingPurchase) return;
+    const currentData = readInventoryState();
+    const supplier = currentData.suppliers.find(
+      (item) => item.id === purchaseSupplier.id,
+    );
+    if (!supplier) {
+      setPurchaseError("This supplier is no longer available. Reload the page and try again.");
+      return;
+    }
+    const receivedBy = purchaseDraft.receivedBy.trim();
+    if (!receivedBy || !purchaseDraft.date) {
+      setPurchaseError("Enter who received the purchase and choose its date.");
+      return;
+    }
+
+    const quantities = new Map();
+    let total = 0;
+    for (const line of purchaseDraft.items) {
+      const ingredient = currentData.items.find(
+        (item) => item.id === line.ingredientId,
+      );
+      const quantity = Number(line.quantity);
+      const unitCost = Number(line.unitCost);
+      if (
+        !ingredient
+        || !(supplier.inventoryItemIds || []).includes(ingredient.id)
+        || !Number.isFinite(quantity)
+        || quantity <= 0
+        || !Number.isFinite(unitCost)
+        || unitCost < 0
+      ) {
+        setPurchaseError("Choose a supplied ingredient and enter valid quantity and unit cost for every line.");
+        return;
+      }
+      const itemTotal = quantity * unitCost;
+      total += itemTotal;
+      const aggregate = quantities.get(ingredient.id) || {
+        ingredient,
+        quantity: 0,
+        total: 0,
+      };
+      aggregate.quantity += quantity;
+      aggregate.total += itemTotal;
+      quantities.set(ingredient.id, aggregate);
+    }
+    if (!quantities.size || !Number.isFinite(total) || total <= 0) {
+      setPurchaseError("Add at least one purchase line with a positive total.");
+      return;
+    }
+
+    const fullStockItem = [...quantities.values()].find(
+      ({ ingredient, quantity }) =>
+        Number(ingredient.stock) + quantity > Number(ingredient.capacity),
+    );
+    if (fullStockItem) {
+      setPurchaseError(
+        `${fullStockItem.ingredient.name} would exceed its capacity of ${fullStockItem.ingredient.capacity} ${fullStockItem.ingredient.unit}.`,
+      );
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const purchaseId = crypto.randomUUID();
+    const expenseId = `purchase-${purchaseId}`;
+    const reference = purchaseDraft.reference.trim();
+    const description = `Supplier purchase from ${supplier.name}${reference ? ` · Ref ${reference}` : ""}`;
+    const purchase = {
+      id: purchaseId,
+      supplierId: supplier.id,
+      supplierName: supplier.name,
+      date: purchaseDraft.date,
+      reference,
+      receivedBy,
+      total,
+      items: [...quantities.values()].map(({ ingredient, quantity, total: lineTotal }) => ({
+        ingredientId: ingredient.id,
+        ingredientName: ingredient.name,
+        quantity,
+        unit: ingredient.unit,
+        unitCost: lineTotal / quantity,
+        total: lineTotal,
+      })),
+      expenseId,
+      createdAt: now,
+    };
+    const expense = {
+      id: expenseId,
+      category: "Food & Ingredients",
+      amount: total,
+      description,
+      date: purchase.date,
+      employeeId: "",
+      employeeName: receivedBy,
+      receipt: null,
+      purchaseId,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    setSavingPurchase(true);
+    setPurchaseError("");
+    try {
+      await saveExpense(expense);
+      const latestData = readInventoryState();
+      const latestSupplier = latestData.suppliers.find(
+        (item) => item.id === supplier.id,
+      );
+      const latestQuantities = new Map(
+        [...quantities].map(([ingredientId, line]) => {
+          const ingredient = latestData.items.find(
+            (item) => item.id === ingredientId,
+          );
+          if (!ingredient || !(latestSupplier?.inventoryItemIds || []).includes(ingredientId)) {
+            throw new Error("A purchased inventory item or supplier link changed. Refresh and retry.");
+          }
+          if (Number(ingredient.stock) + line.quantity > Number(ingredient.capacity)) {
+            throw new Error(`${ingredient.name} no longer has enough capacity for this purchase.`);
+          }
+          return [ingredientId, { ...line, ingredient }];
+        }),
+      );
+      const movements = [...latestQuantities.values()].map(({ ingredient, quantity, total: lineTotal }) => {
+        const beforeStock = Number(ingredient.stock);
+        const afterStock = beforeStock + quantity;
+        return {
+          id: crypto.randomUUID(),
+          ingredientId: ingredient.id,
+          ingredientName: ingredient.name,
+          type: "Purchase Receipt",
+          direction: "in",
+          quantity,
+          unit: ingredient.unit,
+          beforeStock,
+          afterStock,
+          reason: description,
+          date: purchase.date,
+          responsibleEmployeeName: receivedBy,
+          supplierId: supplier.id,
+          purchaseId,
+          expenseId,
+          unitCost: lineTotal / quantity,
+          createdAt: now,
+        };
+      });
+      const movementsByItem = new Map(
+        movements.map((movement) => [movement.ingredientId, movement]),
+      );
+      const nextData = {
+        ...latestData,
+        items: latestData.items.map((ingredient) => {
+          const movement = movementsByItem.get(ingredient.id);
+          if (!movement) return ingredient;
+          const purchaseQuantity = movement.quantity;
+          const oldStock = Number(ingredient.stock);
+          const weightedCost = oldStock + purchaseQuantity > 0
+            ? (
+                oldStock * Number(ingredient.unitCost)
+                + purchaseQuantity * movement.unitCost
+              ) / (oldStock + purchaseQuantity)
+            : movement.unitCost;
+          return {
+            ...ingredient,
+            stock: movement.afterStock,
+            unitCost: weightedCost,
+            updatedAt: now,
+          };
+        }),
+        stockMovements: [...movements, ...latestData.stockMovements],
+        purchaseTransactions: [purchase, ...latestData.purchaseTransactions],
+      };
+      if (!save(nextData)) {
+        await deleteExpense(expenseId);
+        setPurchaseError("Stock could not be received; the purchase expense was rolled back. Check the inventory error above and retry.");
+        return;
+      }
+      setPurchaseSupplier(null);
+      setPurchaseDraft(null);
+      showSuccess("Purchase recorded", "Stock, supplier purchase, and expense were updated.");
+    } catch (purchaseSaveError) {
+      let cleanupError = "";
+      try {
+        await deleteExpense(expenseId);
+      } catch (error) {
+        cleanupError = error instanceof Error ? error.message : "The purchase expense could not be rolled back.";
+      }
+      setPurchaseError(
+        `${purchaseSaveError instanceof Error ? purchaseSaveError.message : "The supplier purchase could not be saved."}${cleanupError ? ` ${cleanupError}` : ""}`,
+      );
+    } finally {
+      setSavingPurchase(false);
+    }
   };
 
   const saveSupplier = (event) => {
@@ -1118,7 +1549,7 @@ function SuppliersPage({ state }) {
   return (
     <PageFrame
       title="Suppliers"
-      description="Keep supplier contact details available to the team for purchasing and restocking."
+      description="Link supplied inventory items, record purchases, receive stock, and automatically add purchase costs to expenses and sales reports."
       state={state}
     >
       <div className="flex justify-end">
@@ -1151,6 +1582,23 @@ function SuppliersPage({ state }) {
                   )}
                 </div>
                 <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => openSupplierPurchase(supplier)}
+                    disabled={!(supplier.inventoryItemIds || []).some((id) =>
+                      data.items.some((item) => item.id === id),
+                    )}
+                    className={secondaryButtonClass}
+                    title={
+                      !(supplier.inventoryItemIds || []).some((id) =>
+                        data.items.some((item) => item.id === id),
+                      )
+                        ? "Link inventory items to this supplier before purchasing."
+                        : undefined
+                    }
+                  >
+                    Record purchase
+                  </button>
                   <button
                     type="button"
                     onClick={() => openEditSupplier(supplier)}
@@ -1196,6 +1644,21 @@ function SuppliersPage({ state }) {
                   ) : (
                     <p className="mb-0 mt-1">No inventory items linked.</p>
                   )}
+                </div>
+                <div className="border-t border-white/[0.06] pt-2">
+                  <p className="m-0 font-bold text-[#D1D1D6]">Recent purchases</p>
+                  {data.purchaseTransactions
+                    .filter((purchase) => purchase.supplierId === supplier.id)
+                    .slice(0, 3)
+                    .map((purchase) => (
+                      <p key={purchase.id} className="mb-0 mt-1">
+                        {purchase.date} · {formatMoney(purchase.total)} ·{" "}
+                        {purchase.items.map((item) => `${item.ingredientName} × ${item.quantity}`).join(", ")}
+                      </p>
+                    ))}
+                  {!data.purchaseTransactions.some(
+                    (purchase) => purchase.supplierId === supplier.id,
+                  ) && <p className="mb-0 mt-1">No purchases recorded yet.</p>}
                 </div>
               </div>
             </article>
@@ -1295,6 +1758,189 @@ function SuppliersPage({ state }) {
               </button>
               <button type="submit" className={primaryButtonClass}>
                 Save supplier
+              </button>
+            </div>
+          </form>
+        </EditorModal>
+      )}
+      {purchaseSupplier && purchaseDraft && (
+        <EditorModal
+          title={`Record purchase · ${purchaseSupplier.name}`}
+          onClose={() => {
+            if (!savingPurchase) {
+              setPurchaseSupplier(null);
+              setPurchaseDraft(null);
+            }
+          }}
+        >
+          <form onSubmit={submitSupplierPurchase} className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block text-xs font-bold text-[#A1A1AA]">
+                Purchase date
+                <input
+                  type="date"
+                  value={purchaseDraft.date}
+                  onChange={(event) =>
+                    setPurchaseDraft((current) => ({ ...current, date: event.target.value }))
+                  }
+                  className={inputClass}
+                  required
+                />
+              </label>
+              <label className="block text-xs font-bold text-[#A1A1AA]">
+                Invoice / reference
+                <input
+                  value={purchaseDraft.reference}
+                  onChange={(event) =>
+                    setPurchaseDraft((current) => ({ ...current, reference: event.target.value }))
+                  }
+                  className={inputClass}
+                  maxLength="100"
+                />
+              </label>
+            </div>
+            <label className="block text-xs font-bold text-[#A1A1AA]">
+              Received by
+              <input
+                value={purchaseDraft.receivedBy}
+                onChange={(event) =>
+                  setPurchaseDraft((current) => ({ ...current, receivedBy: event.target.value }))
+                }
+                className={inputClass}
+                maxLength="120"
+                required
+              />
+            </label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="m-0 text-xs font-extrabold text-[#D1D1D6]">Items received</h4>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const first = data.items.find((item) =>
+                      (purchaseSupplier.inventoryItemIds || []).includes(item.id),
+                    );
+                    setPurchaseDraft((current) => ({
+                      ...current,
+                      items: [
+                        ...current.items,
+                        { ingredientId: first?.id || "", quantity: "", unitCost: String(first?.unitCost || 0) },
+                      ],
+                    }));
+                  }}
+                  className="text-xs font-bold text-[#FF727D]"
+                >
+                  Add item
+                </button>
+              </div>
+              {purchaseDraft.items.map((line, index) => {
+                const linkedItems = data.items.filter((item) =>
+                  (purchaseSupplier.inventoryItemIds || []).includes(item.id),
+                );
+                const ingredient = linkedItems.find((item) => item.id === line.ingredientId);
+                return (
+                  <div key={index} className="grid grid-cols-2 items-end gap-2 sm:grid-cols-[minmax(0,1.4fr)_minmax(5rem,0.7fr)_minmax(6rem,0.8fr)_auto]">
+                    <label className="col-span-2 text-[11px] font-bold text-[#A1A1AA] sm:col-span-1">
+                      Ingredient
+                      <select
+                        value={line.ingredientId}
+                        onChange={(event) => {
+                          const selected = linkedItems.find((item) => item.id === event.target.value);
+                          setPurchaseDraft((current) => ({
+                            ...current,
+                            items: current.items.map((item, lineIndex) =>
+                              lineIndex === index
+                                ? { ...item, ingredientId: selected?.id || "", unitCost: String(selected?.unitCost || 0) }
+                                : item,
+                            ),
+                          }));
+                        }}
+                        className={inputClass}
+                        required
+                      >
+                        {linkedItems.map((item) => (
+                          <option key={item.id} value={item.id}>{item.name} ({item.unit})</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-[11px] font-bold text-[#A1A1AA]">
+                      Quantity {ingredient ? `(${ingredient.unit})` : ""}
+                      <input
+                        type="number"
+                        min="0.001"
+                        step="any"
+                        value={line.quantity}
+                        onChange={(event) =>
+                          setPurchaseDraft((current) => ({
+                            ...current,
+                            items: current.items.map((item, lineIndex) =>
+                              lineIndex === index ? { ...item, quantity: event.target.value } : item,
+                            ),
+                          }))
+                        }
+                        className={inputClass}
+                        required
+                      />
+                    </label>
+                    <label className="text-[11px] font-bold text-[#A1A1AA]">
+                      Unit cost (₱)
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={line.unitCost}
+                        onChange={(event) =>
+                          setPurchaseDraft((current) => ({
+                            ...current,
+                            items: current.items.map((item, lineIndex) =>
+                              lineIndex === index ? { ...item, unitCost: event.target.value } : item,
+                            ),
+                          }))
+                        }
+                        className={inputClass}
+                        required
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      disabled={purchaseDraft.items.length === 1}
+                      onClick={() =>
+                        setPurchaseDraft((current) => ({
+                          ...current,
+                          items: current.items.filter((_, lineIndex) => lineIndex !== index),
+                        }))
+                      }
+                      className="mb-1 rounded-lg px-2 py-2 text-xs font-bold text-rose-300 disabled:opacity-30"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="m-0 text-right text-sm font-extrabold">
+              Purchase total: {formatMoney(purchaseDraft.items.reduce(
+                (sum, line) => sum + (Number(line.quantity) || 0) * (Number(line.unitCost) || 0),
+                0,
+              ))}
+            </p>
+            {purchaseError && (
+              <p role="alert" className="m-0 text-xs font-semibold text-rose-300">{purchaseError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={savingPurchase}
+                onClick={() => {
+                  setPurchaseSupplier(null);
+                  setPurchaseDraft(null);
+                }}
+                className={secondaryButtonClass}
+              >
+                Cancel
+              </button>
+              <button type="submit" disabled={savingPurchase} className={primaryButtonClass}>
+                {savingPurchase ? "Saving purchase…" : "Receive stock & record expense"}
               </button>
             </div>
           </form>

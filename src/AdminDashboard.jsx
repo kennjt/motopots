@@ -9,6 +9,7 @@ import {
   recordOrderStatus,
   saveOrders,
 } from "./data/orderStorage";
+import { deductOrderRecipeStock } from "./data/inventoryStorage";
 import { ImageWithSkeleton } from "./components/Skeleton";
 import { showConfirm, showError, showSuccess } from "./utils/swal";
 import AdminMenuCatalog from "./components/AdminMenuCatalog";
@@ -424,6 +425,18 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
         ? "Cancelled"
         : currentOrder.cancellationPreviousStatus || "Pending"
       : statusChange.status;
+    if (status === "Completed") {
+      try {
+        deductOrderRecipeStock(currentOrder);
+      } catch (error) {
+        setStatusChangeError(
+          error instanceof Error
+            ? error.message
+            : "Recipe stock could not be deducted. The order was not completed.",
+        );
+        return;
+      }
+    }
     const updatedOrders = currentOrders.map((order) => {
       if (String(order.id) !== String(statusChange.orderId)) return order;
       const updated = {
@@ -443,7 +456,16 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
           }
         : updated;
     });
-    saveOrders(updatedOrders);
+    try {
+      saveOrders(updatedOrders);
+    } catch (error) {
+      setStatusChangeError(
+        error instanceof Error
+          ? error.message
+          : "The order status could not be saved.",
+      );
+      return;
+    }
     setOrders(updatedOrders);
     setStatusChange(null);
     showSuccess(

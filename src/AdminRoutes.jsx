@@ -9,6 +9,8 @@ import AdminCustomerPages from "./components/AdminCustomerPages";
 import AdminMenuCatalog from "./components/AdminMenuCatalog";
 import AdminWorkspace from "./components/AdminWorkspace";
 import AdminInventoryOverview from "./components/AdminInventoryOverview";
+import AdminInventoryManagement from "./components/AdminInventoryManagement";
+import AdminExpenses from "./components/AdminExpenses";
 
 function AdminRoutes() {
   return (
@@ -86,17 +88,15 @@ function AdminRoutes() {
           />
           <Route
             path="recipes"
-            element={<AdminSectionPage title="Recipes" showHeading={false} />}
+            element={<AdminInventoryManagement view="recipes" />}
           />
           <Route
             path="stock-movements"
-            element={
-              <AdminSectionPage title="Stock Movements" showHeading={false} />
-            }
+            element={<AdminInventoryManagement view="stock-movements" />}
           />
           <Route
             path="suppliers"
-            element={<AdminSectionPage title="Suppliers" showHeading={false} />}
+            element={<AdminInventoryManagement view="suppliers" />}
           />
         </Route>
         <Route
@@ -191,7 +191,7 @@ function AdminRoutes() {
         />
         <Route
           path="expenses"
-          element={<AdminSectionPage title="Expenses" />}
+          element={<AdminExpenses />}
         />
         <Route
           path="sales-reports"

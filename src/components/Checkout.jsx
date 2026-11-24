@@ -8,7 +8,11 @@ import {
   readSavedAddresses,
   saveSavedAddresses,
 } from "../data/addressStorage";
-import { loadPsgcArea, loadPsgcIndex, PSGC_SOURCE_URL } from "../data/psgc";
+import {
+  SIPOCOT_BARANGAYS,
+  SIPOCOT_LOCATION,
+} from "../data/sipocotLocation";
+import { loadPsgcArea, PSGC_SOURCE_URL } from "../data/psgc";
 import gcashlogo from "../assets/GCash_logo.svg";
 import { ImageWithSkeleton } from "./Skeleton";
 import {
@@ -19,6 +23,9 @@ import {
 } from "../utils/swal";
 
 const emptyCustomer = { name: "", phone: "", email: "" };
+const isSipocotAddress = (address) =>
+  String(address?.province || "").trim().toLowerCase() === "camarines sur" &&
+  String(address?.city || "").trim().toLowerCase() === "sipocot";
 const inputClass =
   "w-full rounded-xl border border-white/10 bg-[#22222B] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20";
 const readCustomer = () => {
@@ -87,14 +94,18 @@ function Checkout({
   const [referenceNumber, setReferenceNumber] = useState("");
   const [proof, setProof] = useState(null);
   const [error, setError] = useState("");
-  const [addresses, setAddresses] = useState(readSavedAddresses);
+  const [addresses, setAddresses] = useState(() =>
+    readSavedAddresses().filter(isSipocotAddress),
+  );
   const [selectedAddressId, setSelectedAddressId] = useState(
-    () => readSavedAddresses().find((address) => address.isDefault)?.id || null,
+    () =>
+      readSavedAddresses()
+        .filter(isSipocotAddress)
+        .find((address) => address.isDefault)?.id || null,
   );
   const [addressManagerOpen, setAddressManagerOpen] = useState(false);
   const [addressDraft, setAddressDraft] = useState(emptyAddress);
   const [addressError, setAddressError] = useState("");
-  const [psgcIndex, setPsgcIndex] = useState(null);
   const [psgcArea, setPsgcArea] = useState(null);
   const [psgcLoading, setPsgcLoading] = useState(false);
   const [psgcError, setPsgcError] = useState("");
@@ -108,23 +119,11 @@ function Checkout({
       null;
   const selectedAddress =
     addresses.find((address) => address.id === activeAddressId) || null;
-  const selectedRegion = psgcIndex?.regions?.find(
-    (region) => region.code === addressDraft.regionCode,
-  );
-  const provinceOptions = selectedRegion
-    ? [
-        ...(selectedRegion.provinces || []),
-        ...(selectedRegion.independent || []),
-      ]
-    : [];
-  const cityOptions = psgcArea?.cities || [];
-  const barangayOptions =
-    psgcArea?.cities
-      ?.find((city) => city.code === addressDraft.cityCode)
-      ?.barangays?.map(([code, name]) => ({ code, name })) || [];
+  const barangayOptions = SIPOCOT_BARANGAYS;
 
   useEffect(() => {
-    const syncAddresses = () => setAddresses(readSavedAddresses());
+    const syncAddresses = () =>
+      setAddresses(readSavedAddresses().filter(isSipocotAddress));
     window.addEventListener(ADDRESSES_UPDATED_EVENT, syncAddresses);
     window.addEventListener("storage", syncAddresses);
     return () => {
@@ -135,14 +134,26 @@ function Checkout({
 
   useEffect(() => {
     let active = true;
-    loadPsgcIndex()
-      .then((data) => {
-        if (active) setPsgcIndex(data);
+    loadPsgcArea(SIPOCOT_LOCATION.provinceCode)
+      .then((area) => {
+        if (!active) return;
+        setPsgcArea(area);
+        const sipocot = (area?.cities || []).find(
+          (city) => String(city.name).trim().toLowerCase() === "sipocot",
+        );
+        if (sipocot) {
+          setAddressDraft((current) => ({
+            ...current,
+            ...SIPOCOT_LOCATION,
+            cityCode: sipocot.code,
+            city: sipocot.name,
+          }));
+        }
       })
       .catch(() => {
         if (active)
           setPsgcError(
-            "Philippine location data could not be loaded. Check your connection and try again.",
+            "Unable to load Sipocot location data. Check your connection and try again.",
           );
       });
     return () => {
@@ -163,17 +174,54 @@ function Checkout({
   };
   const startNewAddress = () => {
     setAddressError("");
-    setAddressDraft({ ...emptyAddress, isDefault: addresses.length === 0 });
-    setPsgcArea(null);
+    setAddressDraft({
+      ...emptyAddress,
+      ...SIPOCOT_LOCATION,
+      isDefault: addresses.length === 0,
+    });
+    const sipocot = (psgcArea?.cities || []).find(
+      (city) => String(city.name).trim().toLowerCase() === "sipocot",
+    );
+    if (sipocot) {
+      setAddressDraft((current) => ({
+        ...current,
+        cityCode: sipocot.code,
+        city: sipocot.name,
+      }));
+    }
   };
   const startEditAddress = (address) => {
     setAddressError("");
-    setAddressDraft({ ...emptyAddress, ...address });
-    setPsgcArea(null);
+    setAddressDraft({
+      ...emptyAddress,
+      ...address,
+      ...SIPOCOT_LOCATION,
+      city: "Sipocot",
+      barangayCode: SIPOCOT_BARANGAYS.includes(address.barangay)
+        ? address.barangay
+        : "",
+    });
+    if (!isSipocotAddress(address)) {
+      setAddressError(
+        "This address is outside Sipocot. Update it to a Sipocot delivery address.",
+      );
+    }
     if (address.provinceCode || address.cityCode) {
       setPsgcLoading(true);
-      loadPsgcArea(address.provinceCode || address.cityCode)
-        .then(setPsgcArea)
+      loadPsgcArea(SIPOCOT_LOCATION.provinceCode)
+        .then((area) => {
+          setPsgcArea(area);
+          const sipocot = (area?.cities || []).find(
+            (city) => String(city.name).trim().toLowerCase() === "sipocot",
+          );
+          if (sipocot) {
+            setAddressDraft((current) => ({
+              ...current,
+              cityCode: sipocot.code,
+              city: sipocot.name,
+            }));
+          }
+        })
         .catch(() => setPsgcError("Unable to load the saved location data."))
         .finally(() => setPsgcLoading(false));
     }
@@ -185,77 +233,14 @@ function Checkout({
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-  const selectRegion = (event) => {
-    const region = psgcIndex?.regions?.find(
-      (item) => item.code === event.target.value,
-    );
-    setAddressDraft((current) => ({
-      ...current,
-      regionCode: region?.code || "",
-      region: region?.name || "",
-      provinceCode: "",
-      province: "",
-      cityCode: "",
-      city: "",
-      barangayCode: "",
-      barangay: "",
-    }));
-    setPsgcArea(null);
-  };
-  const selectProvince = (event) => {
-    const options = [
-      ...(psgcIndex?.regions?.find(
-        (item) => item.code === addressDraft.regionCode,
-      )?.provinces || []),
-      ...(psgcIndex?.regions?.find(
-        (item) => item.code === addressDraft.regionCode,
-      )?.independent || []),
-    ];
-    const selected = options.find((item) => item.code === event.target.value);
-    const independent = Boolean(
-      selected?.type &&
-      !psgcIndex?.regions
-        ?.find((item) => item.code === addressDraft.regionCode)
-        ?.provinces?.some((item) => item.code === selected.code),
-    );
-    setAddressDraft((current) => ({
-      ...current,
-      provinceCode: independent ? "" : selected?.code || "",
-      province: independent ? "" : selected?.name || "",
-      cityCode: independent ? selected?.code || "" : "",
-      city: independent ? selected?.name || "" : "",
-      barangayCode: "",
-      barangay: "",
-      isIndependent: independent,
-    }));
-    setPsgcLoading(true);
-    loadPsgcArea(selected?.code)
-      .then(setPsgcArea)
-      .catch(() =>
-        setPsgcError("Unable to load the selected province or city."),
-      )
-      .finally(() => setPsgcLoading(false));
-  };
-  const selectCity = (event) => {
-    const selected = psgcArea?.cities?.find(
-      (item) => item.code === event.target.value,
-    );
-    setAddressDraft((current) => ({
-      ...current,
-      cityCode: selected?.code || "",
-      city: selected?.name || "",
-      barangayCode: "",
-      barangay: "",
-    }));
-  };
   const selectBarangay = (event) => {
-    const selected = psgcArea?.cities
-      ?.find((city) => city.code === addressDraft.cityCode)
-      ?.barangays?.find((item) => item[0] === event.target.value);
+    const selected = SIPOCOT_BARANGAYS.find(
+      (barangay) => barangay === event.target.value,
+    );
     setAddressDraft((current) => ({
       ...current,
-      barangayCode: selected?.[0] || "",
-      barangay: selected?.[1] || "",
+      barangayCode: selected || "",
+      barangay: selected || "",
     }));
   };
   const saveAddress = () => {
@@ -272,6 +257,20 @@ function Checkout({
       showWarning(
         "Incomplete address",
         "Complete all required delivery location fields before saving.",
+      );
+      return;
+    }
+    if (
+      addressDraft.region !== SIPOCOT_LOCATION.region ||
+      addressDraft.province !== SIPOCOT_LOCATION.province ||
+      addressDraft.city !== "Sipocot"
+    ) {
+      setAddressError(
+        "Delivery locations are limited to Sipocot, Camarines Sur.",
+      );
+      showWarning(
+        "Location not available",
+        "Delivery is only available in Sipocot, Camarines Sur.",
       );
       return;
     }
@@ -297,14 +296,24 @@ function Checkout({
     const nextAddresses = addresses.some((item) => item.id === address.id)
       ? addresses.map((item) => (item.id === address.id ? address : item))
       : [...addresses, address];
-    const withDefault =
-      address.isDefault || nextAddresses.length === 1
-        ? nextAddresses.map((item) => ({
-            ...item,
-            isDefault: item.id === address.id,
-          }))
-        : nextAddresses;
-    saveSavedAddresses(withDefault);
+    const currentDefaultId = addresses.find((item) => item.isDefault)?.id;
+    const defaultId =
+      address.isDefault || !currentDefaultId ? address.id : currentDefaultId;
+    const withDefault = nextAddresses.map((item) => ({
+      ...item,
+      isDefault: item.id === defaultId,
+    }));
+    try {
+      saveSavedAddresses(withDefault);
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : "The address could not be saved.";
+      setAddressError(message);
+      showError("Address could not be saved", "Please try again.");
+      return;
+    }
     setAddresses(withDefault);
     setSelectedAddressId(address.id);
     setAddressDraft(emptyAddress);
@@ -320,8 +329,19 @@ function Checkout({
       ...address,
       isDefault: address.id === id,
     }));
-    saveSavedAddresses(nextAddresses);
+    try {
+      saveSavedAddresses(nextAddresses);
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : "The default address could not be updated.";
+      setAddressError(message);
+      showError("Default address could not be updated", "Please try again.");
+      return;
+    }
     setAddresses(nextAddresses);
+    setSelectedAddressId(id);
     showSuccess("Default address updated");
   };
   const deleteAddress = async (address) => {
@@ -343,7 +363,17 @@ function Checkout({
       address.isDefault && remaining.length
         ? remaining.map((item, index) => ({ ...item, isDefault: index === 0 }))
         : remaining;
-    saveSavedAddresses(nextAddresses);
+    try {
+      saveSavedAddresses(nextAddresses);
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : "The address could not be deleted.";
+      setAddressError(message);
+      showError("Address could not be deleted", "Please try again.");
+      return;
+    }
     setAddresses(nextAddresses);
     showSuccess("Address deleted successfully");
   };
@@ -403,6 +433,18 @@ function Checkout({
       showWarning(
         "Delivery address required",
         "Select or add a delivery address before placing your order.",
+      );
+      return;
+    }
+    if (
+      orderType === "Delivery" &&
+      selectedAddress &&
+      !isSipocotAddress(selectedAddress)
+    ) {
+      setError("Delivery locations are limited to Sipocot, Camarines Sur.");
+      showWarning(
+        "Location not available",
+        "Delivery is only available in Sipocot, Camarines Sur.",
       );
       return;
     }
@@ -647,8 +689,7 @@ function Checkout({
                 onClick={() => setPaymentMethod("Cash")}
                 className={`rounded-xl border p-4 text-left transition ${paymentMethod === "Cash" ? "border-[#E63946] bg-[#E63946]/10" : "border-white/10 bg-[#22222B]"}`}
               >
-                <span className="text-lg">💵</span>
-                <span className="ml-2 font-extrabold text-[#F5F5F5]">Cash</span>
+                <span className="font-extrabold text-[#F5F5F5]">Cash</span>
                 <p className="mt-1 text-xs text-[#A1A1AA]">
                   Pay at the restaurant. Marked unpaid until received.
                 </p>
@@ -686,7 +727,7 @@ function Checkout({
                 >
                   {cashAmount
                     ? change >= 0
-                      ? `Expected change: ${formatMoney(change)}`
+                      ? `Change: ${formatMoney(change)}`
                       : `Still needed: ${formatMoney(Math.abs(change))}`
                     : "Enter the cash amount to calculate change."}
                 </p>
@@ -936,60 +977,46 @@ function Checkout({
                     {addressDraft.id ? "Edit Address" : "Add New Address"}
                   </h3>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <SearchableLocationField
-                      id="address-region-list"
-                      label="Region"
-                      value={addressDraft.region}
-                      options={psgcIndex?.regions || []}
-                      onSelect={(option) =>
-                        selectRegion({ target: { value: option?.code || "" } })
-                      }
-                      disabled={!psgcIndex}
-                    />
-                    <SearchableLocationField
-                      id="address-province-list"
-                      label={
-                        addressDraft.isIndependent
-                          ? "Province (not applicable)"
-                          : "Province"
-                      }
-                      value={
-                        addressDraft.province ||
-                        (addressDraft.isIndependent ? "Independent city" : "")
-                      }
-                      options={provinceOptions}
-                      onSelect={(option) =>
-                        selectProvince({
-                          target: { value: option?.code || "" },
-                        })
-                      }
-                      disabled={
-                        !addressDraft.regionCode || addressDraft.isIndependent
-                      }
-                      required={!addressDraft.isIndependent}
-                    />
-                    <SearchableLocationField
-                      id="address-city-list"
-                      label="City/Municipality"
-                      value={addressDraft.city}
-                      options={cityOptions}
-                      onSelect={(option) =>
-                        selectCity({ target: { value: option?.code || "" } })
-                      }
-                      disabled={!psgcArea || addressDraft.isIndependent}
-                    />
-                    <SearchableLocationField
-                      id="address-barangay-list"
-                      label="Barangay"
-                      value={addressDraft.barangay}
-                      options={barangayOptions}
-                      onSelect={(option) =>
-                        selectBarangay({
-                          target: { value: option?.code || "" },
-                        })
-                      }
-                      disabled={!addressDraft.cityCode}
-                    />
+                    <label className="text-sm font-bold text-[#F5F5F5]">
+                      Region
+                      <input
+                        value="Region V (Bicol)"
+                        readOnly
+                        className={`mt-1.5 ${inputClass}`}
+                      />
+                    </label>
+                    <label className="text-sm font-bold text-[#F5F5F5]">
+                      Province
+                      <input
+                        value="Camarines Sur"
+                        readOnly
+                        className={`mt-1.5 ${inputClass}`}
+                      />
+                    </label>
+                    <label className="text-sm font-bold text-[#F5F5F5]">
+                      City/Municipality
+                      <input
+                        value="Sipocot"
+                        readOnly
+                        className={`mt-1.5 ${inputClass}`}
+                      />
+                    </label>
+                    <label className="text-sm font-bold text-[#F5F5F5]">
+                      Barangay
+                      <select
+                        value={addressDraft.barangayCode}
+                        onChange={selectBarangay}
+                        required
+                        className={`mt-1.5 ${inputClass} disabled:cursor-not-allowed disabled:opacity-50`}
+                      >
+                        <option value="">Select barangay</option>
+                        {barangayOptions.map((barangay) => (
+                          <option key={barangay} value={barangay}>
+                            {barangay}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                     {[
                       ["street", "Street Name", true],
                       ["houseNumber", "House/Building Number", true],

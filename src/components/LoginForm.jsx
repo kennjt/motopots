@@ -7,7 +7,13 @@ import {
   setActiveCustomerProfile,
 } from "../data/customerProfileStorage";
 
-function LoginForm({ role, onClose, onCreateAccount, onForgotPassword }) {
+function LoginForm({
+  role,
+  onRoleChange,
+  onClose,
+  onCreateAccount,
+  onForgotPassword,
+}) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -68,16 +74,45 @@ function LoginForm({ role, onClose, onCreateAccount, onForgotPassword }) {
       className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-[25rem] space-y-4 overflow-y-auto rounded-2xl border border-white/10 bg-[#22222B] p-5 shadow-xl shadow-black/30 sm:max-h-[calc(100dvh-2rem)]"
     >
 
-      <button
-        type="button"
-        aria-label="Close login form"
-        onClick={onClose}
-        className="absolute right-3 top-2 rounded px-2 text-2xl leading-none text-[#A1A1AA] transition hover:text-[#E63946]"
-      >
-        &times;
-      </button>
+      <div className="-mb-2 flex justify-end">
+        <button
+          type="button"
+          aria-label="Close login form"
+          onClick={onClose}
+          className="-translate-y-2 flex h-7 w-7 items-center justify-center rounded-full text-2xl leading-none text-[#A1A1AA] transition hover:bg-white/5 hover:text-[#E63946] focus:outline-none focus:ring-2 focus:ring-[#E63946]/40"
+        >
+          &times;
+        </button>
+      </div>
 
-      <div className="mt-5 mb-0 text-center text-2xl font-bold text-[#F5F5F5]">
+      <div className="grid grid-cols-2 gap-2 rounded-xl bg-[#15151C] p-1">
+        <button
+          type="button"
+          aria-pressed={isCustomer}
+          onClick={() => onRoleChange("customer")}
+          className={`min-h-10 rounded-lg px-2 text-sm font-bold transition ${
+            isCustomer
+              ? "bg-[#E63946] text-white"
+              : "text-[#A1A1AA] hover:text-white"
+          }`}
+        >
+          Customer Login
+        </button>
+        <button
+          type="button"
+          aria-pressed={!isCustomer}
+          onClick={() => onRoleChange("staff")}
+          className={`min-h-10 rounded-lg px-2 text-sm font-bold transition ${
+            !isCustomer
+              ? "bg-[#E63946] text-white"
+              : "text-[#A1A1AA] hover:text-white"
+          }`}
+        >
+          Admin Login
+        </button>
+      </div>
+
+      <div className="mt-0 mb-0 text-center text-2xl font-bold text-[#F5F5F5]">
         {isCustomer ? "Welcome Back!" : "Admin Login"}
       </div>
 
@@ -146,9 +181,14 @@ function LoginForm({ role, onClose, onCreateAccount, onForgotPassword }) {
         {isCustomer ? "Login" : "Login"}
       </button>
 
-      {isCustomer && (
-        <p className="pt-2 text-center text-sm text-[#A1A1AA]">
-          Don't have an account?{" "}
+      <p
+        aria-hidden={!isCustomer}
+        className={`pt-2 text-center text-sm ${
+          isCustomer ? "text-[#A1A1AA]" : "invisible text-[#A1A1AA]"
+        }`}
+      >
+        Don't have an account?{" "}
+        {isCustomer ? (
           <button
             type="button"
             onClick={handleCreateAccount}
@@ -156,8 +196,10 @@ function LoginForm({ role, onClose, onCreateAccount, onForgotPassword }) {
           >
             Create Account
           </button>
-        </p>
-      )}
+        ) : (
+          <span className="font-bold text-[#E63946]">Create Account</span>
+        )}
+      </p>
     </form>
   );
 }

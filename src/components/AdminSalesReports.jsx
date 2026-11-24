@@ -44,7 +44,7 @@ function getOrderStatus(order) {
 }
 
 function getOrderRevenue(order) {
-  if (getOrderStatus(order) === "Cancelled") return 0;
+  if (getOrderStatus(order) !== "Completed") return 0;
   const total = Number(order.total);
   const refund = Number(order.refundAmount ?? order.refundedAmount);
   const adjustment = Number(order.adjustmentAmount);
@@ -79,7 +79,7 @@ function downloadReportCsv(report, startDate, endDate) {
     ["Summary", "Value"],
     ["Net sales", report.totalSales],
     ["Orders placed", report.orders.length],
-    ["Non-cancelled orders", report.salesOrders.length],
+    ["Completed sales orders", report.salesOrders.length],
     ["Completed orders", report.completedOrders],
     ["Cancelled orders", report.cancelledOrders],
     ["Recorded expenses", report.expenses.length],
@@ -228,7 +228,7 @@ export default function AdminSalesReports() {
       .sort((left, right) => right.date - left.date)
       .map(({ order }) => order);
     const salesOrders = sortedOrders.filter(
-      (order) => getOrderStatus(order) !== "Cancelled",
+      (order) => getOrderStatus(order) === "Completed",
     );
     const rangeExpenses = expenses
       .filter((expense) => expense.date >= startDate && expense.date <= endDate)
@@ -313,9 +313,9 @@ export default function AdminSalesReports() {
           Sales Reports
         </h2>
         <p className="mb-0 mt-1 text-sm text-[#A1A1AA]">
-          Review sales, order activity, payment methods, and best sellers for a
-          selected date range. Estimated net income is sales minus expenses
-          recorded for the same dates.
+          Review completed sales, order activity, payment methods, and best
+          sellers for a selected date range. Estimated net income is completed
+          sales minus expenses recorded for the same dates.
         </p>
       </header>
       {expensesError && (
@@ -424,7 +424,7 @@ export default function AdminSalesReports() {
             <section className="rounded-2xl border border-white/[0.07] bg-[#141419] p-4 sm:p-5">
               <h3 className="m-0 text-base font-extrabold">Payment method totals</h3>
               <p className="mb-0 mt-1 text-xs text-[#85858F]">
-                Non-cancelled orders grouped by payment method
+                Completed orders grouped by payment method
               </p>
               {report.paymentTotals.length ? (
                 <div className="mt-4 overflow-x-auto">

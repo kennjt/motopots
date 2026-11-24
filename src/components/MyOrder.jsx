@@ -195,7 +195,7 @@ function MyOrder({ modal = false, onClose }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="ordersTitle"
-          className="max-h-[calc(100vh-2rem)] w-full max-w-4xl overflow-y-auto rounded-xl border border-white/10 bg-[#15151C] shadow-xl shadow-black/40"
+          className="h-[36rem] max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-xl border border-white/10 bg-[#15151C] shadow-xl shadow-black/40"
         >
           <header className="flex items-center justify-between border-b border-white/10 bg-[#22222B] px-5 py-4">
             <h2
