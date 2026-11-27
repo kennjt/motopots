@@ -5,6 +5,7 @@ import carticon from "../assets/cart_icon.svg";
 import { showSuccess } from "../utils/swal";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
 import { ClipboardList, X } from "lucide-react";
+import { useCustomerAuth } from "../auth/customerAuthContext";
 
 function MenuIcon({ open }) {
   return (
@@ -109,13 +110,14 @@ function CustomerNavbar({
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const navigate = useNavigate();
-  const logout = () => {
-    localStorage.removeItem("motopots-profile");
-    window.dispatchEvent(new Event("motopots-profile-updated"));
+  const { customer, signOut } = useCustomerAuth();
+  const logout = async () => {
+    await signOut();
     showSuccess("Logged out successfully");
     navigate("/?login=user");
   };
   const [editingNotes, setEditingNotes] = useState({});
+  const displayedCustomerName = customer?.name?.trim().split(/\s+/)[0] || customerName;
   const cartRef = useRef(null);
   const favoritesRef = useRef(null);
   const settingsRef = useRef(null);
@@ -195,7 +197,7 @@ function CustomerNavbar({
             >
               <UserIcon />
               <span className="min-w-0 truncate">
-                {customerName || "Customer"}
+                {displayedCustomerName || "Customer"}
               </span>
             </div>
             <div ref={cartRef} className="relative">

@@ -2,11 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { showError, showSuccess } from "../utils/swal";
 import { supabase } from "../utils/supabase";
-import {
-  findCustomerProfile,
-  readActiveCustomerProfile,
-  setActiveCustomerProfile,
-} from "../data/customerProfileStorage";
+import { customerSupabase } from "../utils/customerSupabase";
 
 function LoginForm({
   role,
@@ -37,17 +33,17 @@ function LoginForm({
     e.preventDefault();
     if (isLoading) return;
     if (role === "customer") {
+      setIsLoading(true);
       try {
         const email = formData.email.trim();
-        const savedProfile = findCustomerProfile(email);
-        const currentProfile = readActiveCustomerProfile();
-        const matchingCurrentProfile = currentProfile?.email.toLowerCase() === email.toLowerCase()
-          ? currentProfile
-          : null;
-        setActiveCustomerProfile(savedProfile || matchingCurrentProfile || { name: "", email, phone: "" });
-      } catch (error) {
-        showError("Unable to load customer profile", error.message || "Please try again.");
+        const { data, error } = await customerSupabase.auth.signInWithPassword({ email, password: formData.password });
+        if (error || !data.session) throw error || new Error("Invalid login credentials.");
+      } catch {
+        showError("Unable to log in", "Invalid email or password, or your email has not been confirmed yet.");
+        setIsLoading(false);
         return;
+      } finally {
+        setIsLoading(false);
       }
     } else {
       const username = formData.email.trim();

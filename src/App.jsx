@@ -2,6 +2,10 @@ import { useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import AdminRoutes from "./AdminRoutes";
 import { EmployeeAuthProvider } from "./auth/EmployeeAuthProvider";
+import { CustomerAuthProvider } from "./auth/CustomerAuthProvider";
+import CustomerRouteGuard from "./components/CustomerRouteGuard";
+import PasswordResetForm from "./components/PasswordResetForm";
+import { useCustomerAuth } from "./auth/customerAuthContext";
 
 import AppNavbar from "./components/navbar";
 import Menu from "./components/menu";
@@ -154,28 +158,33 @@ function HomePage() {
 function App() {
   return (
     <EmployeeAuthProvider>
-      <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/customer" element={<CustomerDashboard />} />
-      <Route path="/customer/order" element={<CustomerDashboard />} />
-      <Route path="/customer/menu" element={<CustomerDashboard />} />
-      <Route path="/customer/cart" element={<CustomerDashboard />} />
-      <Route path="/customer/favorites" element={<CustomerDashboard />} />
-      <Route path="/customer/checkout" element={<CustomerDashboard />} />
-      <Route path="/staff/*" element={<AdminRoutes />} />
-      <Route path="/customer/profile" element={<ProfileSettings />} />
-      <Route path="/customer/orders" element={<MyOrder />} />
-      <Route
-        path="/register"
-        element={
-          <>
-            <HomePage />
-            <AccountCreation />
-          </>
-        }
-      />
-      </Routes>
+      <CustomerAuthProvider>
+        <AppRoutes />
+      </CustomerAuthProvider>
     </EmployeeAuthProvider>
+  );
+}
+
+function AppRoutes() {
+  const { recovery } = useCustomerAuth();
+  if (recovery) return <PasswordResetForm />;
+
+  const customerRoute = (element) => <CustomerRouteGuard>{element}</CustomerRouteGuard>;
+
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/customer" element={customerRoute(<CustomerDashboard />)} />
+      <Route path="/customer/order" element={customerRoute(<CustomerDashboard />)} />
+      <Route path="/customer/menu" element={customerRoute(<CustomerDashboard />)} />
+      <Route path="/customer/cart" element={customerRoute(<CustomerDashboard />)} />
+      <Route path="/customer/favorites" element={customerRoute(<CustomerDashboard />)} />
+      <Route path="/customer/checkout" element={customerRoute(<CustomerDashboard />)} />
+      <Route path="/staff/*" element={<AdminRoutes />} />
+      <Route path="/customer/profile" element={customerRoute(<ProfileSettings />)} />
+      <Route path="/customer/orders" element={customerRoute(<MyOrder />)} />
+      <Route path="/register" element={<><HomePage /><AccountCreation /></>} />
+    </Routes>
   );
 }
 

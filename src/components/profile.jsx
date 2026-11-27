@@ -2,39 +2,24 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomerNavbar from "./customernavbar";
 import { showError, showSuccess, showWarning } from "../utils/swal";
-import {
-  saveCustomerAccountProfile,
-  setActiveCustomerProfile,
-} from "../data/customerProfileStorage";
 import CustomerAddressBook from "./CustomerAddressBook";
-
-const emptyProfile = { name: "", email: "", phone: "" };
-
-const readProfile = () => {
-  try {
-    const storedProfile = JSON.parse(
-      localStorage.getItem("motopots-profile") || "{}",
-    );
-
-    return {
-      name: storedProfile.name || "",
-      email: storedProfile.email || "",
-      phone: storedProfile.phone || "",
-    };
-  } catch {
-    return emptyProfile;
-  }
-};
+import { customerSupabase } from "../utils/customerSupabase";
+import { useCustomerAuth } from "../auth/customerAuthContext";
 
 function ProfileSettings({ modal = false, onClose }) {
   const navigate = useNavigate();
+  const { customer, refreshCustomer } = useCustomerAuth();
 
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     next: false,
     confirm: false,
   });
-  const [profile, setProfile] = useState(readProfile);
+  const [profile, setProfile] = useState(() => ({
+    name: customer?.name || "",
+    email: customer?.email || "",
+    phone: customer?.contact_no || "",
+  }));
   const [passwords, setPasswords] = useState({
     current: "",
     next: "",
@@ -72,9 +57,20 @@ function ProfileSettings({ modal = false, onClose }) {
 
     setSaving(true);
     try {
-      await Promise.resolve();
-      if (profile.email.trim()) saveCustomerAccountProfile(profile);
-      setActiveCustomerProfile(profile);
+      const { error: profileError } = await customerSupabase
+        .from("customer")
+        .update({
+          name: profile.name.trim(),
+          contact_no: profile.phone.trim() || null,
+        })
+        .eq("auth_user_id", customer.auth_user_id);
+      if (profileError) throw profileError;
+
+      if (changingPassword) {
+        const { error: passwordError } = await customerSupabase.auth.updateUser({ password: passwords.next });
+        if (passwordError) throw passwordError;
+      }
+      await refreshCustomer();
 
       showSuccess("Profile updated successfully");
       setErrorMessage("");
@@ -124,7 +120,7 @@ function ProfileSettings({ modal = false, onClose }) {
                 type="email"
                 name="email"
                 value={profile.email}
-                onChange={handleProfileChange}
+                readOnly
                 placeholder="example@gmail.com"
                 required
                 className="w-full rounded-lg border border-white/10 bg-[#22222B] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"

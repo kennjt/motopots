@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  findCustomerProfile,
-  saveCustomerAccountProfile,
-} from "../data/customerProfileStorage";
+import { customerSupabase } from "../utils/customerSupabase";
 
 const initialForm = {
   fullName: "",
@@ -117,26 +114,26 @@ function AccountCreation() {
 
     setIsLoading(true);
     try {
-      await new Promise((resolve) => window.setTimeout(resolve, 0));
       const email = formData.email.trim();
-      if (findCustomerProfile(email)) {
-        setFormError(
-          "A profile with this email is already saved on this device. Please log in or use a different email.",
-        );
-        return;
-      }
-
-      saveCustomerAccountProfile({
-        name: formData.fullName,
+      const { data, error } = await customerSupabase.auth.signUp({
         email,
-        phone: formData.phone,
+        password: formData.password,
+        options: {
+          data: {
+            account_type: "customer",
+            name: formData.fullName.trim(),
+            phone: formData.phone.trim(),
+          },
+        },
       });
+      if (error) throw error;
       setSuccess(true);
+      if (data.session) window.setTimeout(() => navigate("/customer"), 700);
     } catch (error) {
       setFormError(
         error instanceof Error
           ? error.message
-          : "Your account could not be saved. Please try again.",
+          : "Your account could not be created. Please try again.",
       );
     } finally {
       setIsLoading(false);
@@ -205,7 +202,7 @@ function AccountCreation() {
               role="status"
               className="mb-4 rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3 text-sm text-emerald-200"
             >
-              Your profile has been saved on this device.
+              Your account was created. Check your email if confirmation is required before logging in.
             </div>
           )}
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
