@@ -25,6 +25,7 @@ import {
   saveStoreStatus,
 } from "../data/adminSettingsStorage";
 import { showConfirm, showError, showSuccess } from "../utils/swal";
+import { useEmployeeAuth } from "../auth/employeeAuthContext";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const weekDaysFromSunday = ["Sunday", ...days];
@@ -622,6 +623,7 @@ function ScheduleTimeField({
 export default function AdminSettings({ embedded = false, initialTab = "schedule" }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut } = useEmployeeAuth();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [schedule, setSchedule] = useState(createEmptySchedule);
   const [scheduleTimeDrafts, setScheduleTimeDrafts] = useState({});
@@ -697,8 +699,13 @@ export default function AdminSettings({ embedded = false, initialTab = "schedule
       cancelText: "Stay logged in",
     });
     if (result.isConfirmed) {
-      showSuccess("Logged out successfully");
-      navigate("/?login=admin");
+      try {
+        await signOut();
+        showSuccess("Logged out successfully");
+        navigate("/?login=admin");
+      } catch {
+        navigate("/?login=admin");
+      }
     }
   };
 

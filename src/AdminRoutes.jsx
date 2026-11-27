@@ -11,11 +11,35 @@ import AdminWorkspace from "./components/AdminWorkspace";
 import AdminInventoryOverview from "./components/AdminInventoryOverview";
 import AdminInventoryManagement from "./components/AdminInventoryManagement";
 import AdminExpenses from "./components/AdminExpenses";
+import { useEmployeeAuth } from "./auth/employeeAuthContext";
+
+const ownerOnlyPaths = new Set(["expenses", "sales-reports", "performance", "operating-hours", "store-availability", "settings", "shifts", "employees", "store-information"]);
+
+function AdminLoading() {
+  return <div className="flex min-h-screen items-center justify-center bg-[#0B0B0F] text-sm font-semibold text-[#A1A1AA]">Checking your session...</div>;
+}
+
+function AccessDenied() {
+  return <div className="flex min-h-[50vh] items-center justify-center rounded-2xl border border-white/10 bg-[#15151C] p-8 text-center text-sm font-semibold text-[#A1A1AA]">You do not have permission to access this page.</div>;
+}
+
+function ProtectedAdmin({ children }) {
+  const { session, loading } = useEmployeeAuth();
+  if (loading) return <AdminLoading />;
+  if (!session) return <Navigate to="/?login=admin" replace />;
+  return children;
+}
+
+function RoleGuard({ path, children }) {
+  const { role } = useEmployeeAuth();
+  if (ownerOnlyPaths.has(path) && role !== "owner") return <AccessDenied />;
+  return children;
+}
 
 function AdminRoutes() {
   return (
     <Routes>
-      <Route element={<AdminLayout />}>
+      <Route element={<ProtectedAdmin><AdminLayout /></ProtectedAdmin>}>
         <Route index element={<AdminOverview />} />
         <Route
           path="orders"
@@ -151,55 +175,55 @@ function AdminRoutes() {
         />
         <Route
           path="performance"
-          element={<AdminDashboard embedded page="performance" />}
+          element={<RoleGuard path="performance"><AdminDashboard embedded page="performance" /></RoleGuard>}
         />
         <Route
           path="operating-hours"
           element={
-            <AdminSettings
+            <RoleGuard path="operating-hours"><AdminSettings
               key="operating-hours"
               embedded
               initialTab="schedule"
-            />
+            /></RoleGuard>
           }
         />
         <Route
           path="store-availability"
           element={
-            <AdminSettings
+            <RoleGuard path="store-availability"><AdminSettings
               key="store-availability"
               embedded
               initialTab="availability"
-            />
+            /></RoleGuard>
           }
         />
         <Route
           path="settings"
           element={
-            <AdminSettings key="settings" embedded initialTab="schedule" />
+            <RoleGuard path="settings"><AdminSettings key="settings" embedded initialTab="schedule" /></RoleGuard>
           }
         />
         <Route
           path="shifts"
-          element={<AdminSettings key="shifts" embedded initialTab="shifts" />}
+          element={<RoleGuard path="shifts"><AdminSettings key="shifts" embedded initialTab="shifts" /></RoleGuard>}
         />
         <Route
           path="employees"
           element={
-            <AdminSettings key="employees" embedded initialTab="shifts" />
+            <RoleGuard path="employees"><AdminSettings key="employees" embedded initialTab="shifts" /></RoleGuard>
           }
         />
         <Route
           path="expenses"
-          element={<AdminExpenses />}
+          element={<RoleGuard path="expenses"><AdminExpenses /></RoleGuard>}
         />
         <Route
           path="sales-reports"
-          element={<AdminDashboard embedded page="sales-reports" />}
+          element={<RoleGuard path="sales-reports"><AdminDashboard embedded page="sales-reports" /></RoleGuard>}
         />
         <Route
           path="store-information"
-          element={<AdminSectionPage title="Store Information" />}
+          element={<RoleGuard path="store-information"><AdminSectionPage title="Store Information" /></RoleGuard>}
         />
         <Route path="profile" element={<AdminSectionPage title="Profile" />} />
         <Route path="*" element={<AdminSectionPage title="Page not found" />} />

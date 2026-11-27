@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { showError, showSuccess } from "../utils/swal";
+import { supabase } from "../utils/supabase";
 import {
   findCustomerProfile,
   readActiveCustomerProfile,
@@ -15,6 +16,7 @@ function LoginForm({
   onForgotPassword,
 }) {
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -31,8 +33,9 @@ function LoginForm({
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
     if (role === "customer") {
       try {
         const email = formData.email.trim();
@@ -46,6 +49,60 @@ function LoginForm({
         showError("Unable to load customer profile", error.message || "Please try again.");
         return;
       }
+    } else {
+      const username = formData.email.trim();
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          "https://qiggtwvpkkurjqflshtm.supabase.co/functions/v1/employee-login",
+          {
+            method: "POST",
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              "content-type": "application/json",
+            },
+            body: JSON.stringify({ username, password: formData.password }),
+          },
+        );
+        let payload = null;
+        try {
+          payload = await response.json();
+        } catch {
+          payload = null;
+        }
+
+        if (!response.ok) {
+          const message = response.status === 429
+            ? "Too many login attempts. Please try again later."
+            : response.status === 503
+              ? "Authentication is temporarily unavailable. Please try again later."
+              : "Invalid username or password.";
+          throw new Error(message);
+        }
+
+        if (!payload?.access_token || !payload?.refresh_token) {
+          throw new Error("Authentication is temporarily unavailable. Please try again later.");
+        }
+
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: payload.access_token,
+          refresh_token: payload.refresh_token,
+        });
+        if (sessionError) throw new Error("Authentication is temporarily unavailable. Please try again later.");
+
+        showSuccess("Login successful", "Welcome back.");
+        navigate("/staff");
+      } catch (error) {
+        showError(
+          "Unable to log in",
+          error instanceof TypeError
+            ? "Unable to reach the authentication service. Please try again."
+            : error.message || "Invalid username or password.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+      return;
     }
     showSuccess("Login successful", `Welcome back${formData.email ? `, ${formData.email}` : ""}.`);
 
@@ -176,9 +233,10 @@ function LoginForm({
 
       <button
         type="submit"
+        disabled={isLoading}
         className="w-full rounded-xl border border-[#E63946] bg-[#E63946] py-3 font-extrabold text-white shadow-lg shadow-[#E63946]/20 transition duration-300 hover:-translate-y-0.5 hover:bg-[#C92D3A] hover:shadow-xl"
       >
-        {isCustomer ? "Login" : "Login"}
+        {isLoading ? "Logging in..." : "Login"}
       </button>
 
       <p

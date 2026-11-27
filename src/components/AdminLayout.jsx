@@ -13,13 +13,15 @@ import {
 import { showSuccess } from "../utils/swal";
 import LogoutConfirmationModal from "./LogoutConfirmationModal";
 import NotificationCenter from "./NotificationCenter";
+import { useEmployeeAuth } from "../auth/employeeAuthContext";
 
 const navigation = [
-  { label: "Overview", path: "/staff", icon: LayoutDashboard },
-  { label: "Orders", path: "/staff/orders", icon: ShoppingBag },
-  { label: "Inventory", path: "/staff/inventory", icon: Package },
-  { label: "Expenses", path: "/staff/expenses", icon: ReceiptText },
-  { label: "Customer", path: "/staff/customers", icon: Users },
+  { label: "Overview", path: "/staff", icon: LayoutDashboard, roles: ["owner", "staff"] },
+  { label: "Orders", path: "/staff/orders", icon: ShoppingBag, roles: ["owner", "staff"] },
+  { label: "Inventory", path: "/staff/inventory", icon: Package, roles: ["owner", "staff"] },
+  { label: "Customer", path: "/staff/customers", icon: Users, roles: ["owner", "staff"] },
+  { label: "Expenses", path: "/staff/expenses", icon: ReceiptText, roles: ["owner"] },
+  { label: "Sales Reports", path: "/staff/sales-reports", icon: ReceiptText, roles: ["owner"] },
 ];
 
 export default function AdminLayout() {
@@ -29,6 +31,7 @@ export default function AdminLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const logoutButtonRef = useRef(null);
+  const { role, signOut } = useEmployeeAuth();
   const todayLabel = now.toLocaleDateString("en-PH", {
     weekday: "long",
     month: "long",
@@ -51,10 +54,15 @@ export default function AdminLayout() {
     return () => window.clearInterval(clock);
   }, []);
 
-  const logout = () => {
-    sessionStorage.removeItem("motopots-admin-session");
-    showSuccess("Logged out successfully");
-    navigate("/?login=admin");
+  const logout = async () => {
+    try {
+      await signOut();
+      showSuccess("Logged out successfully");
+      navigate("/?login=admin");
+    } catch {
+      showSuccess("Your session has ended");
+      navigate("/?login=admin");
+    }
   };
 
   return (
@@ -76,7 +84,7 @@ export default function AdminLayout() {
         </Link>
         <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[#777781]">Main Navigation</p>
         <nav aria-label="Admin navigation" className="space-y-1">
-          {navigation.map(({ label, path, icon: NavigationIcon }) => {
+          {navigation.filter(({ roles }) => roles.includes(role)).map(({ label, path, icon: NavigationIcon }) => {
             return (
               <NavLink
                 key={path}
@@ -92,9 +100,9 @@ export default function AdminLayout() {
           })}
         </nav>
         <div className="mt-auto shrink-0 space-y-1 border-t border-white/[0.08] pt-3">
-          <Link to="/staff/settings" onClick={() => setMobileNavOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-[#A1A1AA] no-underline transition hover:bg-white/[0.04] hover:text-white">
+          {role === "owner" && <Link to="/staff/settings" onClick={() => setMobileNavOpen(false)} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold text-[#A1A1AA] no-underline transition hover:bg-white/[0.04] hover:text-white">
             <Settings aria-hidden="true" className="h-[18px] w-[18px] shrink-0 text-[#FF727D]" />Settings
-          </Link>
+          </Link>}
           <button ref={logoutButtonRef} type="button" onClick={() => { setMobileNavOpen(false); setLogoutOpen(true); }} className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm font-semibold text-[#FF929A] transition hover:bg-[#E63946]/10">
             <LogOut aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />Logout
           </button>
