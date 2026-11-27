@@ -77,11 +77,12 @@ function readCustomerName() {
     const profile = JSON.parse(
       localStorage.getItem("motopots-profile") || "{}",
     );
-    return typeof profile.name === "string"
+    const name = typeof profile.name === "string"
       ? profile.name.trim()
       : typeof profile.fullName === "string"
         ? profile.fullName.trim()
         : "";
+    return name.split(/\s+/)[0] || "";
   } catch {
     return "";
   }

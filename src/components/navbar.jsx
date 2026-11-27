@@ -267,22 +267,7 @@ function AppNavbar() {
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={openAccountCreation}
-              className="mb-3 min-h-11 rounded-full border border-[#E63946] px-4 py-2 text-sm font-bold text-[#FF929A] hover:bg-[#E63946]/10 lg:hidden"
-            >
-              Sign Up
-            </button>
-
             <div className="mt-auto hidden min-w-0 flex-col gap-2 border-t border-white/10 pt-5 lg:mt-0 lg:ml-auto lg:flex lg:flex-row lg:items-center lg:border-0 lg:pt-0">
-              <button
-                type="button"
-                onClick={openAccountCreation}
-                className="inline-flex h-10 w-28 items-center justify-center rounded-full border border-[#E63946] px-0 py-0 text-sm font-bold text-[#FF929A] transition hover:bg-[#E63946]/10 focus:outline-none focus:ring-4 focus:ring-[#E63946]/25"
-              >
-                Sign Up
-              </button>
               <button
                 type="button"
                 aria-expanded={showLogin}

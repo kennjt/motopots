@@ -25,13 +25,31 @@ const navigation = [
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const [now, setNow] = useState(() => new Date());
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const logoutButtonRef = useRef(null);
+  const todayLabel = now.toLocaleDateString("en-PH", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "Asia/Manila",
+  });
+  const compactTodayLabel = now.toLocaleDateString("en-PH", {
+    month: "short",
+    day: "numeric",
+    timeZone: "Asia/Manila",
+  });
 
   useEffect(() => {
     document.querySelector(".admin-main-content")?.scrollTo({ top: 0, behavior: "auto" });
   }, [location.pathname]);
+
+  useEffect(() => {
+    const clock = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(clock);
+  }, []);
 
   const logout = () => {
     sessionStorage.removeItem("motopots-admin-session");
@@ -51,7 +69,7 @@ export default function AdminLayout() {
         />
       )}
       {mobileNavOpen && <button type="button" aria-label="Close admin navigation" onClick={() => setMobileNavOpen(false)} className="mobile-modal-backdrop fixed inset-0 z-20 bg-black/60 lg:hidden" />}
-      <aside className={`fixed inset-y-0 left-0 z-30 w-[248px] flex-col overflow-y-auto border-r border-white/[0.07] bg-[#111116] px-5 py-6 ${mobileNavOpen ? "flex" : "hidden"} lg:flex`}>
+      <aside id="admin-navigation" className={`fixed inset-y-0 left-0 z-30 w-[248px] flex-col overflow-y-auto border-r border-white/[0.07] bg-[#111116] px-5 py-6 ${mobileNavOpen ? "flex" : "hidden"} lg:flex`}>
         <Link to="/staff" onClick={() => setMobileNavOpen(false)} className="mb-8 inline-flex flex-col leading-none no-underline">
           <span className="font-display text-[1.4rem] tracking-[1px] text-[#E63946] [text-shadow:2px_2px_0_#000000]">MOTOPOT&apos;S</span>
           <span className="mt-1 self-start bg-[#22222B] px-2 py-0.5 font-display text-[0.65rem] italic text-[#F5F5F5]">FOOD HOUSE</span>
@@ -84,17 +102,28 @@ export default function AdminLayout() {
       </aside>
 
       <div className="admin-main-content flex h-screen min-w-0 flex-col lg:ml-[248px]">
-        <button
-          type="button"
-          onClick={() => setMobileNavOpen(true)}
-          aria-label="Open admin navigation"
-          className="fixed bottom-4 left-4 z-10 flex h-11 w-11 items-center justify-center rounded-xl border border-white/[0.08] bg-[#15151C] text-[#B8B8C0] shadow-lg lg:hidden"
-        >
-          <Menu aria-hidden="true" className="h-5 w-5" />
-        </button>
-        <header className="flex shrink-0 items-center justify-between border-b border-white/[0.07] px-4 py-3 sm:px-7 lg:px-8">
-          <h1 className="m-0 text-sm font-bold text-[#A1A1AA]">Admin workspace</h1>
-          <NotificationCenter audience="admin" manageNotices />
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-3 sm:px-7 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              aria-label="Open admin navigation"
+              aria-controls="admin-navigation"
+              aria-expanded={mobileNavOpen}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-[#15151C] text-[#B8B8C0] shadow-lg lg:hidden"
+            >
+              <Menu aria-hidden="true" className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
+            <p className="m-0 text-[10px] font-semibold text-[#A1A1AA] sm:hidden">
+              {compactTodayLabel}
+            </p>
+            <p className="m-0 hidden text-xs font-semibold text-[#A1A1AA] sm:block">
+              {todayLabel}
+            </p>
+            <NotificationCenter audience="admin" manageNotices />
+          </div>
         </header>
         <div key={location.pathname} className="admin-route-content min-h-0 flex-1 px-4 py-5 pb-20 sm:px-7 lg:px-8 lg:pb-5">
           <Outlet />

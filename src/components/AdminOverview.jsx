@@ -7,7 +7,6 @@ import {
   ClipboardList,
   Clock3,
   Package,
-  ShieldCheck,
   Store,
   Wallet,
 } from "lucide-react";
@@ -298,13 +297,6 @@ export default function AdminOverview() {
   const [now, setNow] = useState(() => new Date());
   const todayParts = getBusinessDateParts(now);
   const todayKey = makeDateKey(todayParts.year, todayParts.month, todayParts.day);
-  const todayLabel = now.toLocaleDateString("en-PH", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: BUSINESS_TIME_ZONE,
-  });
 
   useEffect(() => {
     const syncOrders = (event) => {
@@ -540,20 +532,56 @@ export default function AdminOverview() {
   return (
     <main className="-mx-4 -my-5 bg-[var(--color-primary-bg)] p-4 text-[var(--color-primary-text)] sm:-mx-7 sm:p-7 lg:-mx-8 lg:p-8">
       <div className="mx-auto w-full max-w-[1500px] space-y-6">
-        <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <p className="mb-1 text-xs font-extrabold uppercase tracking-[1.4px] text-[#FF727D]">Business overview</p>
-            <h2 className="m-0 text-2xl font-extrabold tracking-tight text-[#F5F5F5] sm:text-3xl">Dashboard</h2>
-            <p className="mb-0 mt-1 text-sm text-[#A1A1AA]">Welcome back. Here&apos;s your store&apos;s latest activity.</p>
+        <section aria-label="Business statistics" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          {ordersLoading
+            ? summaryCards.map((card) => <div key={card.title} className="rounded-2xl border border-white/[0.07] bg-[#141419] p-4 shadow-sm shadow-black/10 sm:p-5"><Skeleton className="h-5 w-32" /><Skeleton className="mt-5 h-8 w-24" /><Skeleton className="mt-2 h-4 w-40" /></div>)
+            : summaryCards.map((card) => <SummaryCard key={card.title} {...card} />)}
+        </section>
+
+        <section aria-labelledby="sales-heading" className="rounded-2xl border border-white/[0.07] bg-[#141419] p-4 shadow-sm shadow-black/10 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 id="sales-heading" className="m-0 text-lg font-extrabold text-[#F5F5F5]">Sales Performance</h3>
+              <p className="mb-0 mt-1 text-xs text-[#85858F]">{salesPeriodLabel} · Asia/Manila time</p>
+              <Link to="/staff/sales-reports" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#FF727D] no-underline hover:text-white">View sales reports <OverviewIcon name="arrow" className="h-4 w-4" /></Link>
+            </div>
+            <div role="group" aria-label="Sales chart period" className="inline-flex w-fit rounded-xl border border-white/[0.08] bg-[#1B1B22] p-1">
+              {[
+                ["daily", "Daily"],
+                ["weekly", "Weekly"],
+                ["monthly", "Monthly"],
+              ].map(([value, label]) => (
+                <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)} className={`min-h-9 rounded-lg px-3 text-xs font-bold transition ${period === value ? "bg-[#2A2022] text-[#FF727D] shadow-sm ring-1 ring-[#E63946]/25" : "text-[#A1A1AA] hover:text-white"}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-3 sm:ml-auto">
-            <p className="m-0 text-sm font-semibold text-[#A1A1AA]">{todayLabel}</p>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E63946]/25 bg-[#E63946]/[0.07] px-3 py-1.5 text-[11px] font-extrabold tracking-[0.12em] text-[#FF929A]">
-              <ShieldCheck aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />
-              ADMINISTRATOR
-            </span>
+          <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="m-0 text-3xl font-extrabold tracking-tight text-[#F5F5F5]">{formatMoney(periodData.total)}</p>
+              <p className="mb-0 mt-1 text-xs font-medium text-[#85858F]">Net order value · cancelled orders excluded</p>
+            </div>
+            <p className="m-0 text-xs font-semibold text-[#A1A1AA]">
+              {trend === null
+                ? `No prior sales data ${comparisonLabel.replace("vs ", "for ")}`
+                : <><span className={trend >= 0 ? "text-emerald-300" : "text-[#FF727D]"}>{trend >= 0 ? "+" : ""}{trend.toFixed(1)}%</span> {comparisonLabel}</>}
+            </p>
           </div>
-        </header>
+          <div className="mt-5 overflow-x-auto pb-2">
+            <div role="img" aria-label={`${salesPeriodLabel} sales chart`} className="flex h-48 min-w-[640px] items-end gap-1.5 border-b border-white/[0.08] px-1 sm:gap-2">
+              {ordersLoading ? Array.from({ length: 7 }, (_, index) => <Skeleton key={index} className="h-32 flex-1" />) : periodData.bins.map((bin, index) => (
+                <div key={`${bin.title}-${index}`} aria-label={`${bin.title}: ${formatMoney(bin.amount)}`} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
+                  <div className="flex h-36 w-full items-end rounded-t-md bg-[#1B1B22]">
+                    <div className={`w-full rounded-t-md ${bin.amount > 0 ? "bg-[#E63946]" : "bg-white/10"}`} style={{ height: `${bin.amount > 0 ? Math.max((bin.amount / salesMax) * 100, 4) : 2}%` }} />
+                  </div>
+                  <span className="h-4 whitespace-nowrap text-[10px] font-semibold text-[#85858F]">{bin.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          {!ordersLoading && periodData.total === 0 && <p className="mb-0 mt-2 text-center text-xs text-[#85858F]">No sales recorded for this period.</p>}
+        </section>
 
         <section aria-label="Store status" className="flex flex-col gap-3 rounded-2xl border border-white/[0.07] bg-[#141419] px-4 py-4 shadow-sm shadow-black/10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="flex items-center gap-3">
@@ -604,57 +632,6 @@ export default function AdminOverview() {
               })}
             </div>
           )}
-        </section>
-
-        <section aria-label="Business statistics" className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          {ordersLoading
-            ? summaryCards.map((card) => <div key={card.title} className="rounded-2xl border border-white/[0.07] bg-[#141419] p-4 shadow-sm shadow-black/10 sm:p-5"><Skeleton className="h-5 w-32" /><Skeleton className="mt-5 h-8 w-24" /><Skeleton className="mt-2 h-4 w-40" /></div>)
-            : summaryCards.map((card) => <SummaryCard key={card.title} {...card} />)}
-        </section>
-
-        <section aria-labelledby="sales-heading" className="rounded-2xl border border-white/[0.07] bg-[#141419] p-4 shadow-sm shadow-black/10 sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h3 id="sales-heading" className="m-0 text-lg font-extrabold text-[#F5F5F5]">Sales Performance</h3>
-              <p className="mb-0 mt-1 text-xs text-[#85858F]">{salesPeriodLabel} · Asia/Manila time</p>
-              <Link to="/staff/sales-reports" className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-[#FF727D] no-underline hover:text-white">View sales reports <OverviewIcon name="arrow" className="h-4 w-4" /></Link>
-            </div>
-            <div role="group" aria-label="Sales chart period" className="inline-flex w-fit rounded-xl border border-white/[0.08] bg-[#1B1B22] p-1">
-              {[
-                ["daily", "Daily"],
-                ["weekly", "Weekly"],
-                ["monthly", "Monthly"],
-              ].map(([value, label]) => (
-                <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)} className={`min-h-9 rounded-lg px-3 text-xs font-bold transition ${period === value ? "bg-[#2A2022] text-[#FF727D] shadow-sm ring-1 ring-[#E63946]/25" : "text-[#A1A1AA] hover:text-white"}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="m-0 text-3xl font-extrabold tracking-tight text-[#F5F5F5]">{formatMoney(periodData.total)}</p>
-              <p className="mb-0 mt-1 text-xs font-medium text-[#85858F]">Net order value · cancelled orders excluded</p>
-            </div>
-            <p className="m-0 text-xs font-semibold text-[#A1A1AA]">
-              {trend === null
-                ? `No prior sales data ${comparisonLabel.replace("vs ", "for ")}`
-                : <><span className={trend >= 0 ? "text-emerald-300" : "text-[#FF727D]"}>{trend >= 0 ? "+" : ""}{trend.toFixed(1)}%</span> {comparisonLabel}</>}
-            </p>
-          </div>
-          <div className="mt-5 overflow-x-auto pb-2">
-            <div role="img" aria-label={`${salesPeriodLabel} sales chart`} className="flex h-48 min-w-[640px] items-end gap-1.5 border-b border-white/[0.08] px-1 sm:gap-2">
-              {ordersLoading ? Array.from({ length: 7 }, (_, index) => <Skeleton key={index} className="h-32 flex-1" />) : periodData.bins.map((bin, index) => (
-                <div key={`${bin.title}-${index}`} aria-label={`${bin.title}: ${formatMoney(bin.amount)}`} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2">
-                  <div className="flex h-36 w-full items-end rounded-t-md bg-[#1B1B22]">
-                    <div className={`w-full rounded-t-md ${bin.amount > 0 ? "bg-[#E63946]" : "bg-white/10"}`} style={{ height: `${bin.amount > 0 ? Math.max((bin.amount / salesMax) * 100, 4) : 2}%` }} />
-                  </div>
-                  <span className="h-4 whitespace-nowrap text-[10px] font-semibold text-[#85858F]">{bin.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          {!ordersLoading && periodData.total === 0 && <p className="mb-0 mt-2 text-center text-xs text-[#85858F]">No sales recorded for this period.</p>}
         </section>
 
         <div className="grid gap-6 xl:grid-cols-[1.35fr_1fr]">
