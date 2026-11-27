@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { customerSupabase } from "../utils/customerSupabase";
+import {
+  CUSTOMER_PASSWORD_MIN_LENGTH,
+  getCustomerPasswordError,
+} from "../utils/customerPassword";
 
 const initialForm = {
   fullName: "",
@@ -12,11 +16,7 @@ const initialForm = {
 };
 
 function getValidationErrors(formData) {
-  const passwordScore = [
-    formData.password.length >= 8,
-    /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password),
-    /\d/.test(formData.password) && /[^A-Za-z0-9]/.test(formData.password),
-  ].filter(Boolean).length;
+  const passwordError = getCustomerPasswordError(formData.password);
 
   return {
     fullName: formData.fullName.trim() ? "" : "Please enter your full name.",
@@ -26,10 +26,7 @@ function getValidationErrors(formData) {
         ? ""
         : "Enter a valid email address.",
     phone: formData.phone.trim() ? "" : "Phone number is required.",
-    password:
-      passwordScore >= 2
-        ? ""
-        : "Use at least 8 characters with upper and lowercase letters.",
+    password: passwordError,
     confirmPassword: !formData.confirmPassword
       ? "Please confirm your password."
       : formData.password === formData.confirmPassword
@@ -83,12 +80,11 @@ function AccountCreation() {
   const [formError, setFormError] = useState("");
 
   const passwordScore = [
-    formData.password.length >= 8,
-    /[A-Z]/.test(formData.password) && /[a-z]/.test(formData.password),
-    /\d/.test(formData.password) && /[^A-Za-z0-9]/.test(formData.password),
+    formData.password.length >= CUSTOMER_PASSWORD_MIN_LENGTH,
+    /[A-Za-z]/.test(formData.password),
+    /\d/.test(formData.password),
   ].filter(Boolean).length;
-  const strength =
-    passwordScore < 2 ? "Weak" : passwordScore === 2 ? "Medium" : "Strong";
+  const strength = passwordScore < 2 ? "Weak" : passwordScore === 2 ? "Medium" : "Strong";
   const validationErrors = getValidationErrors(formData);
   const canSubmit = Object.values(validationErrors).every((error) => !error);
 
@@ -322,7 +318,7 @@ function AccountCreation() {
                     <p className="mt-1 text-xs font-bold text-[#A1A1AA]">
                       {strength}{" "}
                       <span className="font-normal">
-                        · Use letters, numbers, and symbols
+                        Use at least 8 characters, one letter, and one number
                       </span>
                     </p>
                   </div>

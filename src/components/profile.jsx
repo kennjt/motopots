@@ -5,6 +5,7 @@ import { showError, showSuccess, showWarning } from "../utils/swal";
 import CustomerAddressBook from "./CustomerAddressBook";
 import { customerSupabase } from "../utils/customerSupabase";
 import { useCustomerAuth } from "../auth/customerAuthContext";
+import { getCustomerPasswordError } from "../utils/customerPassword";
 
 function ProfileSettings({ modal = false, onClose }) {
   const navigate = useNavigate();
@@ -48,6 +49,14 @@ function ProfileSettings({ modal = false, onClose }) {
       setErrorMessage("Enter your current password and a new password to continue.");
       showWarning("Check password details", "Enter your current password and a new password to continue.");
       return;
+    }
+    if (changingPassword) {
+      const passwordError = getCustomerPasswordError(passwords.next);
+      if (passwordError) {
+        setErrorMessage(passwordError);
+        showWarning("Check password details", passwordError);
+        return;
+      }
     }
     if (passwords.next !== passwords.confirm) {
       setErrorMessage("New password and confirmation do not match.");

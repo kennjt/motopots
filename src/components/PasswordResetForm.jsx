@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { customerSupabase } from "../utils/customerSupabase";
 import { showError, showSuccess } from "../utils/swal";
+import { getCustomerPasswordError } from "../utils/customerPassword";
 
 export default function PasswordResetForm() {
   const navigate = useNavigate();
@@ -11,10 +12,18 @@ export default function PasswordResetForm() {
 
   const submit = async (event) => {
     event.preventDefault();
-    if (password.length < 8 || password !== confirmPassword) {
+    const passwordError = getCustomerPasswordError(password);
+    if (passwordError) {
       showError(
         "Password could not be updated",
-        "Use at least 8 characters and make both passwords match.",
+        passwordError,
+      );
+      return;
+    }
+    if (password !== confirmPassword) {
+      showError(
+        "Password could not be updated",
+        "Passwords do not match.",
       );
       return;
     }
@@ -54,7 +63,6 @@ export default function PasswordResetForm() {
           onChange={(event) => setPassword(event.target.value)}
           placeholder="New password"
           required
-          minLength={8}
           className="w-full rounded-xl border border-white/10 bg-[#15151C] px-4 py-3 text-[#F5F5F5] outline-none focus:border-[#E63946]"
         />
         <input
@@ -63,9 +71,11 @@ export default function PasswordResetForm() {
           onChange={(event) => setConfirmPassword(event.target.value)}
           placeholder="Confirm new password"
           required
-          minLength={8}
           className="w-full rounded-xl border border-white/10 bg-[#15151C] px-4 py-3 text-[#F5F5F5] outline-none focus:border-[#E63946]"
         />
+        <p className="text-xs text-[#A1A1AA]">
+          Use at least 8 characters, one letter, and one number.
+        </p>
         <button
           type="submit"
           disabled={loading}
