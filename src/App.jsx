@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import AdminRoutes from "./AdminRoutes";
+import { EmployeeAuthProvider } from "./auth/EmployeeAuthProvider";
 
 import AppNavbar from "./components/navbar";
 import Menu from "./components/menu";
@@ -152,7 +153,8 @@ function HomePage() {
 
 function App() {
   return (
-    <Routes>
+    <EmployeeAuthProvider>
+      <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/customer" element={<CustomerDashboard />} />
       <Route path="/customer/order" element={<CustomerDashboard />} />
@@ -172,7 +174,8 @@ function App() {
           </>
         }
       />
-    </Routes>
+      </Routes>
+    </EmployeeAuthProvider>
   );
 }
 

@@ -13,6 +13,7 @@ import { deductOrderRecipeStock } from "./data/inventoryStorage";
 import { ImageWithSkeleton } from "./components/Skeleton";
 import { showConfirm, showError, showSuccess } from "./utils/swal";
 import AdminMenuCatalog from "./components/AdminMenuCatalog";
+import { useEmployeeAuth } from "./auth/employeeAuthContext";
 
 const orderStatuses = [
   "Pending",
@@ -197,6 +198,7 @@ function getProductPriceLabel(item) {
 
 function AdminDashboard({ embedded = false, page = "overview", showPageHeading = true }) {
   const navigate = useNavigate();
+  const { signOut } = useEmployeeAuth();
   const [orders, setOrders] = useState(readOrders);
   const [today] = useState(() => new Date());
   const [search, setSearch] = useState("");
@@ -491,8 +493,13 @@ function AdminDashboard({ embedded = false, page = "overview", showPageHeading =
       cancelText: "Stay logged in",
     });
     if (!result.isConfirmed) return;
-    showSuccess("Logged out successfully");
-    navigate("/?login=admin");
+    try {
+      await signOut();
+      showSuccess("Logged out successfully");
+      navigate("/?login=admin");
+    } catch {
+      navigate("/?login=admin");
+    }
   };
 
   const chartMax = Math.max(...salesByDay.map((day) => day.amount), 1);
