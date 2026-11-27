@@ -57,14 +57,18 @@ function ProfileSettings({ modal = false, onClose }) {
 
     setSaving(true);
     try {
-      const { error: profileError } = await customerSupabase
+      const { data: updatedCustomers, error: profileError } = await customerSupabase
         .from("customer")
         .update({
           name: profile.name.trim(),
           contact_no: profile.phone.trim() || null,
         })
-        .eq("auth_user_id", customer.auth_user_id);
+        .eq("auth_user_id", customer.auth_user_id)
+        .select("customer_id, auth_user_id, name, contact_no");
       if (profileError) throw profileError;
+      if (!updatedCustomers || updatedCustomers.length !== 1) {
+        throw new Error("Your customer profile could not be updated.");
+      }
 
       if (changingPassword) {
         const { error: passwordError } = await customerSupabase.auth.updateUser({ password: passwords.next });
