@@ -9,7 +9,7 @@ import { getCustomerPasswordError } from "../utils/customerPassword";
 
 function ProfileSettings({ modal = false, onClose }) {
   const navigate = useNavigate();
-  const { customer, refreshCustomer } = useCustomerAuth();
+  const { customer, updateCustomerProfile } = useCustomerAuth();
 
   const [showPasswords, setShowPasswords] = useState({
     current: false,
@@ -20,6 +20,7 @@ function ProfileSettings({ modal = false, onClose }) {
     name: customer?.name || "",
     email: customer?.email || "",
     phone: customer?.contact_no || "",
+    deliveryAddress: customer?.delivery_address || "",
   }));
   const [passwords, setPasswords] = useState({
     current: "",
@@ -28,9 +29,11 @@ function ProfileSettings({ modal = false, onClose }) {
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editingDeliveryAddress, setEditingDeliveryAddress] = useState(false);
 
   const handleProfileChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
+    if (e.target.name === "deliveryAddress") setEditingDeliveryAddress(true);
     setErrorMessage("");
   };
 
@@ -66,27 +69,22 @@ function ProfileSettings({ modal = false, onClose }) {
 
     setSaving(true);
     try {
-      const { data: updatedCustomers, error: profileError } = await customerSupabase
-        .from("customer")
-        .update({
-          name: profile.name.trim(),
-          contact_no: profile.phone.trim() || null,
-        })
-        .eq("auth_user_id", customer.auth_user_id)
-        .select("customer_id, auth_user_id, name, contact_no");
-      if (profileError) throw profileError;
-      if (!updatedCustomers || updatedCustomers.length !== 1) {
-        throw new Error("Your customer profile could not be updated.");
-      }
+      const deliveryAddress = editingDeliveryAddress
+        ? profile.deliveryAddress.trim() || null
+        : customer?.delivery_address || null;
+      await updateCustomerProfile({
+        name: profile.name.trim(),
+        contact_no: profile.phone.trim() || null,
+        delivery_address: deliveryAddress,
+      });
 
       if (changingPassword) {
         const { error: passwordError } = await customerSupabase.auth.updateUser({ password: passwords.next });
         if (passwordError) throw passwordError;
       }
-      await refreshCustomer();
-
       showSuccess("Profile updated successfully");
       setErrorMessage("");
+      setEditingDeliveryAddress(false);
       setPasswords({ current: "", next: "", confirm: "" });
       if (modal && onClose) {
         onClose();
@@ -121,6 +119,20 @@ function ProfileSettings({ modal = false, onClose }) {
                 placeholder="Enter your full name"
                 required
                 className="w-full rounded-lg border border-white/10 bg-[#22222B] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-bold text-[#F5F5F5]">
+                Delivery Address
+              </label>
+              <textarea
+                name="deliveryAddress"
+                value={editingDeliveryAddress ? profile.deliveryAddress : customer?.delivery_address || ""}
+                onChange={handleProfileChange}
+                placeholder="Enter your delivery address"
+                rows={3}
+                className="w-full resize-y rounded-lg border border-white/10 bg-[#22222B] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20"
               />
             </div>
 

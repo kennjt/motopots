@@ -31,6 +31,7 @@ export function CustomerAuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [recovery, setRecovery] = useState(false);
   const requestId = useRef(0);
 
@@ -43,6 +44,7 @@ export function CustomerAuthProvider({ children }) {
         if (mounted) {
           setSession(null);
           setCustomer(null);
+          setError("");
           setRecovery(false);
           setLoading(false);
         }
@@ -51,6 +53,7 @@ export function CustomerAuthProvider({ children }) {
 
       if (mounted) {
         setSession(nextSession);
+        setError("");
         setLoading(true);
       }
 
@@ -60,11 +63,13 @@ export function CustomerAuthProvider({ children }) {
         if (!mounted || requestId.current !== currentRequest) return;
         setCustomer(profile);
         cacheProfile(profile);
-      } catch {
+      } catch (profileError) {
         if (!mounted || requestId.current !== currentRequest) return;
         setSession(null);
         setCustomer(null);
-        await customerSupabase.auth.signOut({ scope: "local" });
+        setError(profileError instanceof Error
+          ? profileError.message
+          : "Your customer profile could not be loaded.");
       } finally {
         if (mounted && requestId.current === currentRequest) setLoading(false);
       }
@@ -76,6 +81,7 @@ export function CustomerAuthProvider({ children }) {
         if (mounted) {
           setSession(null);
           setCustomer(null);
+          setError("Your customer session could not be restored.");
           setLoading(false);
         }
         return;
@@ -98,15 +104,35 @@ export function CustomerAuthProvider({ children }) {
 
   const refreshCustomer = useCallback(async () => {
     const profile = await loadCustomerProfile(session);
+    if (!profile) throw new Error("Your customer profile could not be found.");
     setCustomer(profile);
     cacheProfile(profile);
     return profile;
+  }, [session]);
+
+  const updateCustomerProfile = useCallback(async (updates) => {
+    if (!session?.user?.id) throw new Error("Your customer session has expired.");
+
+    const { data, error: updateError } = await customerSupabase
+      .from("customer")
+      .update(updates)
+      .eq("auth_user_id", session.user.id)
+      .select(CUSTOMER_FIELDS)
+      .maybeSingle();
+
+    if (updateError) throw updateError;
+    if (!data) throw new Error("Your customer profile could not be updated.");
+
+    setCustomer(data);
+    cacheProfile(data);
+    return data;
   }, [session]);
 
   const signOut = async () => {
     const { error } = await customerSupabase.auth.signOut({ scope: "local" });
     setSession(null);
     setCustomer(null);
+    setError("");
     setRecovery(false);
     localStorage.removeItem("motopots-profile");
     window.dispatchEvent(new Event("motopots-profile-updated"));
@@ -119,11 +145,13 @@ export function CustomerAuthProvider({ children }) {
       user: session?.user ?? null,
       customer,
       loading,
+      error,
       recovery,
       refreshCustomer,
+      updateCustomerProfile,
       signOut,
     }),
-    [customer, loading, recovery, refreshCustomer, session],
+    [customer, error, loading, recovery, refreshCustomer, session, updateCustomerProfile],
   );
 
   return <CustomerAuthContext.Provider value={value}>{children}</CustomerAuthContext.Provider>;
