@@ -3,8 +3,8 @@ import {
   NOTIFICATIONS_UPDATED_EVENT,
   readOperationalNotices,
   saveOperationalNotices,
-} from "../data/notificationStorage";
-import { showConfirm, showSuccess } from "../utils/swal";
+} from "../../data/notificationStorage";
+import { showConfirm, showSuccess } from "../../utils/swal";
 
 const noticeAudiences = [
   { value: "all", label: "Everyone" },

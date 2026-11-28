@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { formatMoney } from "../data/menuData";
+import { formatMoney } from "../../data/menuData";
 import {
   ADDRESSES_UPDATED_EVENT,
   createAddressId,
@@ -7,20 +7,20 @@ import {
   formatAddress,
   readSavedAddresses,
   saveSavedAddresses,
-} from "../data/addressStorage";
+} from "../../data/addressStorage";
 import {
   SIPOCOT_BARANGAYS,
   SIPOCOT_LOCATION,
-} from "../data/sipocotLocation";
-import { loadPsgcArea, PSGC_SOURCE_URL } from "../data/psgc";
-import gcashlogo from "../assets/GCash_logo.svg";
-import { ImageWithSkeleton } from "./Skeleton";
+} from "../../data/sipocotLocation";
+import { loadPsgcArea, PSGC_SOURCE_URL } from "../../data/psgc";
+import gcashlogo from "../../assets/GCash_logo.svg";
+import { ImageWithSkeleton } from "../common/Skeleton";
 import {
   showConfirm,
   showError,
   showSuccess,
   showWarning,
-} from "../utils/swal";
+} from "../../utils/swal";
 
 const emptyCustomer = { name: "", phone: "", email: "" };
 const isSipocotAddress = (address) =>

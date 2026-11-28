@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { formatMoney, menuItems } from "../data/menuData";
+import { formatMoney, menuItems } from "../../data/menuData";
 import {
   INVENTORY_STORAGE_KEY,
   readInventoryState,
   saveInventoryState,
-} from "../data/inventoryStorage";
-import { readEmployees } from "../data/adminSettingsStorage";
-import { deleteExpense, saveExpense } from "../data/expensesStorage";
-import { showConfirm, showSuccess } from "../utils/swal";
+} from "../../data/inventoryStorage";
+import { readEmployees } from "../../data/adminSettingsStorage";
+import { deleteExpense, saveExpense } from "../../data/expensesStorage";
+import { showConfirm, showSuccess } from "../../utils/swal";
 
 const inputClass =
   "mt-1 block w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none focus:border-[#E63946]/60";

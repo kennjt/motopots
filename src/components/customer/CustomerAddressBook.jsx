@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { showError, showSuccess } from "../utils/swal";
-import { useCustomerAuth } from "../auth/customerAuthContext";
+import { showError, showSuccess } from "../../utils/swal";
+import { useCustomerAuth } from "../../auth/customerAuthContext";
 
 const inputClass =
   "mt-1.5 w-full rounded-lg border border-white/10 bg-[#22222B] px-3 py-2.5 text-sm text-[#F5F5F5] outline-none focus:border-[#E63946]";

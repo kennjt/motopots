@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import Menu from "./components/menu";
-import CustomerNavbar from "./components/customernavbar";
-import CustomerCartPage from "./components/CustomerCartPage";
-import CustomerFavoritesPage from "./components/CustomerFavoritesPage";
-import MyOrder from "./components/MyOrder";
-import ProfileSettings from "./components/profile";
-import Checkout from "./components/Checkout";
-import FAQ from "./components/faq";
-import Footer from "./components/footer";
+import Menu from "./components/menu/menu";
+import CustomerNavbar from "./components/customer/customernavbar";
+import CustomerCartPage from "./components/orders/CustomerCartPage";
+import CustomerFavoritesPage from "./components/customer/CustomerFavoritesPage";
+import MyOrder from "./components/orders/MyOrder";
+import ProfileSettings from "./components/customer/profile";
+import Checkout from "./components/orders/Checkout";
+import FAQ from "./components/landing/faq";
+import Footer from "./components/common/footer";
 import { formatMoney, makeCartItem, menuItems } from "./data/menuData";
 import { readStoreStatus, readSchedule } from "./data/adminSettingsStorage";
 import {
@@ -21,8 +21,8 @@ import {
   saveOrders,
 } from "./data/orderStorage";
 import homeHeroImage from "./assets/home-heroimg.png";
-import { ImageWithSkeleton } from "./components/Skeleton";
-import Reveal from "./components/Reveal";
+import { ImageWithSkeleton } from "./components/common/Skeleton";
+import Reveal from "./components/common/Reveal";
 import {
   showClosedStore,
   showConfirm,

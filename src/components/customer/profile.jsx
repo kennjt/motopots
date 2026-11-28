@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CustomerNavbar from "./customernavbar";
-import { showError, showSuccess, showWarning } from "../utils/swal";
+import { showError, showSuccess, showWarning } from "../../utils/swal";
 import CustomerAddressBook from "./CustomerAddressBook";
-import { customerSupabase } from "../utils/customerSupabase";
-import { useCustomerAuth } from "../auth/customerAuthContext";
-import { getCustomerPasswordError } from "../utils/customerPassword";
+import { customerSupabase } from "../../utils/customerSupabase";
+import { useCustomerAuth } from "../../auth/customerAuthContext";
+import { getCustomerPasswordError } from "../../utils/customerPassword";
 
 function ProfileSettings({ modal = false, onClose }) {
   const navigate = useNavigate();

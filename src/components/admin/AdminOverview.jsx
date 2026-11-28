@@ -10,15 +10,15 @@ import {
   Store,
   Wallet,
 } from "lucide-react";
-import { formatMoney, menuItems } from "../data/menuData";
+import { formatMoney, menuItems } from "../../data/menuData";
 import {
   ORDERS_STORAGE_KEY,
   ORDERS_UPDATED_EVENT,
   formatOrderId,
   readOrders,
-} from "../data/orderStorage";
-import { readSchedule, readStoreStatus } from "../data/adminSettingsStorage";
-import { ImageWithSkeleton } from "./Skeleton";
+} from "../../data/orderStorage";
+import { readSchedule, readStoreStatus } from "../../data/adminSettingsStorage";
+import { ImageWithSkeleton } from "../common/Skeleton";
 
 const BUSINESS_TIME_ZONE = "Asia/Manila";
 const SCHEDULE_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];

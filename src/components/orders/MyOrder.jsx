@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import CustomerNavbar from "./customernavbar";
-import { formatMoney } from "../data/menuData";
+import CustomerNavbar from "../customer/customernavbar";
+import { formatMoney } from "../../data/menuData";
 import {
   ORDERS_UPDATED_EVENT,
   formatOrderId,
   readOrders,
   recordOrderStatus,
   saveOrders,
-} from "../data/orderStorage";
-import { showConfirm, showError, showSuccess } from "../utils/swal";
+} from "../../data/orderStorage";
+import { showConfirm, showError, showSuccess } from "../../utils/swal";
 
 const money = formatMoney;
 

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { customerSupabase } from "../utils/customerSupabase";
-import { showError, showSuccess } from "../utils/swal";
-import { getCustomerPasswordError } from "../utils/customerPassword";
+import { customerSupabase } from "../../utils/customerSupabase";
+import { showError, showSuccess } from "../../utils/swal";
+import { getCustomerPasswordError } from "../../utils/customerPassword";
 
 export default function PasswordResetForm() {
   const navigate = useNavigate();

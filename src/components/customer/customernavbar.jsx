@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { formatMoney } from "../data/menuData";
-import carticon from "../assets/cart_icon.svg";
-import { showSuccess } from "../utils/swal";
-import LogoutConfirmationModal from "./LogoutConfirmationModal";
+import { formatMoney } from "../../data/menuData";
+import carticon from "../../assets/cart_icon.svg";
+import { showSuccess } from "../../utils/swal";
+import LogoutConfirmationModal from "../common/LogoutConfirmationModal";
 import { ClipboardList, X } from "lucide-react";
-import { useCustomerAuth } from "../auth/customerAuthContext";
+import { useCustomerAuth } from "../../auth/customerAuthContext";
 
 function MenuIcon({ open }) {
   return (

@@ -3,22 +3,22 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import AdminRoutes from "./AdminRoutes";
 import { EmployeeAuthProvider } from "./auth/EmployeeAuthProvider";
 import { CustomerAuthProvider } from "./auth/CustomerAuthProvider";
-import CustomerRouteGuard from "./components/CustomerRouteGuard";
-import PasswordResetForm from "./components/PasswordResetForm";
+import CustomerRouteGuard from "./components/customer/CustomerRouteGuard";
+import PasswordResetForm from "./components/auth/PasswordResetForm";
 import { useCustomerAuth } from "./auth/customerAuthContext";
 
-import AppNavbar from "./components/navbar";
-import Menu from "./components/menu";
-import FAQ from "./components/faq";
-import Footer from "./components/footer";
+import AppNavbar from "./components/landing/navbar";
+import Menu from "./components/menu/menu";
+import FAQ from "./components/landing/faq";
+import Footer from "./components/common/footer";
 import CustomerDashboard from "./CustomerDashboard";
-import ProfileSettings from "./components/profile";
-import MyOrder from "./components/MyOrder";
-import AccountCreation from "./components/AccountCreation";
+import ProfileSettings from "./components/customer/profile";
+import MyOrder from "./components/orders/MyOrder";
+import AccountCreation from "./components/auth/AccountCreation";
 
 import homeHeroImage from "./assets/home-heroimg.png";
-import { ImageWithSkeleton } from "./components/Skeleton";
-import Reveal from "./components/Reveal";
+import { ImageWithSkeleton } from "./components/common/Skeleton";
+import Reveal from "./components/common/Reveal";
 import "./App.css";
 
 function HomePage() {

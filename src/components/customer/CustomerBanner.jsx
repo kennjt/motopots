@@ -1,5 +1,5 @@
-import bannerBackground from "../assets/banner_bg.jpg";
-import { ImageWithSkeleton } from "./Skeleton";
+import bannerBackground from "../../assets/banner_bg.jpg";
+import { ImageWithSkeleton } from "../common/Skeleton";
 
 function CustomerBanner() {
   return (

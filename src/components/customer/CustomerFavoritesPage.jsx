@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, Heart } from "lucide-react";
-import { formatMoney, menuItems } from "../data/menuData";
-import { ImageWithSkeleton } from "./Skeleton";
+import { formatMoney, menuItems } from "../../data/menuData";
+import { ImageWithSkeleton } from "../common/Skeleton";
 
 export default function CustomerFavoritesPage({
   favoriteOrders,

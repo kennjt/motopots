@@ -1,5 +1,5 @@
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { useCustomerAuth } from "../auth/customerAuthContext";
+import { useCustomerAuth } from "../../auth/customerAuthContext";
 
 export default function CustomerRouteGuard({ children }) {
   const { user, customer, loading, error } = useCustomerAuth();

@@ -10,10 +10,10 @@ import {
   ShoppingBag,
   Users,
 } from "lucide-react";
-import { showSuccess } from "../utils/swal";
-import LogoutConfirmationModal from "./LogoutConfirmationModal";
-import NotificationCenter from "./NotificationCenter";
-import { useEmployeeAuth } from "../auth/employeeAuthContext";
+import { showSuccess } from "../../utils/swal";
+import LogoutConfirmationModal from "../common/LogoutConfirmationModal";
+import NotificationCenter from "../common/NotificationCenter";
+import { useEmployeeAuth } from "../../auth/employeeAuthContext";
 
 const navigation = [
   { label: "Overview", path: "/staff", icon: LayoutDashboard, roles: ["owner", "staff"] },

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ORDERS_UPDATED_EVENT, readOrders } from "../data/orderStorage";
-import { formatMoney } from "../data/menuData";
+import { ORDERS_UPDATED_EVENT, readOrders } from "../../data/orderStorage";
+import { formatMoney } from "../../data/menuData";
 
 const FAVORITES_KEY = "motopots-favorite-orders";
 

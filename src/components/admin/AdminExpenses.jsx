@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { readEmployees } from "../data/adminSettingsStorage";
+import { readEmployees } from "../../data/adminSettingsStorage";
 import {
   deleteExpense,
   EXPENSES_UPDATED_EVENT,
   readExpenses,
   saveExpense,
-} from "../data/expensesStorage";
-import { formatMoney } from "../data/menuData";
-import { showConfirm, showSuccess } from "../utils/swal";
+} from "../../data/expensesStorage";
+import { formatMoney } from "../../data/menuData";
+import { showConfirm, showSuccess } from "../../utils/swal";
 
 const categories = [
   "Food & Ingredients",

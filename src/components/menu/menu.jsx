@@ -6,9 +6,9 @@ import {
   loadMenuCatalog,
   makeCartItem,
   menuItems,
-} from "../data/menuData";
-import { ImageWithSkeleton } from "./Skeleton";
-import Reveal from "./Reveal";
+} from "../../data/menuData";
+import { ImageWithSkeleton } from "../common/Skeleton";
+import Reveal from "../common/Reveal";
 
 function Menu({
   onAddToCart,

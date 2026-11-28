@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, Minus, Plus, Trash2 } from "lucide-react";
-import { formatMoney } from "../data/menuData";
-import { ImageWithSkeleton } from "./Skeleton";
+import { formatMoney } from "../../data/menuData";
+import { ImageWithSkeleton } from "../common/Skeleton";
 
 export default function CustomerCartPage({
   cartItems,

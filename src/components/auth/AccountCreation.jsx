@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { customerSupabase } from "../utils/customerSupabase";
+import { customerSupabase } from "../../utils/customerSupabase";
 import {
   CUSTOMER_PASSWORD_MIN_LENGTH,
   getCustomerPasswordError,
-} from "../utils/customerPassword";
+} from "../../utils/customerPassword";
 
 const initialForm = {
   fullName: "",

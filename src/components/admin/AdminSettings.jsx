@@ -23,9 +23,9 @@ import {
   saveSchedule,
   saveShifts,
   saveStoreStatus,
-} from "../data/adminSettingsStorage";
-import { showConfirm, showError, showSuccess } from "../utils/swal";
-import { useEmployeeAuth } from "../auth/employeeAuthContext";
+} from "../../data/adminSettingsStorage";
+import { showConfirm, showError, showSuccess } from "../../utils/swal";
+import { useEmployeeAuth } from "../../auth/employeeAuthContext";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const weekDaysFromSunday = ["Sunday", ...days];

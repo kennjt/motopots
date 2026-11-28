@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { customerSupabase } from "../utils/customerSupabase";
+import { customerSupabase } from "../../utils/customerSupabase";
 
 const inputClassName = "w-full rounded-xl border border-white/10 bg-[#15151C] px-4 py-3 text-[#F5F5F5] outline-none transition placeholder:text-[#A1A1AA] focus:border-[#E63946] focus:ring-2 focus:ring-[#E63946]/20";
 const buttonClassName = "w-full rounded-xl border border-[#E63946] bg-[#E63946] py-3 font-extrabold text-white shadow-lg shadow-[#E63946]/20 transition duration-300 hover:-translate-y-0.5 hover:bg-[#C92D3A] disabled:cursor-wait disabled:opacity-70";

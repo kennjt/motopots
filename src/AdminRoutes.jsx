@@ -1,16 +1,16 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
 import AdminDashboard from "./AdminDashboard";
-import AdminOverview from "./components/AdminOverview";
-import AdminSettings from "./components/AdminSettings";
-import AdminLayout from "./components/AdminLayout";
-import AdminSectionPage from "./components/AdminSectionPage";
-import AdminCustomerPages from "./components/AdminCustomerPages";
-import AdminMenuCatalog from "./components/AdminMenuCatalog";
-import AdminWorkspace from "./components/AdminWorkspace";
-import AdminInventoryOverview from "./components/AdminInventoryOverview";
-import AdminInventoryManagement from "./components/AdminInventoryManagement";
-import AdminExpenses from "./components/AdminExpenses";
+import AdminOverview from "./components/admin/AdminOverview";
+import AdminSettings from "./components/admin/AdminSettings";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminSectionPage from "./components/admin/AdminSectionPage";
+import AdminCustomerPages from "./components/admin/AdminCustomerPages";
+import AdminMenuCatalog from "./components/admin/AdminMenuCatalog";
+import AdminWorkspace from "./components/admin/AdminWorkspace";
+import AdminInventoryOverview from "./components/inventory/AdminInventoryOverview";
+import AdminInventoryManagement from "./components/inventory/AdminInventoryManagement";
+import AdminExpenses from "./components/admin/AdminExpenses";
 import { useEmployeeAuth } from "./auth/employeeAuthContext";
 
 const ownerOnlyPaths = new Set(["expenses", "sales-reports", "performance", "operating-hours", "store-availability", "settings", "shifts", "employees", "store-information"]);

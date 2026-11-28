@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import LoginForm from "./LoginForm";
-import ForgotPasswordForm from "./ForgotPasswordForm";
+import LoginForm from "../auth/LoginForm";
+import ForgotPasswordForm from "../auth/ForgotPasswordForm";
 
 function AppNavbar() {
   const location = useLocation();

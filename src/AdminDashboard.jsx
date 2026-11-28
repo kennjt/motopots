@@ -10,9 +10,9 @@ import {
   saveOrders,
 } from "./data/orderStorage";
 import { deductOrderRecipeStock } from "./data/inventoryStorage";
-import { ImageWithSkeleton } from "./components/Skeleton";
+import { ImageWithSkeleton } from "./components/common/Skeleton";
 import { showConfirm, showError, showSuccess } from "./utils/swal";
-import AdminMenuCatalog from "./components/AdminMenuCatalog";
+import AdminMenuCatalog from "./components/admin/AdminMenuCatalog";
 import { useEmployeeAuth } from "./auth/employeeAuthContext";
 
 const orderStatuses = [

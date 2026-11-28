@@ -15,14 +15,14 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { formatMoney } from "../data/menuData";
+import { formatMoney } from "../../data/menuData";
 import {
   DEFAULT_INVENTORY_CATEGORIES,
   INVENTORY_STORAGE_KEY,
   readInventoryState,
   saveInventoryState,
-} from "../data/inventoryStorage";
-import { showConfirm, showSuccess } from "../utils/swal";
+} from "../../data/inventoryStorage";
+import { showConfirm, showSuccess } from "../../utils/swal";
 
 const emptyDraft = {
   name: "",

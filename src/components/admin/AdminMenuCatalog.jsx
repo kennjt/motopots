@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { categories, formatMoney, menuItems, saveMenuCatalog } from "../data/menuData";
-import { ImageWithSkeleton } from "./Skeleton";
-import { showConfirm, showError, showSuccess } from "../utils/swal";
+import { categories, formatMoney, menuItems, saveMenuCatalog } from "../../data/menuData";
+import { ImageWithSkeleton } from "../common/Skeleton";
+import { showConfirm, showError, showSuccess } from "../../utils/swal";
 
 const emptyProduct = {
   name: "",

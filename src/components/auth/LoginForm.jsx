@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { showError, showSuccess } from "../utils/swal";
-import { supabase } from "../utils/supabase";
-import { customerSupabase } from "../utils/customerSupabase";
+import { showError, showSuccess } from "../../utils/swal";
+import { supabase } from "../../utils/supabase";
+import { customerSupabase } from "../../utils/customerSupabase";
 
 function LoginForm({
   role,
